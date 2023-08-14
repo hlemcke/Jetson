@@ -1,0 +1,51 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<organization>
+		<name>djarjo GmbH</name>
+		<url>www.djarjo.com</url>
+	</organization>
+
+	<name>djarjo - jetson build</name>
+	<description>Build Manager for Djarjo Jetson</description>
+	<url>http://maven.djarjo.com</url>
+
+	<groupId>com.djarjo</groupId>
+	<artifactId>jetson-build</artifactId>
+	<version>1.0.0</version>
+
+	<packaging>pom</packaging>
+
+	<properties>
+		<failOnMissingWebXml>false</failOnMissingWebXml>
+		<maven.test.skip>true</maven.test.skip>
+		<maven.test.failure.ignore>true</maven.test.failure.ignore>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>17</java.version>
+
+		<!-- maven versions -->
+		<org.apache.maven.plugins_maven-jar-plugin_version>3.3.0</org.apache.maven.plugins_maven-jar-plugin_version>
+		<org.apache.maven.plugins_maven-antrun-plugin_version>3.1.0</org.apache.maven.plugins_maven-antrun-plugin_version>
+		<org.apache.maven.plugins_maven-compiler-plugin_version>3.10.1</org.apache.maven.plugins_maven-compiler-plugin_version>
+		<org.apache.maven.plugins_maven-war-plugin_version>3.3.2</org.apache.maven.plugins_maven-war-plugin_version>
+		<org.eclipse.m2e_lifecycle-mapping_version>1.0.0</org.eclipse.m2e_lifecycle-mapping_version>
+
+		<!-- Logging libraries -->
+		<com.google.flogger_flogger_version>0.7.4</com.google.flogger_flogger_version>
+		<com.google.flogger_flogger-system-backend_version>0.7.4</com.google.flogger_flogger-system-backend_version>	
+
+		<!-- JUnit -->
+		<org.junit.jupiter_junit-jupiter-api_version>5.9.1</org.junit.jupiter_junit-jupiter-api_version>
+		<org.junit.jupiter_junit-jupiter-engine_version>5.9.1</org.junit.jupiter_junit-jupiter-engine_version>
+    	<org.mockito_mockito-core_version>4.5.1</org.mockito_mockito-core_version>
+    	<org.mockito_mockito-inline_version>4.5.1</org.mockito_mockito-inline_version>
+	</properties>
+
+	<modules>
+		<module>pom_annotation.xml</module>
+		<module>pom.xml</module>
+	</modules>
+</project>

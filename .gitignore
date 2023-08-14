@@ -1,0 +1,7 @@
+*.cfg
+*.class
+*.log
+*.properties
+/bin
+/build
+/target
