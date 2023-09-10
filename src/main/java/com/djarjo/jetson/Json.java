@@ -14,14 +14,13 @@ import com.djarjo.jetson.converter.JsonConverter;
  * <p>
  * A Json annotation provides the following optional parameters:
  * <ul>
- * <li>{@link converter()} - JsonConverter defaults to no converter</li>
- * <li>{@link decodable()} - boolean defaults to true</li>
- * <li>{@link encodable()} - boolean defaults to true</li>
- * <li>{@link key()} - String defaults to property name</li>
+ * <li>{@link #converter()} - JsonConverter defaults to no converter</li>
+ * <li>{@link #decodable()} - boolean defaults to true</li>
+ * <li>{@link #encodable()} - boolean defaults to true</li>
+ * <li>{@link #key()} - String defaults to property name</li>
  * </ul>
- * Setting both {@link decodable()} and {@link encodable()} to false is exactly
- * the same as not annotating the field at all.
- * </p>
+ * Setting both {@link #decodable()} and {@link #encodable()} to false is
+ * exactly the same as not annotating the field at all.
  *
  * @author Hajo Lemcke
  * @version 2023-08-11 added encodable and decodable
@@ -33,6 +32,9 @@ import com.djarjo.jetson.converter.JsonConverter;
 @Target({ ElementType.FIELD, ElementType.METHOD })
 public @interface Json {
 
+	/**
+	 * Just tells the annotation parser that this annotation is default
+	 */
 	static String defaultName = "##default";
 
 	/**
@@ -75,7 +77,6 @@ public @interface Json {
 	 * will write {@code "PassWord":"badPw"} into the Json string during
 	 * encoding instead of {@code "UserPw":"badPw"}. Decoding also expects the
 	 * key "PassWord".
-	 * </p>
 	 *
 	 * @return key for Json value
 	 */

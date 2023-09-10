@@ -2,16 +2,19 @@ package com.djarjo.jetson.converter;
 
 import java.util.Optional;
 
-import com.djarjo.codec.Base64;
-import com.djarjo.codec.Base64.CODING;
+import com.djarjo.common.Base64;
+import com.djarjo.common.Base64.CODING;
 
+/**
+ * Converts a byte array to a Json string in web safe Base64 encoding and back.
+ */
 public class ByteArrayConverter4json implements JsonConverter<byte[]> {
 
 	@Override
 	public String encodeToJson( byte[] byteArray ) {
 		return Optional
 				.ofNullable( byteArray ).map( bytes -> Base64.encoder()
-						.setCoding( CODING.WEB_SAFE ).encode( bytes ) )
+						.withEncoding( CODING.WEB_SAFE ).encode( bytes ) )
 				.orElse( null );
 	}
 

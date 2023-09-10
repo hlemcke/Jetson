@@ -1,4 +1,4 @@
-package com.djarjo.codec;
+package com.djarjo.common;
 
 import java.io.UnsupportedEncodingException;
 
@@ -16,17 +16,24 @@ import java.io.UnsupportedEncodingException;
  * The decoders also accepts {@code +} for char 62 and {@code /} for char 63.
  * These characters are not safe to use in URLs and file systems.
  * </p>
- * 
+ *
  * @author Hajo Lemcke
  * @since 2015-10
  */
 public class Base64 {
 
+	/**
+	 * Coding type for encoding.
+	 */
 	public enum CODING {
+		/**
+		 * Standard encoding uses characters "+" and "-" producing problems in
+		 * URLs
+		 */
 		DEFAULT,
 
 		/**
-		 * Replaces default _coding character {@code +} with {@code -} and
+		 * Replaces default coding character {@code +} with {@code -} and
 		 * character {@code /} with {@code _}
 		 */
 		WEB_SAFE
@@ -53,7 +60,7 @@ public class Base64 {
 
 	/**
 	 * Instantiates a new decoder (fluent API).
-	 * 
+	 *
 	 * @return new instance of Decoder
 	 */
 	public static Decoder decoder() {
@@ -62,7 +69,7 @@ public class Base64 {
 
 	/**
 	 * Instantiates a new encoder (fluent API).
-	 * 
+	 *
 	 * @return new instance of Encoder
 	 */
 	public static Encoder encoder() {
@@ -74,14 +81,31 @@ public class Base64 {
 	 */
 	public static class Decoder {
 
+		/**************************************************************
+		 * Base 64 decoder. Accepts both character sets (standard and web-safe).
+		 */
 		public Decoder() {
 		}
 
+		/**
+		 * Decodes given string which must be base64 encoded.
+		 *
+		 * @param base64String
+		 *            string in base64 format
+		 * @return byte array of decoded text
+		 */
 		public byte[] decode( String base64String ) {
 			byte[] base64Data = base64String.getBytes();
 			return decode( base64Data );
 		}
 
+		/**
+		 * Decodes given byte array
+		 *
+		 * @param base64Data
+		 *            bytes of a base 64 string
+		 * @return decoded byte array
+		 */
 		public byte[] decode( byte[] base64Data ) {
 			// --- Prepare input
 			int inputLength = base64Data.length;
@@ -128,7 +152,7 @@ public class Base64 {
 
 		/**
 		 * Gets the index of the given character into the Base64 encoding.
-		 * 
+		 *
 		 * @param c
 		 *            The base64 character
 		 * @return the index [0..63] for any valid char, -2 for the padding char
@@ -169,13 +193,17 @@ public class Base64 {
 		private byte[] _codeTable = BASE64_BYTES_WEB_SAFE;
 		private boolean _lineBreaks = false;
 
+		/******************************************************************
+		 * Encodes given text into base 64. Defaults to web safe character set
+		 * without line breaks.
+		 */
 		public Encoder() {
 		}
 
 		/**
 		 * Encodes the given string into Base64 7bit characters. The string is
 		 * interpreted as being encoded in UTF-8.
-		 * 
+		 *
 		 * @param textData
 		 *            The string to be encoded
 		 * @return text in Base64 format
@@ -194,7 +222,7 @@ public class Base64 {
 		 * Encodes the given binary data into Base64 7bit characters. If
 		 * {@code lineBreaks = true} then every 76 characters on output (which
 		 * is 57 bytes on input) a line-feed will be inserted.
-		 * 
+		 *
 		 * @param binaryInput
 		 *            The input to be encoded into Base64
 		 * @return Base64 encoded string
@@ -254,41 +282,48 @@ public class Base64 {
 			return new String( binaryOutput );
 		}
 
+		/**
+		 * Gets coding: URL-safe or standard
+		 *
+		 * @return coding
+		 */
 		public CODING getCoding() {
 			return _coding;
 		}
 
 		/**
+		 * Gets line breaks setting.
+		 *
+		 * @return {@code true} if line breaks included during encoding
+		 */
+		public boolean hasLineBreaks() {
+			return _lineBreaks;
+		}
+
+		/**
 		 * Set coding to web-safe or standard. Defaults to web-safe.
-		 * 
+		 *
 		 * @param coding
 		 *            standard or web-safe
 		 * @return encoder for fluent api
 		 */
-		public Encoder setCoding( CODING coding ) {
+		public Encoder withEncoding( CODING coding ) {
 			this._coding = coding;
-			if ( coding == CODING.DEFAULT ) {
-				_codeTable = BASE64_BYTES_DEFAULT;
-			} else {
-				_codeTable = BASE64_BYTES_WEB_SAFE;
-			}
+			_codeTable = (coding == CODING.DEFAULT) ? BASE64_BYTES_DEFAULT
+					: BASE64_BYTES_WEB_SAFE;
 			return this;
 		}
 
 		/**
 		 * Sets creation of line breaks every 64 chars. Default = {@code false}.
-		 * 
+		 *
 		 * @param lineBreaks
 		 *            {@code true} will produce line breaks every 64 chars
 		 * @return encoder for fluent api
 		 */
-		public Encoder setLineBreaks( boolean lineBreaks ) {
+		public Encoder withLineBreaks( boolean lineBreaks ) {
 			this._lineBreaks = lineBreaks;
 			return this;
-		}
-
-		public boolean withLineBreaks() {
-			return _lineBreaks;
 		}
 	}
 }

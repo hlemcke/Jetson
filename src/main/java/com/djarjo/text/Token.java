@@ -3,15 +3,29 @@ package com.djarjo.text;
 /**
  * A {@code Token} consists of a symbol. Its value is the string which defined
  * the symbol.
- * 
+ *
  * @author Hajo Lemcke
  * @since 2021-12-03 extracted from Tokenizer to include both Symbol and value
  */
 public class Token {
+	/**
+	 * Current index into text
+	 */
 	public int position = -1;
+
+	/**
+	 * Latest symbol
+	 */
 	public Symbol symbol = Symbol.UNKNOWN;
+
+	/**
+	 * Latest value of symbol
+	 */
 	public String value = "";
 
+	/**
+	 * Empty no arg constructor
+	 */
 	public Token() {
 	}
 
@@ -24,10 +38,21 @@ public class Token {
 		return clone;
 	}
 
+	/**
+	 * Constructor using symbol
+	 *
+	 * @param symbol
+	 *            well ... symbol
+	 */
 	public Token( Symbol symbol ) {
 		this.symbol = symbol;
 	}
 
+	/**
+	 * Gets current value as a Double
+	 *
+	 * @return double or {@code null}
+	 */
 	public Double getAsDouble() {
 		Double d = null;
 		try {
@@ -40,7 +65,7 @@ public class Token {
 
 	/**
 	 * Gets value as a Java integer
-	 * 
+	 *
 	 * @return Java integer or {@code null} if no integer
 	 */
 	public Integer getAsInt() {
@@ -55,7 +80,7 @@ public class Token {
 
 	/**
 	 * Gets value as a Java long
-	 * 
+	 *
 	 * @return Java long or {@code null} if no long
 	 */
 	public Long getAsLong() {
@@ -70,7 +95,7 @@ public class Token {
 
 	/**
 	 * Gets value as an lower case string
-	 * 
+	 *
 	 * @return String with all characters lower case. Can be empty but not
 	 *         {@code null}.
 	 */
@@ -80,7 +105,7 @@ public class Token {
 
 	/**
 	 * Gets value as an upper case string
-	 * 
+	 *
 	 * @return String with all characters upper case. Can be empty but not
 	 *         {@code null}.
 	 */

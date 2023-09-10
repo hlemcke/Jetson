@@ -21,7 +21,6 @@ import java.util.Set;
 
 import javax.lang.model.element.ElementKind;
 
-import com.djarjo.codec.BaseConverter;
 import com.google.common.flogger.FluentLogger;
 
 /**********************************************************************
@@ -39,9 +38,16 @@ public class BeanHelper {
 	 * the leading 'get') and the value is the value returned from the getter
 	 * method.
 	 *
-	 * @throws InvocationTargetException
-	 * @throws IllegalArgumentException
+	 * @param bean
+	 *            Java object to be described
+	 * @return new instance of HashMap
+	 *
 	 * @throws IllegalAccessException
+	 *             if access is prohibited
+	 * @throws IllegalArgumentException
+	 *             if getter name is wrong
+	 * @throws InvocationTargetException
+	 *             if getter must not be invoked
 	 */
 	public static Map<String, Object> describe( Object bean )
 			throws IllegalAccessException, IllegalArgumentException,
@@ -56,11 +62,16 @@ public class BeanHelper {
 	 * methods.
 	 *
 	 * @param bean
+	 *            Java object to be described
 	 * @param getters
-	 * @return Returns a map with property names and their values
+	 *            list of getter methods
+	 * @return new instance of HashMap
 	 * @throws IllegalAccessException
+	 *             if access is prohibited
 	 * @throws IllegalArgumentException
+	 *             if getter name is wrong
 	 * @throws InvocationTargetException
+	 *             if getter must not be invoked
 	 */
 	public static Map<String, Object> describe( Object bean, Method[] getters )
 			throws IllegalAccessException, IllegalArgumentException,
@@ -87,12 +98,12 @@ public class BeanHelper {
 	 *
 	 * @param bean
 	 *            The bean to describe
-	 * @return Returns map with field names and their values
+	 * @return map with field names and their values
 	 * @throws IllegalAccessException
-	 * @throws IllegalArgumentException
+	 *             if access is prohibited
 	 */
 	public static Map<String, Object> describeFields( Object bean )
-			throws IllegalArgumentException, IllegalAccessException {
+			throws IllegalAccessException {
 		Map<String, Object> map = new HashMap<>();
 
 		// --- Put values into map
@@ -197,9 +208,9 @@ public class BeanHelper {
 	 *
 	 * @param cls
 	 *            The class in which to find methods
-	 * @param anno
+	 * @param annoClass
 	 *            The annotation which must be present on the method
-	 * @return Returns annotated methods or <em>null</em> if none found
+	 * @return annotated methods or <em>null</em> if none found
 	 */
 	public static Method[] findMethods( Class<?> cls,
 			Class<? extends Annotation> annoClass ) {
@@ -231,7 +242,7 @@ public class BeanHelper {
 	 *            The class to find the getter method in
 	 * @param propertyName
 	 *            The name of the property
-	 * @return Returns the method or <em>null</em> if not found
+	 * @return method or <em>null</em> if not found
 	 */
 	public static Method findSetter( Class<?> beanClass, String propertyName ) {
 		assert beanClass != null : "No class given";
@@ -260,7 +271,7 @@ public class BeanHelper {
 	 *            Methods
 	 * @param propertyName
 	 *            The name of the property
-	 * @return Returns the method or <em>null</em> if not found
+	 * @return method or <em>null</em> if not found
 	 */
 	public static Method findSetter( Method[] methods, String propertyName ) {
 		assert methods != null : "No methods given";
@@ -281,12 +292,12 @@ public class BeanHelper {
 	 * will be logged with level WARNING and {@code null} will be returned.
 	 *
 	 * @param bean
-	 *            The bean which contains the element
+	 *            bean which contains the element
 	 * @param kind
-	 *            The type of the element (FIELD or METHOD)
+	 *            type of the element (FIELD or METHOD)
 	 * @param name
-	 *            The name of the element
-	 * @return Returns the value of the element
+	 *            name of the element
+	 * @return value of the element
 	 */
 	public static Object getValue( Object bean, ElementKind kind,
 			String name ) {
@@ -386,10 +397,14 @@ public class BeanHelper {
 	 *            name of target field in bean
 	 * @param value
 	 *            value to set
-	 * @throws NoSuchFieldException
-	 * @throws SecurityException
-	 * @throws IllegalArgumentException
 	 * @throws IllegalAccessException
+	 *             if access is prohibited
+	 * @throws IllegalArgumentException
+	 *             if type of value is wrong
+	 * @throws NoSuchFieldException
+	 *             if bean does not have an attribute named {@code fieldName}
+	 * @throws SecurityException
+	 *             if access is prohibited
 	 */
 	public static void inject( Object bean, String fieldName, Object value )
 			throws NoSuchFieldException, SecurityException,
@@ -426,6 +441,7 @@ public class BeanHelper {
 	 * </ol>
 	 * Examples:
 	 * <table>
+	 * <caption>Examples</caption>
 	 * <tr>
 	 * <td>SOME_ENUM_ENTRY</td>
 	 * <td>-&gt; someEnumEntry</td>
@@ -440,9 +456,9 @@ public class BeanHelper {
 	 * </tr>
 	 * </table>
 	 *
-	 * @param e
-	 *            The enumeration entry
-	 * @return Returns the field name
+	 * @param name
+	 *            some name
+	 * @return field name
 	 */
 	public static String makeFieldName( String name ) {
 		boolean hasLowerCase = false;
@@ -480,8 +496,7 @@ public class BeanHelper {
 	 *            The prefix for the method like "get", "has", "is" or "set"
 	 * @param propertyName
 	 *            The name of a property
-	 * @return Returns the method name or <em>null</em> if no propertyName was
-	 *         given
+	 * @return method name or <em>null</em>
 	 */
 	public static String makeMethodName( String prefix, String propertyName ) {
 		if ( propertyName == null || propertyName.length() == 0 ) {
@@ -507,7 +522,6 @@ public class BeanHelper {
 	 * <li>The first char following 'get', 'has' or 'is' is upper case</li>
 	 * <li>The method has no parameter</li>
 	 * </ol>
-	 * </p>
 	 * <p>
 	 * Returns a map where the key is the property name. That is the string
 	 * following 'get' with the first char made lower case. The value assigned
@@ -516,7 +530,7 @@ public class BeanHelper {
 	 *
 	 * @param cls
 	 *            The Java class to obtain the getter methods from
-	 * @return Returns a map with property name and getter method
+	 * @return map with property name and getter method
 	 */
 	public static Method[] obtainGetters( Class<?> cls ) {
 		List<Method> getters = new ArrayList<>();
@@ -553,8 +567,7 @@ public class BeanHelper {
 	 *
 	 * @param getter
 	 *            The getter method
-	 * @return Return the setter method or <em>null</em> if there is none for
-	 *         the same property
+	 * @return setter method or <em>null</em> if there is none
 	 */
 	public static Method obtainSetter( Method getter ) {
 		Method setter = null;
@@ -574,11 +587,12 @@ public class BeanHelper {
 	 * <li>The first char following 'set' is upper case</li>
 	 * <li>The method has exactly one single parameter</li>
 	 * </ol>
-	 * </p>
 	 *
 	 * @param clazz
 	 *            The Java class to obtain the setter methods from
-	 * @return Returns an array of setter methods
+	 * @param withInheritance
+	 *            {@code true} includes inherited classes
+	 * @return array of setter methods
 	 */
 	public static Method[] obtainSetters( Class<?> clazz,
 			boolean withInheritance ) {
@@ -606,10 +620,37 @@ public class BeanHelper {
 		return setters.toArray( new Method[0] );
 	}
 
+	/**
+	 * Obtains all setter methods of the given class.
+	 *
+	 * @param clazz
+	 *            The Java class to obtain the setter methods from
+	 * @return array of setter methods
+	 */
 	public static Method[] obtainSetters( Class<?> clazz ) {
 		return obtainSetters( clazz, false );
 	}
 
+	/**
+	 * Populates a Java object from a map.
+	 *
+	 * @param bean
+	 *            Java object to populate
+	 * @param setters
+	 *            array of setter methods
+	 * @param map
+	 *            map with values
+	 * @return number of values set
+	 *
+	 * @throws IllegalAccessException
+	 *             if access is prohibited
+	 * @throws IllegalArgumentException
+	 *             if getter name is wrong
+	 * @throws InvocationTargetException
+	 *             if getter must not be invoked
+	 * @throws ParseException
+	 *             if map has wrong structure
+	 */
 	public static int populate( Object bean, Method[] setters,
 			Map<String, Object> map )
 			throws IllegalAccessException, IllegalArgumentException,
@@ -627,11 +668,17 @@ public class BeanHelper {
 	 *            Setter methods. Use null to obtain them here
 	 * @param map
 	 *            keys must have bean property names
+	 * @param withInherited
+	 *            {@code true} includes inherited classes
 	 * @return the number of properties which have been populated
-	 * @throws InvocationTargetException
 	 * @throws IllegalArgumentException
+	 *             if value has incorrect type
 	 * @throws IllegalAccessException
+	 *             if access to setter is prohibited
+	 * @throws InvocationTargetException
+	 *             in setter cannot be invoked
 	 * @throws ParseException
+	 *             if a parsing error occurs
 	 */
 	public static int populate( Object bean, Method[] setters,
 			Map<String, Object> map, boolean withInherited )
@@ -666,6 +713,7 @@ public class BeanHelper {
 	 * key on a separate line.
 	 *
 	 * @param bean
+	 *            to be pretty printed
 	 * @param withNullValues
 	 *            {@code false} will drop properties having a null value
 	 * @return string with one property per line
@@ -799,9 +847,11 @@ public class BeanHelper {
 	 *            The field to be modified
 	 * @param value
 	 *            The new value for the field
-	 * @return Returns the old value of the field
+	 * @return the old value of the field
 	 * @throws IllegalAccessException
+	 *             if access to setter is prohibited
 	 * @throws IllegalArgumentException
+	 *             if value has incorrect type
 	 */
 	public static Object set( Object bean, Field field, Object value )
 			throws IllegalArgumentException, IllegalAccessException {
@@ -830,8 +880,11 @@ public class BeanHelper {
 	 *            new value to be set
 	 * @return <em>true</em> if the value was set
 	 * @throws IllegalAccessException
+	 *             if access to setter is prohibited
 	 * @throws IllegalArgumentException
+	 *             if value has incorrect type
 	 * @throws InvocationTargetException
+	 *             in setter cannot be invoked
 	 */
 	public static boolean set( Object bean, Method setter, Object value )
 			throws IllegalAccessException, IllegalArgumentException,
@@ -888,12 +941,12 @@ public class BeanHelper {
 	 * "setAbc( Object value )". The <em>propertyName</em> defines the property
 	 * like "abc".
 	 * </p>
-	 * <h2>Nested Properties</h2>
+	 * <h4>Nested Properties</h4>
 	 * <p>
 	 * Beans may be nested. In this case <em>propertyName</em> must be a
 	 * dot-separated list of names like "somebean.abc".
 	 * </p>
-	 * <h2>List Properties</h2>
+	 * <h4>List Properties</h4>
 	 * <p>
 	 * To access an entry of a list property, <em>propertyName</em> must be
 	 * given as "listProp[ 7 ]". This will call "setListProp( 7, value )".

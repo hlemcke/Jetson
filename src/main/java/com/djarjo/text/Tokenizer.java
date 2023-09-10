@@ -9,21 +9,19 @@ import com.google.common.flogger.FluentLogger;
 
 /**********************************************************************
  * The tokenizer separates a text into tokens. It is a lexical analyzer. Tokens
- * are specified by {@link com.djarjo.text.Symbol Token}. The tokenization
- * process can be modified by setting options with {@link #setOptions(int)}.
- * 
+ * are specified by {@link com.djarjo.text.Token Token}. Tokenization process
+ * can be modified by options in constructor.
+ *
  * <p>
  * Usage:
  * <ul>
- * <li>Instantiate it with the text to be tokenized</li>
+ * <li>Instantiate this class with text to be tokenized</li>
  * <li>Get all tokens in a loop with {@link #nextToken()}</li>
- * <li>Get the value of a token with {@link #getValue()}</li>
+ * <li>Get the value of a token with {@link #getToken()}</li>
  * </ul>
  * The tokenizer provides a look-ahead mechanism (see {@link #lookAhead()}).
- * </p>
  * <p>
- * To recover from syntax errors, the method {@link #advanceTo(Symbol...)} can
- * be used.
+ * To recover from syntax errors use one of the "clipUntil" methods.
  * </p>
  * <p>
  * A value might be numeric with optional fraction.
@@ -53,12 +51,11 @@ public class Tokenizer {
 
 	/******************************************************************
 	 * Constructor sets text with options.
-	 * 
+	 *
 	 * @param text
 	 *            The text to be tokenized
 	 * @param options
-	 *            Options which control the tokenization process. See
-	 *            {@link #setOptions(int)}
+	 *            Options controlling the tokenization process
 	 */
 	public Tokenizer( String text, TokenizerOption... options ) {
 		_text = text;
@@ -68,9 +65,10 @@ public class Tokenizer {
 
 	/**
 	 * Advances to the token which matches the current one. The current one must
-	 * be one of: '(', '{', '[', '<', '/*', '<!--'. The returned token contains
-	 * the whole text between current token and its matching counterpart.
-	 * 
+	 * be one of: '(', '{', '[', '&lt;', '/*', '&lt;!--'. The returned token
+	 * contains the whole text between current token and its matching
+	 * counterpart.
+	 *
 	 * @return Matching token with text or {@link com.djarjo.text.Symbol#UNKNOWN
 	 *         UNKNOWN}.
 	 */
@@ -102,7 +100,7 @@ public class Tokenizer {
 	/**
 	 * Advances tokenizer to any one of the given symbols. Returns symbol found
 	 * with value text from current symbol until found one.
-	 * 
+	 *
 	 * @param symbols
 	 *            Any of these symbol stops reading
 	 * @return token with symbol found
@@ -130,7 +128,7 @@ public class Tokenizer {
 	 * Gets a clipping of the text which is 50 characters before the current
 	 * position and 20 characters behind. The current position is marked with
 	 * "&lt;&lt;&lt;"
-	 * 
+	 *
 	 * @return a clipping of the text around the current position
 	 */
 	public String getClipping() {
@@ -150,7 +148,7 @@ public class Tokenizer {
 	/**
 	 * Gets the current column number. This is the number of characters since
 	 * the last line feed.
-	 * 
+	 *
 	 * @return index into current line
 	 */
 	public int getColno() {
@@ -160,7 +158,7 @@ public class Tokenizer {
 	/**
 	 * Gets the current line number (starts at 1). This is the number of line
 	 * feeds from start to current line plus 1.
-	 * 
+	 *
 	 * @return number of line feeds + 1
 	 */
 	public int getLineno() {
@@ -171,7 +169,7 @@ public class Tokenizer {
 	 * Gets the current location into the parsed text. If still in first line
 	 * then the string "pos #" will be returned. After the first linefeed, the
 	 * string "line # col #" will be returned
-	 * 
+	 *
 	 * @return current location
 	 */
 	public String getLocation() {
@@ -188,7 +186,7 @@ public class Tokenizer {
 
 	/**
 	 * Gets the position behind the end of the current token.
-	 * 
+	 *
 	 * @return Returns index into text behind current token or -1 at end of text
 	 */
 	public int getNextPosition() {
@@ -198,7 +196,7 @@ public class Tokenizer {
 	/**
 	 * Gets the current options. Modifying this set will change how the
 	 * tokenizer parses the next token.
-	 * 
+	 *
 	 * @return current setting of options
 	 */
 	public Set<TokenizerOption> getOptions() {
@@ -207,7 +205,7 @@ public class Tokenizer {
 
 	/**
 	 * Gets current position into text. -1 indicates end of text.
-	 * 
+	 *
 	 * @return index into text or -1 at end of text
 	 */
 	public int getPosition() {
@@ -219,7 +217,7 @@ public class Tokenizer {
 
 	/**
 	 * Gets the complete text which is tokenized.
-	 * 
+	 *
 	 * @return Returns the complete text
 	 */
 	public String getText() {
@@ -228,7 +226,7 @@ public class Tokenizer {
 
 	/**
 	 * Gets current token from the stream
-	 * 
+	 *
 	 * @return token or {@code EOF} on end of stream
 	 */
 	public Token getToken() {
@@ -240,7 +238,7 @@ public class Tokenizer {
 	 * it. Multiple calls to this method will return consecutive tokens. Any
 	 * call to {@link #nextToken()} clears the look ahead queue and returns the
 	 * token from the very first call to lookAheadfollowed by others.
-	 * 
+	 *
 	 * @return the next token
 	 */
 	public Token lookAhead() {
@@ -269,10 +267,15 @@ public class Tokenizer {
 		return _token;
 	}
 
+	@Override
+	public String toString() {
+		return _curPos + ": " + _token;
+	}
+
 	/**
 	 * Gets the current char from the input stream without advancing to the next
 	 * one. This is the char from the latest call to {@link #_nextChar()}.
-	 * 
+	 *
 	 * @return next character or 0 at end of stream
 	 */
 	private char _getChar() {
@@ -303,7 +306,7 @@ public class Tokenizer {
 	 * one. Increments column counter. If the character is line feed '\n' then
 	 * line number will be incremented and the column counter will be set to 1.
 	 * Useless Mickisoft char '\r' will be skipped.
-	 * 
+	 *
 	 * @return character or 0 at end of stream
 	 */
 	private char _nextChar() {
@@ -329,8 +332,8 @@ public class Tokenizer {
 
 	/******************************************************************
 	 * Parses the input stream to obtain the next token. Sets value and
-	 * position. Uses options as set by {@link #setOptions(int)}.
-	 * 
+	 * position. Uses options as set by {@link #withOptions(int)}.
+	 *
 	 * @return token or {@code null} at end of stream
 	 */
 	private void _parse() {
@@ -488,7 +491,7 @@ public class Tokenizer {
 				_nextChar();
 				_nextChar();
 				_nextChar();
-				if ( !_options
+				if ( ! _options
 						.contains( TokenizerOption.EXPLODE_XML_COMMENT ) ) {
 					clipUntilMatching();
 					_token.symbol = Symbol.COMMENT;
@@ -541,7 +544,8 @@ public class Tokenizer {
 				_token.symbol = Symbol.LEFT_C_COMMENT;
 				_token.value = "/*";
 				_nextChar();
-				if ( !_options.contains( TokenizerOption.EXPLODE_C_COMMENT ) ) {
+				if ( ! _options
+						.contains( TokenizerOption.EXPLODE_C_COMMENT ) ) {
 					clipUntilMatching();
 					_token.symbol = Symbol.COMMENT;
 					return;
@@ -566,7 +570,7 @@ public class Tokenizer {
 	 * Parses text starting with a digit. The digit may be prefixed with a minus
 	 * or plus character. Accepts hexadecimal values starting with "0x" like
 	 * "0xab7f".
-	 * 
+	 *
 	 * @return {@code VALUE_INTEGER}, {@code VALUE_DECIMAL},
 	 *         {@code VALUE_DOUBLE} or {@code VALUE_HEX}
 	 */
@@ -586,12 +590,12 @@ public class Tokenizer {
 			idx = numberChars.indexOf( _getChar() );
 			if ( idx < 0 ) {
 				if ( _getChar() == '_' ) {
-					if ( !_options.contains( TokenizerOption.JAVA_INT ) ) {
+					if ( ! _options.contains( TokenizerOption.JAVA_INT ) ) {
 						break;
 					}
 					_nextChar(); // just skip
 				} else if ( _getChar() == '.' ) {
-					if ( !_options.contains( TokenizerOption.INT_ONLY ) ) {
+					if ( ! _options.contains( TokenizerOption.INT_ONLY ) ) {
 						_token.symbol = Symbol.VALUE_DECIMAL;
 						_token.value += _getChar();
 					}
@@ -681,10 +685,5 @@ public class Tokenizer {
 		} else if ( _options.contains( TokenizerOption.TO_UPPER ) ) {
 			_token.value = _token.value.toUpperCase();
 		}
-	}
-
-	@Override
-	public String toString() {
-		return _curPos + ": " + _token;
 	}
 }

@@ -1,4 +1,4 @@
-package com.djarjo.codec;
+package com.djarjo.common;
 
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
@@ -30,6 +30,13 @@ import com.google.common.flogger.FluentLogger;
 public class BaseConverter {
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 
+	/**
+	 * Converts a Base64 encoded UUID (16 bytes) back to a valid UUID.
+	 *
+	 * @param text
+	 *            base64 encoded UUID
+	 * @return UUID or {@code null}
+	 */
 	public final static UUID base64ToUuid( String text ) {
 		if ( text == null ) {
 			return null;
@@ -80,7 +87,8 @@ public class BaseConverter {
 	 * {@code null} or not a number then 0 will be returned.
 	 *
 	 * @param value
-	 * @return integer value
+	 *            any object
+	 * @return integer value or 0
 	 */
 	public final static int convert2int( Object value ) {
 		Integer intVal = convertToInteger( value );
@@ -142,21 +150,13 @@ public class BaseConverter {
 		return outputArray;
 	}
 
-	public static BigDecimal convertToBigDecimal( Object value ) {
-		if ( value == null ) {
-			return null;
-		}
-		BigDecimal result = null;
-		if ( value instanceof Long ) {
-			result = BigDecimal.valueOf( (Long) value );
-		} else if ( value instanceof Double ) {
-			result = BigDecimal.valueOf( (Double) value );
-		} else if ( value instanceof String ) {
-			result = new BigDecimal( (String) value );
-		}
-		return result;
-	}
-
+	/**
+	 * Converts value to Boolean
+	 *
+	 * @param value
+	 *            true, false or their string representation
+	 * @return Boolean object or {@code null}
+	 */
 	public static Boolean convertToBoolean( Object value ) {
 		if ( value == null ) {
 			return null;
@@ -171,7 +171,7 @@ public class BaseConverter {
 	}
 
 	/**
-	 * Converts `name` to the enumclass `type`.
+	 * Converts `name` to the enumeration class `type`.
 	 *
 	 * If `name` is "className.valueName" like in Dart then only "valueName"
 	 * will be used.
@@ -180,7 +180,7 @@ public class BaseConverter {
 	 *            the enum class
 	 * @param name
 	 *            string representation of an enum value
-	 * @return
+	 * @return enumeration value or {@code null}
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static Enum convertToEnum( Class type, String name ) {
@@ -264,17 +264,13 @@ public class BaseConverter {
 		return TextHelper.parseInteger( text );
 	}
 
-	public static Locale convertToLocale( Object object ) {
-		if ( object == null ) {
-			return null;
-		}
-		if ( object instanceof String ) {
-			return stringToLocale( (String) object );
-		}
-		logger.atWarning().log( "Cannot convert object to Locale: %s", object );
-		return null;
-	}
-
+	/**
+	 * Converts to Long
+	 *
+	 * @param object
+	 *            to be converted
+	 * @return Long or {@code null}
+	 */
 	public static Long convertToLong( Object object ) {
 		if ( object == null ) {
 			return null;
@@ -290,40 +286,6 @@ public class BaseConverter {
 		}
 		logger.atWarning().log( "Cannot convert object to Long: %s", object );
 		return null;
-	}
-
-	public static Short convertToShort( String text ) {
-		return TextHelper.parseShort( text );
-	}
-
-	/**
-	 * Converts the given int value to a string.
-	 *
-	 * @param value
-	 * @return int as string
-	 */
-	public static String convertToString( int value ) {
-		return "" + value;
-	}
-
-	/**
-	 * Converts the given BigDecimal to a string. A value of {@code null} will
-	 * return an empty string.
-	 *
-	 * @param value
-	 *            The BigDecimal or {@code null}
-	 * @return big decimal as possibly empty string
-	 */
-	public static String convertToString( BigDecimal value ) {
-		return (value == null) ? "" : value.toString();
-	}
-
-	public static String convertToString( Double value ) {
-		return (value == null ? "" : value.toString());
-	}
-
-	public static String convertToString( Object object ) {
-		return (object == null ? "" : object.toString());
 	}
 
 	/******************************************************************
@@ -351,7 +313,7 @@ public class BaseConverter {
 		} else if ( type == Boolean.class ) {
 			return TextHelper.parseBoolean( value.toString() );
 		} else if ( type == BigDecimal.class ) {
-			return convertToBigDecimal( value );
+			return toBigDecimal( value );
 		} else if ( type == Currency.class ) {
 			return Currency.getInstance( value.toString() );
 		} else if ( type == float.class ) {
@@ -363,7 +325,7 @@ public class BaseConverter {
 		} else if ( type == LocalDate.class ) {
 			return stringToDate( value.toString() );
 		} else if ( type == Locale.class ) {
-			return convertToLocale( value.toString() );
+			return toLocale( value.toString() );
 		} else if ( type == OffsetDateTime.class ) {
 			return OffsetDateTime.parse( value.toString() );
 		} else if ( type == Integer.class ) {
@@ -392,46 +354,6 @@ public class BaseConverter {
 					+ "' for \"" + value + "\" " + value.getClass() );
 		}
 		return value;
-	}
-
-	public final static UUID convertToUuid( Object value ) {
-		if ( value == null ) {
-			return null;
-		}
-		if ( value instanceof UUID ) {
-			return (UUID) value;
-		}
-		if ( value instanceof String ) {
-			return convertToUuid( (String) value );
-		}
-		return null;
-	}
-
-	/**
-	 * Converts {@code value} to a UUID.
-	 *
-	 * @param value
-	 *            string specifying a uuid
-	 * @return {@code null} if {@code value} is null or not a valid uuid
-	 *         representation
-	 */
-	public final static UUID convertToUuid( String value ) {
-		UUID uuid = null;
-		if ( value != null ) {
-			try {
-				uuid = UUID.fromString( value );
-			} catch (IllegalArgumentException ex) {
-			}
-		}
-		return uuid;
-	}
-
-	public final static BigDecimal intToBigDecimal( Integer value ) {
-		return (value == null) ? null : new BigDecimal( value );
-	}
-
-	public final static BigDecimal longToBigDecimal( Long value ) {
-		return (value == null) ? null : new BigDecimal( value );
 	}
 
 	/**
@@ -483,10 +405,6 @@ public class BaseConverter {
 		return (value == null ? "" : value.toString());
 	}
 
-	public final static BigDecimal stringToBigDecimal( String value ) {
-		return (value == null) ? null : TextHelper.parseBigDecimal( value );
-	}
-
 	/**
 	 * Converts the given text to a new instance of {@code LocalDate}
 	 *
@@ -509,14 +427,31 @@ public class BaseConverter {
 		return TextHelper.parseDateTime( text );
 	}
 
+	/**
+	 * Converts text to Double
+	 *
+	 * @param text
+	 *            double as text or null
+	 * @return new instance of Double or {@code null}
+	 */
 	public static Double stringToDouble( String text ) {
 		if ( text == null || text.length() == 0 ) {
 			return null;
 		}
-		Double value = Double.valueOf( text );
-		return value;
+		try {
+			return Double.valueOf( text );
+		} catch (NumberFormatException e) {
+		}
+		return null;
 	}
 
+	/**
+	 * Converts text to Locale object
+	 *
+	 * @param text
+	 *            Locale text representation
+	 * @return Locale or {@code null}
+	 */
 	public static Locale stringToLocale( String text ) {
 		return (text == null) ? null : Locale.forLanguageTag( text );
 	}
@@ -546,14 +481,129 @@ public class BaseConverter {
 		return (lval == null) ? 0 : lval;
 	}
 
+	/**
+	 * Converts string representation of a uuid back to a valid uuid or null.
+	 *
+	 * @param text
+	 *            UUID in string representation
+	 * @return UUID or {@code null}
+	 */
 	public static UUID stringToUUID( String text ) {
-		return (text == null) ? null : UUID.fromString( text );
+		if ( text == null )
+			return null;
+		try {
+			return UUID.fromString( text );
+		} catch (IllegalArgumentException e) {
+		}
+		return null;
+	}
+
+	/**
+	 * Converts {@code value} to a BigDecimal
+	 *
+	 * @param value
+	 *            Byte, Double, Float, Integer, Long, Short or String
+	 * @return new instance of BigDecimal or {@code null}
+	 */
+	public static BigDecimal toBigDecimal( Object value ) {
+		if ( value == null ) {
+			return null;
+		}
+		if ( value instanceof String ) {
+			return TextHelper.parseBigDecimal( (String) value );
+		}
+		try {
+			if ( value instanceof Byte ) {
+				return BigDecimal.valueOf( (Byte) value );
+			}
+			if ( value instanceof Double ) {
+				return BigDecimal.valueOf( (Double) value );
+			}
+			if ( value instanceof Float ) {
+				return BigDecimal.valueOf( (Float) value );
+			}
+			if ( value instanceof Integer ) {
+				return BigDecimal.valueOf( (Integer) value );
+			}
+			if ( value instanceof Long ) {
+				return BigDecimal.valueOf( (Long) value );
+			}
+			if ( value instanceof Short ) {
+				return BigDecimal.valueOf( (Short) value );
+			}
+		} catch (NumberFormatException e) {
+			// --- Just return null
+		}
+		return null;
+	}
+
+	/**
+	 * Converts value to Locale
+	 *
+	 * @param text
+	 *            String representation of a Locale
+	 * @return Locale or {@code null}
+	 */
+	public static Locale toLocale( String text ) {
+		if ( text == null ) {
+			return null;
+		}
+		if ( text instanceof String ) {
+			return Locale.forLanguageTag( text );
+		}
+		logger.atWarning().log( "Cannot convert '%s' to Locale", text );
+		return null;
+	}
+
+	/**
+	 * Converts text to Short object
+	 *
+	 * @param text
+	 *            to be converted
+	 * @return new instance of Short or {@code null}
+	 */
+	public static Short toShort( String text ) {
+		return TextHelper.parseShort( text );
+	}
+
+	/**
+	 * Converts given value to a string. A value of {@code null} will return an
+	 * empty string.
+	 * <p>
+	 * Null-safe
+	 *
+	 * @param value
+	 *            Any value, even {@code null}
+	 * @return string representation of value or an empty string
+	 */
+	public static String toString( BigDecimal value ) {
+		return (value == null) ? "" : value.toString();
+	}
+
+	/**
+	 * Converts {@code value} to a UUID.
+	 *
+	 * @param value
+	 *            string specifying a uuid
+	 * @return valid uuid representation or {@code null}
+	 */
+	public final static UUID toUuid( String value ) {
+		if ( value == null ) {
+			return null;
+		}
+		try {
+			return UUID.fromString( value );
+		} catch (IllegalArgumentException ex) {
+			// --- Just return null
+		}
+		return null;
 	}
 
 	/**
 	 * Converts given uuid into URL safe Base64 encoded string.
 	 *
 	 * @param uuid
+	 *            value to be encoded to Base64
 	 * @return Base64 encoded string (URL safe)
 	 */
 	public static String uuidToBase64( UUID uuid ) {
@@ -568,17 +618,6 @@ public class BaseConverter {
 		System.arraycopy( bitesHigh, 0, bites, 0, Long.BYTES );
 		System.arraycopy( bitesLow, 0, bites, Long.BYTES, Long.BYTES );
 		return Base64.getUrlEncoder().withoutPadding().encodeToString( bites );
-	}
-
-	/**
-	 * null-safe
-	 *
-	 * @param value
-	 *            uuid or {@code null}
-	 * @return UUID.toString() or {@code null}
-	 */
-	public static String uuidToString( UUID value ) {
-		return (value == null ? "" : value.toString());
 	}
 
 	/******************************************************************

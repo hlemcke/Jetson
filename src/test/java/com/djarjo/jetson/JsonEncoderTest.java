@@ -63,9 +63,9 @@ class JsonEncoderTest {
 
 	@Test
 	void testIsBytesToBase64() {
-		JsonEncoder encoder = JsonEncoder.encoder().bytesToBase64( false );
+		JsonEncoder encoder = JsonEncoder.encoder().withBytesToBase64( false );
 		assertFalse( encoder.isBytesToBase64() );
-		encoder = JsonEncoder.encoder().bytesToBase64( true );
+		encoder = JsonEncoder.encoder().withBytesToBase64( true );
 		assertTrue( encoder.isBytesToBase64() );
 	}
 
@@ -80,9 +80,9 @@ class JsonEncoderTest {
 
 	@Test
 	void testIsJson5() {
-		JsonEncoder encoder = JsonEncoder.encoder().toJson5( false );
+		JsonEncoder encoder = JsonEncoder.encoder().withJson5( false );
 		assertFalse( encoder.isJson5() );
-		encoder = JsonEncoder.encoder().toJson5( true );
+		encoder = JsonEncoder.encoder().withJson5( true );
 		assertTrue( encoder.isJson5() );
 	}
 

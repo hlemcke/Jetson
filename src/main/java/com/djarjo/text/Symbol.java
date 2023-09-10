@@ -7,7 +7,7 @@ package com.djarjo.text;
  * Some symbols will be returned by the tokenizer only if specific options are
  * set.
  * </p>
- * 
+ *
  * <pre>
  * Parentheses are smooth and curved ( ),
  * brackets are square [ ]
@@ -16,7 +16,7 @@ package com.djarjo.text;
  */
 public enum Symbol {
 
-	/** Single character: "&" = &#38;#38; = 0x26 = &#38;amp; */
+	/** Single character: "&#38;" = &#38;#38; = 0x26 = &#38;amp; */
 	AMPERSAND("&"),
 
 	/**
@@ -41,17 +41,17 @@ public enum Symbol {
 
 	/**
 	 * Single character: "\" = &#38;#92; = 0x5c = &bsol; BACKSLASH("\\"),
-	 * 
+	 *
 	 * /** Tokenizer method {@link com.djarjo.text.Tokenizer#getToken()
 	 * getToken()} returns this token to indicate that the parsing has not
 	 * started yet.
 	 */
 	BEGIN(""),
 
-	/** Single character: "^" = &#38;#94; = 0x5e = &hat; */
+	/** Single character: "^" = &#38;#94; = 0x5e = &#38;hat; */
 	CARET("^"),
 
-	/** Single character: ":" = &#38;#58 = 0x3a = &colon; */
+	/** Single character: ":" = &#38;#58 = 0x3a = &#38;colon; */
 	COLON(":"),
 
 	/** Single character: "," */
@@ -145,7 +145,7 @@ public enum Symbol {
 	/** Two characters: "&lt;=" or "=&lt;" */
 	LESS_EQUAL("<="),
 
-	/** Single character: "<" = &#38;#60; = 0x3c = &#38;lt; */
+	/** Single character: "&lt;" = &#38;#60; = 0x3c = &#38;lt; */
 	LESS_THAN("<"),
 
 	/**
@@ -246,7 +246,7 @@ public enum Symbol {
 	 * <p>
 	 * Tokenizer switches from {@link VALUE_INTEGER} to VALUE_DECIMAL when a dot
 	 * '.' occurs.
-	 * 
+	 *
 	 * <pre>
 	 * decimal  = integer '.' digits
 	 * </pre>
@@ -258,7 +258,7 @@ public enum Symbol {
 	 * <p>
 	 * Tokenizer switches from {@link VALUE_INTEGER} or {@link VALUE_DECIMAL} to
 	 * VALUE_DOUBLE when an 'e' or 'E' occurs.
-	 * 
+	 *
 	 * <pre>
 	 * double     = decimal exponent
 	 *            | integer exponent
@@ -270,7 +270,7 @@ public enum Symbol {
 
 	/**
 	 * An integer in byte format like "0x3a4b7f"
-	 * 
+	 *
 	 * <pre>
 	 * hexValue = "0x" digits
 	 * digits   = digit
@@ -284,7 +284,7 @@ public enum Symbol {
 
 	/**
 	 * An INTEGER like "-468"
-	 * 
+	 *
 	 * <pre>
 	 * integer  = sign digits
 	 * sign     = ""
@@ -310,7 +310,7 @@ public enum Symbol {
 
 	/**
 	 * A single word. Starts with a letter and contains only letters. If a digit
-	 * is found then the token will be changed to a {@link #NAME}.
+	 * is found then the token will be changed to {@link #STRING}.
 	 */
 	WORD("");
 

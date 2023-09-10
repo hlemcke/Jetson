@@ -12,6 +12,12 @@ public class RecursionException extends RuntimeException {
 
 	private static final long serialVersionUID = -1230447255275021461L;
 
+	/**
+	 * Constructor with message
+	 *
+	 * @param info
+	 *            message
+	 */
 	public RecursionException( String info ) {
 		super( info );
 	}

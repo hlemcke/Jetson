@@ -74,18 +74,42 @@ public class Jetson {
 		JsonDecoder.decoder().decode( jsonString, target );
 	}
 
+	/**
+	 * Gets a new instance of JsonDecoder
+	 *
+	 * @return new instance of JsonDecoder
+	 */
 	public static JsonDecoder decoder() {
 		return new JsonDecoder();
 	}
 
+	/**
+	 * Encodes object into a Json text.
+	 *
+	 * @param object
+	 *            to be encoded
+	 * @return encoded object
+	 */
 	static public String encode( Object object ) {
 		return JsonEncoder.encoder().encode( object );
 	}
 
+	/**
+	 * Encodes object to Json5
+	 *
+	 * @param object
+	 *            to be encoded. Requires annotations "@Json"
+	 * @return encoded object in Json5 format
+	 */
 	static public String encodeJson5( Object object ) {
-		return JsonEncoder.encoder().toJson5( true ).encode( object );
+		return JsonEncoder.encoder().withJson5( true ).encode( object );
 	}
 
+	/**
+	 * Gets a new instance of JsonEncoder
+	 *
+	 * @return new instance of JsonEncoder
+	 */
 	public static JsonEncoder encoder() {
 		return new JsonEncoder();
 	}

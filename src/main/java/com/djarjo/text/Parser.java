@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.djarjo.text;
 
@@ -8,20 +8,26 @@ import com.google.common.flogger.FluentLogger;
 /**
  * Provides methods to parse some standard objects. Current token of tokenizer
  * must be the initial symbol of the object to parse.
- * 
+ *
  * @author Hajo Lemcke
  * @since 2021-12-08 Initial version
  */
 public class Parser {
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 
+	/**
+	 * Tokenizer used by this parser
+	 */
 	protected Tokenizer tokenizer;
 	private boolean _throwExceptionOnError;
 
 	/**
 	 * Sole constructor requires an initialized tokenizer
-	 * 
+	 *
 	 * @param tokenizer
+	 *            tokenizer to use
+	 * @param throwExceptionOnError
+	 *            {@code true} will throw exceptions
 	 */
 	public Parser( Tokenizer tokenizer, boolean throwExceptionOnError ) {
 		this.tokenizer = tokenizer;
@@ -30,7 +36,7 @@ public class Parser {
 
 	/**
 	 * Assert symbol for current token.
-	 * 
+	 *
 	 * @param symbol
 	 *            expected symbol
 	 * @param message
@@ -54,20 +60,20 @@ public class Parser {
 
 	/**
 	 * Parses an email address like "{@code John Doe <John.Doe@example.org>}".
-	 * 
+	 *
 	 * <pre>
 	 * email       = name ws "<" email-adr ">"
 	 *             | email-adr
 	 * name        = word
 	 *             | word ws name
 	 * email-adr   = local-part "@" domain-part
-	 * local-part  = 
+	 * local-part  =
 	 * domain-part = domain-name
 	 *              | ip-address
 	 * ip-address  = "[" ipv4 "]"
 	 *             | "[" ipv6 "]"
 	 * </pre>
-	 * 
+	 *
 	 * @param tokenizer
 	 * @return Email in string format or {@code null} if not an email
 	 */
@@ -77,11 +83,11 @@ public class Parser {
 
 	/**
 	 * Parses an URI like "{@code mailto:John.Doe@example.org}".
-	 * 
+	 *
 	 * <pre>
 	 * uri =
 	 * </pre>
-	 * 
+	 *
 	 * @param tokenizer
 	 * @return
 	 */

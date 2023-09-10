@@ -7,6 +7,7 @@ import java.text.ParseException;
 
 import org.junit.Test;
 
+import com.djarjo.common.Base64;
 import com.djarjo.jetson.Jetson;
 
 /**
@@ -101,8 +102,8 @@ public class Base64Test {
 			System.out.println( "--- Encoding ---" );
 		String result = null;
 		for ( int i = 0; i < input.length; i++ ) {
-			result = Base64.encoder().setCoding( Base64.CODING.DEFAULT )
-					.setLineBreaks( true ).encode( input[i] );
+			result = Base64.encoder().withEncoding( Base64.CODING.DEFAULT )
+					.withLineBreaks( true ).encode( input[i] );
 			if ( _consoleOutput )
 				System.out.println( expected[i] + "\n" + result );
 			assertEquals( expected[i], result );

@@ -5,9 +5,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.djarjo.codec.Base64;
-import com.djarjo.codec.Base64.CODING;
+import com.djarjo.common.Base64;
+import com.djarjo.common.Base64.CODING;
 
+/**
+ * Converts a list of byte arrays to a Json list. Each item in the Json list is
+ * a string in Base64 format.
+ */
 public class ByteArrayListConverter4json
 		implements JsonConverter<List<byte[]>> {
 
@@ -15,8 +19,8 @@ public class ByteArrayListConverter4json
 	public String encodeToJson( List<byte[]> listOfByteArrays ) {
 		return Optional.ofNullable( listOfByteArrays ).map( byteArray -> {
 			return byteArray.stream()
-					.map( bytes -> Base64.encoder().setCoding( CODING.WEB_SAFE )
-							.encode( bytes ) )
+					.map( bytes -> Base64.encoder()
+							.withEncoding( CODING.WEB_SAFE ).encode( bytes ) )
 					.collect( Collectors.joining( ",", "", "" ) );
 		} ).orElse( null );
 	}

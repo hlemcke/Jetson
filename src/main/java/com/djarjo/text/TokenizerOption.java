@@ -1,11 +1,24 @@
 /**
- * 
+ *
  */
 package com.djarjo.text;
 
 /**
  * Options to manage tokenizer work.
- * 
+ * <ul>
+ * <li>{@link #ACCEPT_ANNOTATION}</li>
+ * <li>{@link #ACCEPT_PATH}</li>
+ * <li>{@link #EXPLODE_C_COMMENT}</li>
+ * <li>{@link #EXPLODE_XML_COMMENT}</li>
+ * <li>{@link #INT_ONLY}</li>
+ * <li>{@link #JAVA_INT}</li>
+ * <li>{@link #SKIP_DOUBLESLASH_UNTIL_EOL}</li>
+ * <li>{@link #SKIP_LINEBREAK}</li>
+ * <li>{@link #SKIP_WHITESPACE}</li>
+ * <li>{@link #TO_LOWER}</li>
+ * <li>{@link #TO_UPPER}</li>
+ * </ul>
+ *
  * @author Hajo Lemcke
  * @since 2021-12-03 extracted from tokenizer
  */
@@ -42,13 +55,13 @@ public enum TokenizerOption {
 
 	/**
 	 * Set this option to get three tokens
-	 * 
+	 *
 	 * <pre>
 	 *  VALUEINT (1234) DOT VALUEINT ( 56 )
 	 * </pre>
-	 * 
+	 *
 	 * for the text "1234.56" instead of one token
-	 * 
+	 *
 	 * <pre>
 	 * VALUEDEC( 1234.45 )
 	 * </pre>

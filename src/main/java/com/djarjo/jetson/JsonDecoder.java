@@ -19,8 +19,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
-import com.djarjo.codec.BaseConverter;
+import com.djarjo.common.BaseConverter;
 import com.djarjo.common.BeanHelper;
 import com.djarjo.jetson.converter.JsonConverter;
 import com.djarjo.text.Symbol;
@@ -42,12 +43,15 @@ import com.google.common.flogger.FluentLogger;
 public class JsonDecoder {
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 
-	private Set<String> _keysToSkip = null;
+	private Level _logLevel4MissingAttribute = Level.OFF;
 
-	private boolean _logMissingKey = false;
+	private Set<String> _keysToSkip = null;
 
 	private Tokenizer _tokenizer = null;
 
+	/**
+	 * Empty no argument constructor.
+	 */
 	public JsonDecoder() {
 	}
 
@@ -114,6 +118,8 @@ public class JsonDecoder {
 	/**
 	 * Decodes the given {@code jsonString} into a "List&lt;itemClass&gt;".
 	 *
+	 * @param <T>
+	 *            Type of collection
 	 * @param jsonString
 	 *            must start with "["
 	 * @param itemClass
@@ -144,6 +150,16 @@ public class JsonDecoder {
 	}
 
 	/**
+	 * If smaller than Level.OFF then a key in the Json string which has no
+	 * matching setter in the target bean will be logged with that level.
+	 *
+	 * @return Level
+	 */
+	public Level getLogLevel4MissingAttribute() {
+		return _logLevel4MissingAttribute;
+	}
+
+	/**
 	 * Gets keys to be skipped on missing key action.
 	 *
 	 * @return keys to be skipped
@@ -156,27 +172,15 @@ public class JsonDecoder {
 	}
 
 	/**
-	 * If {@code true} then a key in the Json string which does not exist in the
-	 * target POJO will be logged with level WARN.
-	 *
-	 * @return {@code false} (default) does not log missing keys
-	 */
-	public boolean isLogMissingKey() {
-		return _logMissingKey;
-	}
-
-	/**
 	 * Add keys to be skipped if they do not exist in target object.
 	 * <p>
-	 * <i>keys to skip</i> are only used when
-	 * {{@link #setActionOnError(ActionOnError)} is set to
-	 * {@link com.djarjo.jetson.ActionOnError.LOG}
+	 * Only used if logLevel4MissingAttribute is not OFF
 	 *
 	 * @param keys
 	 *            one or more keys to be skipped
 	 * @return this for fluent API
 	 */
-	public JsonDecoder setKeysToSkip( String... keys ) {
+	public JsonDecoder withKeysToSkip( String... keys ) {
 		getKeysToSkip();
 		for ( String key : keys ) {
 			_keysToSkip.add( key );
@@ -185,13 +189,14 @@ public class JsonDecoder {
 	}
 
 	/**
-	 * Sets if how to handle a key in the Json string which does not exist in
-	 * the target POJO.
+	 * Sets log level to reports a missing setter (defaults to OFF).
 	 *
+	 * @param level
+	 *            Level to use for reporting
 	 * @return this for fluent API
 	 */
-	public JsonDecoder setLogMissingKeys( boolean logMissingKey ) {
-		this._logMissingKey = logMissingKey;
+	public JsonDecoder setLogLevel4MissingAttribute( Level level ) {
+		this._logLevel4MissingAttribute = level;
 		return this;
 	}
 
@@ -365,11 +370,11 @@ public class JsonDecoder {
 			}
 			Member member = members.get( name );
 			if ( member == null ) {
-				if ( _logMissingKey
+				if ( (_logLevel4MissingAttribute != Level.OFF)
 						&& (_keysToSkip.contains( name ) == false) ) {
 					String message = _makeErrorInfo( "Name '" + name
 							+ "' does not exist in " + target.getClass() );
-					logger.atWarning().log( message );
+					logger.at( _logLevel4MissingAttribute ).log( message );
 				}
 				_skipValue();
 				continue;

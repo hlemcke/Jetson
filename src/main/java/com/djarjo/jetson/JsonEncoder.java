@@ -23,8 +23,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.djarjo.codec.Base64;
-import com.djarjo.codec.BaseConverter;
+import com.djarjo.common.Base64;
+import com.djarjo.common.BaseConverter;
 import com.djarjo.common.BeanHelper;
 import com.djarjo.jetson.converter.JsonConverter;
 import com.djarjo.text.RecursionException;
@@ -65,6 +65,9 @@ public class JsonEncoder {
 	// --- Setting: if to encode members with a value of {@code null}
 	private boolean _withNullMembers = false;
 
+	/**
+	 * Empty no arg constructor
+	 */
 	public JsonEncoder() {
 	}
 
@@ -101,28 +104,12 @@ public class JsonEncoder {
 	}
 
 	/**
-	 * If to encode an array or list of bytes into a Base64 string.
-	 *
-	 * @param toBase64
-	 *            default = {@code true}
-	 * @return encoder for streaming API
-	 */
-	public JsonEncoder bytesToBase64( boolean toBase64 ) {
-		_bytesToBase64 = toBase64;
-		return this;
-	}
-
-	/**
 	 * Gets characters used for <i>pretty-print</i>.
 	 *
 	 * @return indentation string or {@code null}
 	 */
 	public String getIndent() {
 		return _indent;
-	}
-
-	public boolean isBytesToBase64() {
-		return _bytesToBase64;
 	}
 
 	/******************************************************************
@@ -137,6 +124,10 @@ public class JsonEncoder {
 	 * <li>Lists, Maps and Sets are considered empty when they do not contain
 	 * any element</li>
 	 * </ul>
+	 *
+	 * @param obj
+	 *            bean to check
+	 * @return true if object is effectively empty
 	 */
 	public boolean isEmpty( Object obj ) {
 		if ( obj == null ) {
@@ -164,22 +155,26 @@ public class JsonEncoder {
 		return false;
 	}
 
-	public boolean isJson5() {
-		return _json5;
-	}
-
-	public boolean isWithNulls() {
-		return _withNullMembers;
+	/**
+	 * If to encode an array or list of bytes into a Base64 string.
+	 *
+	 * @param toBase64
+	 *            default = {@code true}
+	 * @return encoder for streaming API
+	 */
+	public JsonEncoder withBytesToBase64( boolean toBase64 ) {
+		_bytesToBase64 = toBase64;
+		return this;
 	}
 
 	/**
-	 * Encode to JSON 5 {@link https://json5.org}
+	 * Encode to <a href="https://json5.org">JSON 5</a>
 	 *
 	 * @param json5
 	 *            default = {@code false}
 	 * @return encoder for streaming API
 	 */
-	public JsonEncoder toJson5( boolean json5 ) {
+	public JsonEncoder withJson5( boolean json5 ) {
 		_json5 = json5;
 		if ( json5 && (_indent == null) ) {
 			withPrettyPrint( "  " );

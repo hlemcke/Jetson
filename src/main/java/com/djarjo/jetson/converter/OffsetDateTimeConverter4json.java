@@ -6,6 +6,9 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
+/**
+ * Converts an OffsetDateTime into its string representation and back
+ */
 public class OffsetDateTimeConverter4json
 		implements JsonConverter<OffsetDateTime> {
 

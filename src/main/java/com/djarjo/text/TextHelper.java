@@ -16,15 +16,14 @@ import java.util.UUID;
  * Static methods for text analysis, modification and parsing.
  * <p>
  * The <em>parseXxx</em> methods parse text for some basic values without
- * throwing exceptions. Ohter useful methods are:
+ * throwing exceptions. Other useful methods are:
  * <ul>
  * <li>{@link #condense(String, int)} condenses a loaded text file</li>
  * <li>{@link #splitIntoLines(String)} splits a loaded text file into separate
  * lines</li>
- * <li>{@link #substituteVariables(String, Properties)} substitutes variables
- * within the given text by values from the given properties</li>
+ * <li>{@link #substituteVariables(String, Properties,boolean)} substitutes
+ * variables within text by values from properties</li>
  * </ul>
- * </p>
  *
  * @see com.djarjo.text.Tokenizer
  */
@@ -44,7 +43,7 @@ public class TextHelper {
 	public final static String PATTERN_ISO_COMPACT = "yyyyMMdd_hhmmss";
 
 	/**
-	 * Allowed characters for {@link #generateKey(int)}
+	 * Allowed characters for {@link #generateCode(int)}
 	 */
 	public final static String Chars4Code =
 			"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz-_=!";
@@ -234,6 +233,8 @@ public class TextHelper {
 	 * TABs with a space and multiple spaces with a single one. Spaces at start
 	 * and end are removed.
 	 *
+	 * @param str
+	 *            well ... the string
 	 * @return Returns condensed string or {@code null} if the given string is
 	 *         {@code null}
 	 */
@@ -253,6 +254,8 @@ public class TextHelper {
 	 * TABs with a space and multiple spaces with a single one. Spaces at start
 	 * and end are removed.
 	 *
+	 * @param buf
+	 *            buffer to be cleaned
 	 * @return Returns condensed string or {@code null} if the given string is
 	 *         {@code null}
 	 */
@@ -319,8 +322,7 @@ public class TextHelper {
 	 * Gets the <em>metaphone</em> code of the given word. This algorithm
 	 * provides good results for English names.
 	 *
-	 * <h2>Metaphone code computation algorithm</h2>
-	 * <p>
+	 * <h4>Metaphone code computation algorithm</h4>
 	 * <ol>
 	 * <li>Make all letters upper case</li>
 	 * <li>Remove all repeating neighboring letters except letter C.</li>
@@ -387,13 +389,12 @@ public class TextHelper {
 	 * <li>Remove all Y which are not before a vowel.</li>
 	 * <li>Remove all vowels except vowel at the start of the word.</li>
 	 * </ol>
-	 * </p>
-	 * <h2>Examples</h2>
+	 *
+	 * <h4>Examples</h4>
 	 * <ul>
 	 * <li><b>FXPL</b> -&gt; Fishpool</li>
 	 * <li><b>LWRS</b> -&gt; Lowers, Lowerson</li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @param word
 	 *            The word to be encoded
@@ -490,6 +491,7 @@ public class TextHelper {
 	 * backslash '\' at its end will be continued in the next line.
 	 * {@code options} is the sum of:
 	 * <table>
+	 * <caption>Options</caption>
 	 * <tr>
 	 * <td>{@link #REMOVE_ALL}</td>
 	 * <td>combination of all options</td>
@@ -721,7 +723,6 @@ public class TextHelper {
 	 * <li>'&lt;' -&gt; '&gt;'</li>
 	 * <li>same character as at position {@code start}</li>
 	 * </ul>
-	 * </p>
 	 *
 	 * @param text
 	 *            text to be searched for the matching char
@@ -787,7 +788,7 @@ public class TextHelper {
 	 *            1 = 0 + digits<br/>
 	 *            2 = 1 + small letters<br/>
 	 *            3 = 2 + "-_=!"<br/>
-	 *            4 = 2 + "*$-+?_&=!%{}()[]/";
+	 *            4 = 2 + "*$-+?_&lt;=!%{}()[]/";
 	 * @return random code
 	 */
 	public static String generateCode( int length, int type ) {
@@ -818,7 +819,9 @@ public class TextHelper {
 	 * {@code selectableCharacters}.
 	 *
 	 * @param selectableCharacters
+	 *            chars allowed
 	 * @param length
+	 *            length of generated string
 	 * @return random string
 	 */
 	public static String generateRandomString( String selectableCharacters,
@@ -937,6 +940,8 @@ public class TextHelper {
 	 * Returns a map filled with entries from ldapString. "ldapString" must be
 	 * formatted like "dvc=$(mcpDevice.id),o=$(tenant.id)"
 	 *
+	 * @param ldapString
+	 *            String in LDAP format
 	 * @return map could be empty
 	 */
 	public static Map<String, String> getMapFromLdapString(
@@ -1037,6 +1042,7 @@ public class TextHelper {
 	 * Checks if text is either null or empty (length = 0).
 	 *
 	 * @param text
+	 *            text
 	 * @return {@code false} if text contains any characters
 	 */
 	public static boolean isEmpty( String text ) {
@@ -1107,7 +1113,8 @@ public class TextHelper {
 	 * (array or list) its values will be returned separated by commas.
 	 *
 	 * @param object
-	 * @return String
+	 *            some object
+	 * @return String string representation (could be empty)
 	 */
 	public static String makeString( Object object ) {
 		String s = "";
@@ -1519,8 +1526,8 @@ public class TextHelper {
 	 *            The word to be removed
 	 * @param list
 	 *            The current list
-	 * @return Returns a new list with the removed word. If the new list is
-	 *         empty then &null; will be returned.
+	 * @return new list with the removed word. If the new list is empty then
+	 *         {@code null} will be returned.
 	 */
 	public static String removeFromCommaSeparatedList( String word,
 			String list ) {

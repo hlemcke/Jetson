@@ -1,6 +1,5 @@
 package com.djarjo.text;
 
-import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
@@ -9,32 +8,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**********************************************************************
- * Very flexible parser for LocalDate and OffsetDateTime. The parser even
- * accepts input like this:
- * 
+ * Very flexible parser for LocalDate and OffsetDateTime.
+ * <p>
+ * The parser even accepts input like this:
+ *
  * <dl>
  * <dt>,7</dt>
  * <dd>returns the last day of that month (July) in the current year</dd>
  * </dl>
  */
-public class DateTimeParser implements Serializable {
-
-	private static final long serialVersionUID = -358507498570262711L;
+public class DateTimeParser {
 
 	private final static String SEPARATOR = ".";
 
 	/**
 	 * When parsing a date string with a 2 digit year, the year will be expanded
-	 * into a 4 digit year. If its smaller than the current year - 2000 +
-	 * {@value} then add 2000 else add 1900.
+	 * into a 4 digit year. If its smaller than the current year - 2000 + value
+	 * then add 2000 else add 1900.
 	 * <p>
 	 * The default value is 20.
-	 * </p>
-	 * 
+	 *
 	 * @see #expandYear(int)
 	 */
 	public static int YearsIntoFuture = 20;
 
+	/**
+	 * No argument constructor
+	 */
 	public DateTimeParser() {
 	}
 
@@ -44,10 +44,10 @@ public class DateTimeParser implements Serializable {
 	 * <em>getYearsIntoFuture()</em> then add 2000. If it is smaller than 100
 	 * then add 1900. If it is smaller than 1000 then add 1900. Else just return
 	 * the given value. 0 or a negative value returns the current year.
-	 * 
+	 *
 	 * @param yearWith2Digits
-	 *            The two digit year
-	 * @return Returns a 4 digit year
+	 *            two digit year
+	 * @return 4 digit year
 	 */
 	public static int expandYear( int yearWith2Digits ) {
 		int currentYear = OffsetDateTime.now().getYear();
@@ -63,6 +63,11 @@ public class DateTimeParser implements Serializable {
 		return yearWith2Digits;
 	}
 
+	/**
+	 * Gets computation border
+	 *
+	 * @return years into future
+	 */
 	public static int getYearsIntoFuture() {
 		return YearsIntoFuture;
 	}
@@ -75,7 +80,7 @@ public class DateTimeParser implements Serializable {
 	 * year, <b>M</b> for month and <b>d</b> for day in month. The order of this
 	 * three letters defines the order of values in the parsed string.
 	 * </p>
-	 * 
+	 *
 	 * @param text
 	 *            The text with a date
 	 * @param pattern
@@ -129,7 +134,7 @@ public class DateTimeParser implements Serializable {
 	 * year, <b>M</b> for month and <b>d</b> for day in month. The order of this
 	 * three letters defines the order of values in the parsed string.
 	 * </p>
-	 * 
+	 *
 	 * @param text
 	 *            The text with a date and time
 	 * @param pattern
@@ -192,7 +197,7 @@ public class DateTimeParser implements Serializable {
 	/******************************************************************
 	 * Date token contains 1 to 3 numbers. Multiple numbers are separated by
 	 * {@link #SEPARATOR}
-	 * 
+	 *
 	 * @param token
 	 * @param pattern
 	 * @return the given date with new values
@@ -360,7 +365,7 @@ public class DateTimeParser implements Serializable {
 	/**
 	 * Time token contains 2, 3 or 4 numbers separated by {@link #SEPARATOR} in
 	 * the order hours, minutes, seconds, milliseconds
-	 * 
+	 *
 	 * @param text
 	 *            time string to parse
 	 * @return new instance of {@code LocalTime}
@@ -398,7 +403,7 @@ public class DateTimeParser implements Serializable {
 
 	/******************************************************************
 	 * Splits the given string into tokens and returns them as a list.
-	 * 
+	 *
 	 * @param text
 	 *            The string to be interpreted
 	 * @return Returns a list of tokens
@@ -496,7 +501,7 @@ public class DateTimeParser implements Serializable {
 	/**********************************************************************
 	 * Checks the current token. If the type is different then create a new
 	 * token with the given type, add it to the list and return it.
-	 * 
+	 *
 	 * @param tokens
 	 * @param activeToken
 	 * @param newType
@@ -521,7 +526,7 @@ public class DateTimeParser implements Serializable {
 	 * <li>{@code 2002} will return 2020 end of February (2020-02-28)</li>
 	 * </ul>
 	 * This method only gets the integer value.
-	 * 
+	 *
 	 * @param value
 	 *            value to parse. See above
 	 * @return new instance of {@code LocalDate}
@@ -549,10 +554,26 @@ public class DateTimeParser implements Serializable {
 		return date;
 	}
 
+	/**
+	 * Sets computation border for 2 digit years
+	 *
+	 * @param yearsIntoFuture
+	 *            computation border
+	 */
 	public static void setYearsIntoFuture( int yearsIntoFuture ) {
 		YearsIntoFuture = yearsIntoFuture;
 	}
 
+	/**
+	 * Returns a new instance of {@code OffsetDateTime} in which date parts are
+	 * replaced by values from [{@code date}.
+	 *
+	 * @param current
+	 *            date time value
+	 * @param date
+	 *            date to replace date part
+	 * @return new instance of OffsetDateTime
+	 */
 	public static OffsetDateTime withDate( OffsetDateTime current,
 			LocalDate date ) {
 		current = current.withYear( date.getYear() )
@@ -561,6 +582,16 @@ public class DateTimeParser implements Serializable {
 		return current;
 	}
 
+	/**
+	 * Returns a new instance of {@code OffsetDateTime} in which time parts are
+	 * replaced by values from [{@code time}.
+	 *
+	 * @param current
+	 *            date time value
+	 * @param time
+	 *            time to replace time part
+	 * @return new instance of OffsetDateTime
+	 */
 	public static OffsetDateTime withTime( OffsetDateTime current,
 			LocalTime time ) {
 		current = current.withHour( time.getHour() )

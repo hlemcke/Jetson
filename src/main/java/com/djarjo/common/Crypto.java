@@ -1,14 +1,17 @@
-package com.djarjo.codec;
+package com.djarjo.common;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+/**
+ * Produces some hash digest
+ */
 public class Crypto {
 
 	/**
 	 * Crypts the given string with MD5.
-	 * 
+	 *
 	 * @param input
 	 *            Text to be crypted
 	 * @return crypted with MD5 with hex encoding
@@ -33,9 +36,19 @@ public class Crypto {
 		return output;
 	}
 
+	/**
+	 * Hex characters with lowercase letters a-f
+	 */
 	public final static char[] HEX = { '0', '1', '2', '3', '4', '5', '6', '7',
 			'8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
+	/**
+	 * Gets a string representation in hex codes of the byte array.
+	 *
+	 * @param input
+	 *            byte array
+	 * @return string representation in hex
+	 */
 	public static String toHex( byte[] input ) {
 		char[] output = new char[2 * input.length];
 		int j = 0;

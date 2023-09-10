@@ -4,50 +4,63 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
+	<artifactId>jetson</artifactId>
+	<description>Json encoder and decoder with annotations and bean management</description>
+	<groupId>com.djarjo</groupId>
+	<name>Djarjo Jetson</name>
 	<organization>
 		<name>djarjo GmbH</name>
 		<url>www.djarjo.com</url>
 	</organization>
-
-	<name>Djarjo Jetson</name>
-	<description>Json annotations and bean management</description>
-	<url>http://maven.djarjo.com/jetson</url>
-
-	<artifactId>jetson</artifactId>
-
-	<parent>
-		<groupId>com.djarjo</groupId>
-		<artifactId>jetson-build</artifactId>
-		<version>1.0.0</version>
-		<relativePath>pom_versions.xml</relativePath>
-	</parent>
-
 	<packaging>jar</packaging>
+	<url>http://maven.djarjo.com/jetson</url>
+	<version>1.0.0</version>
+
+	<properties>
+		<maven.test.skip>true</maven.test.skip>
+		<maven.test.failure.ignore>true</maven.test.failure.ignore>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>17</java.version>
+
+		<!-- maven versions -->
+		<org.apache.maven.plugins_maven-jar-plugin_version>3.3.0</org.apache.maven.plugins_maven-jar-plugin_version>
+		<org.apache.maven.plugins_maven-compiler-plugin_version>3.11.0</org.apache.maven.plugins_maven-compiler-plugin_version>
+		<org.apache.maven.plugins_maven-javadoc-plugin_version>3.5.0</org.apache.maven.plugins_maven-javadoc-plugin_version>
+		<org.apache.maven.plugins_maven-source-plugin_version>3.3.0</org.apache.maven.plugins_maven-source-plugin_version>
+
+		<!-- Logging libraries -->
+		<com.google.flogger_flogger_version>0.7.4</com.google.flogger_flogger_version>
+		<com.google.flogger_flogger-system-backend_version>0.7.4</com.google.flogger_flogger-system-backend_version>	
+
+		<!-- JUnit -->
+		<org.junit.jupiter_junit-jupiter-api_version>5.10.0</org.junit.jupiter_junit-jupiter-api_version>
+		<org.junit.jupiter_junit-jupiter-engine_version>5.10.0</org.junit.jupiter_junit-jupiter-engine_version>
+	</properties>
 
 	<dependencies>
 		<dependency>
     		<groupId>com.google.flogger</groupId>
     		<artifactId>flogger</artifactId>
-     		<version>${com.google.flogger_flogger_version}</version> 
 			<scope>provided</scope>
+     		<version>${com.google.flogger_flogger_version}</version> 
 		</dependency>
 		<dependency>
     		<groupId>com.google.flogger</groupId>
 			<artifactId>flogger-system-backend</artifactId>
-    		<version>${com.google.flogger_flogger-system-backend_version}</version>
 			<scope>provided</scope>
+    		<version>${com.google.flogger_flogger-system-backend_version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
-			<version>${org.junit.jupiter_junit-jupiter-api_version}</version>
 			<scope>test</scope>
+			<version>${org.junit.jupiter_junit-jupiter-api_version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
-			<version>${org.junit.jupiter_junit-jupiter-engine_version}</version>
 			<scope>test</scope>
+			<version>${org.junit.jupiter_junit-jupiter-engine_version}</version>
 		</dependency>
  	</dependencies>
 
@@ -56,72 +69,32 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${org.apache.maven.plugins_maven-compiler-plugin_version}</version>
 				<configuration>
 					<release>${java.version}</release>
           		</configuration>
 			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>${org.apache.maven.plugins_maven-antrun-plugin_version}</version>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${org.apache.maven.plugins_maven-javadoc-plugin_version}</version>
 				<executions>
 					<execution>
-						<id>process-classes</id>
-						<phase>process-classes</phase>
-						<configuration>
-							<target>
-								<property name="compile_classpath" refid="maven.compile.classpath" />
-								<property name="plugin_classpath" refid="maven.plugin.classpath" />
-							</target>
-						</configuration>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
+						<id>attach-javadoc</id>
+						<goals><goal>jar</goal></goals>
+					</execution>					
 				</executions>
-				<dependencies>
-				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>${org.apache.maven.plugins_maven-source-plugin_version}</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals><goal>jar</goal></goals>
+					</execution>					
+				</executions>
 			</plugin>
 		</plugins>
-
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>${org.eclipse.m2e_lifecycle-mapping_version}</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>org.apache.maven.plugins</groupId>
-										<artifactId>maven-antrun-plugin</artifactId>
-										<versionRange>[1.8,)</versionRange>
-										<goals>
-											<goal>run</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore></ignore>
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<excludes>
-					<exclude>**/*.template</exclude>
-				</excludes>
-			</resource>
-		</resources>
 	</build>
 </project>

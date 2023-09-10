@@ -6,8 +6,8 @@ import java.io.Reader;
 /**********************************************************************
  * Reads lines from a character stream reader.
  * <p>
- * Options can be set by calling {@link #setOptions(int)}. Options are the sum
- * of: combination of:
+ * Options can be set by calling {@link #withOptions(int)}. Options are the sum
+ * of:
  * <ul>
  * <li>(2) SKIP_EMPTYLINES skips lines which are of length zero or only contain
  * blanks</li>
@@ -20,7 +20,6 @@ import java.io.Reader;
  * <li>(32) UNFOLDING appends next line if it starts with a space. According to
  * RFC5322</li>
  * </ul>
- * </p>
  *********************************************************************/
 public class HalBufferedReader extends Reader {
 
@@ -67,7 +66,9 @@ public class HalBufferedReader extends Reader {
 
 	/******************************************************************
 	 * Constructs a new HalBufferedReader.
-	 * 
+	 *
+	 * @param reader
+	 *            use this reader
 	 */
 	public HalBufferedReader( Reader reader ) {
 		this.reader = reader;
@@ -83,7 +84,7 @@ public class HalBufferedReader extends Reader {
 
 	/**
 	 * Gets the current line number
-	 * 
+	 *
 	 * @return Returns line number
 	 */
 	public int getLineNumber() {
@@ -92,7 +93,7 @@ public class HalBufferedReader extends Reader {
 
 	/**
 	 * Gets the current location.
-	 * 
+	 *
 	 * @return Return the current location as a string
 	 */
 	public String getLocation() {
@@ -103,6 +104,8 @@ public class HalBufferedReader extends Reader {
 
 	/******************************************************************
 	 * Gets options of this reader.
+	 *
+	 * @return sum of option combinations
 	 */
 	public int getOptions() {
 		return options;
@@ -115,9 +118,10 @@ public class HalBufferedReader extends Reader {
 
 	/******************************************************************
 	 * Reads the next line from a file according to the current options.
-	 * 
-	 * @return Returns the next line as a string or null on end of file.
+	 *
+	 * @return next line as a string or null on end of file.
 	 * @throws IOException
+	 *             on read error
 	 */
 	public String readLine() throws IOException {
 		// --- Already at end of file
@@ -243,6 +247,7 @@ public class HalBufferedReader extends Reader {
 	 *
 	 * <em>options</em> is the sum of:
 	 * <table>
+	 * <caption>Options</caption>
 	 * <tr>
 	 * <td>{@link #SKIP_EMPTYLINES}</td>
 	 * <td>skips empty lines</td>
@@ -260,15 +265,20 @@ public class HalBufferedReader extends Reader {
 	 * <td>removes XML comments "&lt;!-- ... --&gt;" /td>
 	 * </tr>
 	 * <tr>
-	 * <td>{@link #UNFODLING}</td>
+	 * <td>{@link #UNFOLDING}</td>
 	 * <td>Appends next line if it starts with a single space or tab while
 	 * dropping line break and the space (see RFC5322)</td>
 	 * </tr>
 	 * </table>
-	 * 
+	 * <p>
+	 * Javadoc is buggy -> not accepting closing tags at end
+	 *
 	 * @param options
+	 *            additive value of options
+	 * @return this for fluent API
 	 */
-	public void setOptions( int options ) {
+	public HalBufferedReader withOptions( int options ) {
 		this.options = options;
+		return this;
 	}
 }
