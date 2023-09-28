@@ -61,14 +61,6 @@ class JsonEncoderTest {
 	void tearDown() throws Exception {
 	}
 
-	@Test
-	void testIsBytesToBase64() {
-		JsonEncoder encoder = JsonEncoder.encoder().withBytesToBase64( false );
-		assertFalse( encoder.isBytesToBase64() );
-		encoder = JsonEncoder.encoder().withBytesToBase64( true );
-		assertTrue( encoder.isBytesToBase64() );
-	}
-
 	/**
 	 * Test method for
 	 * {@link com.djarjo.jetson.JsonEncoder#isEmpty(java.lang.Object)}.
@@ -76,25 +68,6 @@ class JsonEncoderTest {
 	@Test
 	void testIsEmpty() {
 		assertTrue( JsonEncoder.encoder().isEmpty( "null" ) );
-	}
-
-	@Test
-	void testIsJson5() {
-		JsonEncoder encoder = JsonEncoder.encoder().withJson5( false );
-		assertFalse( encoder.isJson5() );
-		encoder = JsonEncoder.encoder().withJson5( true );
-		assertTrue( encoder.isJson5() );
-	}
-
-	/**
-	 * Test method for {@link com.djarjo.jetson.JsonEncoder#isWithNulls()}.
-	 */
-	@Test
-	void testIsWithNulls() {
-		JsonEncoder encoder = JsonEncoder.encoder().withNulls( false );
-		assertFalse( encoder.isWithNulls() );
-		encoder = JsonEncoder.encoder().withNulls( true );
-		assertTrue( encoder.isWithNulls() );
 	}
 
 	/**

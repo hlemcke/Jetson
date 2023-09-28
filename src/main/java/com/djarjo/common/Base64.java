@@ -13,37 +13,23 @@ import java.io.UnsupportedEncodingException;
  * strings.
  * </p>
  * <p>
- * The decoders also accepts {@code +} for char 62 and {@code /} for char 63.
+ * The decoders automatically accepts {@code +} for char 62 and {@code /} for
+ * char 63.
  * These characters are not safe to use in URLs and file systems.
  * </p>
  *
  * @author Hajo Lemcke
  * @since 2015-10
+ * @since 2023-09-26 encoder withLineBreaks, withPadding, withStandard. All
+ *        default to false.
  */
 public class Base64 {
-
-	/**
-	 * Coding type for encoding.
-	 */
-	public enum CODING {
-		/**
-		 * Standard encoding uses characters "+" and "-" producing problems in
-		 * URLs
-		 */
-		DEFAULT,
-
-		/**
-		 * Replaces default coding character {@code +} with {@code -} and
-		 * character {@code /} with {@code _}
-		 */
-		WEB_SAFE
-	}
 
 	/** The padding char to fill up the encoding to 3*n bytes */
 	private static final int paddingChar = '=';
 
 	/** The characters used for Base64 */
-	private static final byte[] BASE64_BYTES_DEFAULT = { 'A', 'B', 'C', 'D',
+	private static final byte[] BASE64_BYTES_STANDARD = { 'A', 'B', 'C', 'D',
 			'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
 			'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd',
 			'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q',
@@ -176,10 +162,6 @@ public class Base64 {
 			if ( '0' <= c && c <= '9' ) {
 				return (byte) (c - '0' + 52);
 			}
-			// for ( int i = BASE64_BYTES_WEB_SAFE.length - 1; i >= 0; i-- ) {
-			// if ( c == BASE64_BYTES_WEB_SAFE[i] )
-			// return (byte) i;
-			// }
 			return -1;
 		}
 	}
@@ -189,9 +171,10 @@ public class Base64 {
 	 * without line breaks.
 	 */
 	public static class Encoder {
-		private CODING _coding = CODING.WEB_SAFE;
+
 		private byte[] _codeTable = BASE64_BYTES_WEB_SAFE;
 		private boolean _lineBreaks = false;
+		private boolean _withPadding = false;
 
 		/******************************************************************
 		 * Encodes given text into base 64. Defaults to web safe character set
@@ -253,8 +236,10 @@ public class Base64 {
 				val = ((binaryInput[i++] & 0x0003) << 4);
 				if ( i >= len ) {
 					binaryOutput[j++] = _codeTable[val];
-					binaryOutput[j++] = paddingChar;
-					binaryOutput[j++] = paddingChar;
+					if ( _withPadding ) {
+						binaryOutput[j++] = paddingChar;
+						binaryOutput[j++] = paddingChar;
+					}
 					break;
 				}
 				val = val | ((binaryInput[i] >>> 4) & 0x000F);
@@ -264,7 +249,9 @@ public class Base64 {
 				val = ((binaryInput[i++] & 0x000F) << 2);
 				if ( i >= len ) {
 					binaryOutput[j++] = _codeTable[val];
-					binaryOutput[j++] = paddingChar;
+					if ( _withPadding ) {
+						binaryOutput[j++] = paddingChar;
+					}
 					break;
 				}
 				val = val | ((binaryInput[i] >>> 6) & 0x0003);
@@ -282,47 +269,28 @@ public class Base64 {
 			return new String( binaryOutput );
 		}
 
-		/**
-		 * Gets coding: URL-safe or standard
-		 *
-		 * @return coding
-		 */
-		public CODING getCoding() {
-			return _coding;
-		}
-
-		/**
-		 * Gets line breaks setting.
-		 *
-		 * @return {@code true} if line breaks included during encoding
-		 */
-		public boolean hasLineBreaks() {
-			return _lineBreaks;
-		}
-
-		/**
-		 * Set coding to web-safe or standard. Defaults to web-safe.
-		 *
-		 * @param coding
-		 *            standard or web-safe
-		 * @return encoder for fluent api
-		 */
-		public Encoder withEncoding( CODING coding ) {
-			this._coding = coding;
-			_codeTable = (coding == CODING.DEFAULT) ? BASE64_BYTES_DEFAULT
-					: BASE64_BYTES_WEB_SAFE;
+		public Encoder withPadding() {
+			this._withPadding = true;
 			return this;
 		}
 
 		/**
 		 * Sets creation of line breaks every 64 chars. Default = {@code false}.
 		 *
-		 * @param lineBreaks
-		 *            {@code true} will produce line breaks every 64 chars
 		 * @return encoder for fluent api
 		 */
-		public Encoder withLineBreaks( boolean lineBreaks ) {
-			this._lineBreaks = lineBreaks;
+		public Encoder withLineBreaks() {
+			this._lineBreaks = true;
+			return this;
+		}
+
+		/**
+		 * Set coding to standard. Defaults to web-safe.
+		 *
+		 * @return encoder for fluent api
+		 */
+		public Encoder withStandard() {
+			_codeTable = BASE64_BYTES_STANDARD;
 			return this;
 		}
 	}

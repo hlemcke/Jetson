@@ -102,8 +102,8 @@ public class Base64Test {
 			System.out.println( "--- Encoding ---" );
 		String result = null;
 		for ( int i = 0; i < input.length; i++ ) {
-			result = Base64.encoder().withEncoding( Base64.CODING.DEFAULT )
-					.withLineBreaks( true ).encode( input[i] );
+			result = Base64.encoder().withStandard().withLineBreaks()
+					.encode( input[i] );
 			if ( _consoleOutput )
 				System.out.println( expected[i] + "\n" + result );
 			assertEquals( expected[i], result );

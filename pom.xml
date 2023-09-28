@@ -65,10 +65,12 @@
  	</dependencies>
 
 	<build>
+		<defaultGoal>package</defaultGoal>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${org.apache.maven.plugins_maven-compiler-plugin_version}</version>
 				<configuration>
 					<release>${java.version}</release>
           		</configuration>

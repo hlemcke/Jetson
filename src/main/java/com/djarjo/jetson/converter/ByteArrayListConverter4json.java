@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.djarjo.common.Base64;
-import com.djarjo.common.Base64.CODING;
 
 /**
  * Converts a list of byte arrays to a Json list. Each item in the Json list is
@@ -19,8 +18,7 @@ public class ByteArrayListConverter4json
 	public String encodeToJson( List<byte[]> listOfByteArrays ) {
 		return Optional.ofNullable( listOfByteArrays ).map( byteArray -> {
 			return byteArray.stream()
-					.map( bytes -> Base64.encoder()
-							.withEncoding( CODING.WEB_SAFE ).encode( bytes ) )
+					.map( bytes -> Base64.encoder().encode( bytes ) )
 					.collect( Collectors.joining( ",", "", "" ) );
 		} ).orElse( null );
 	}
