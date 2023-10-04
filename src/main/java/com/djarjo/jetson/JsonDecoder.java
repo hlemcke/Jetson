@@ -320,8 +320,7 @@ public class JsonDecoder {
 	 * finding the matching "}". Elements are decoded in between. Each element
 	 * looks like
 	 *
-	 * <pre>
-	 * "name" : value
+	 * <pre> * "name" : value
 	 * </pre>
 	 *
 	 * Elements are separated by comma. For values see
@@ -555,12 +554,16 @@ public class JsonDecoder {
 	private Object _getInstanceFromGeneric( Type generic )
 			throws IllegalAccessException {
 		Object target = null;
+		if ( generic instanceof Class == false ) {
+			return null;
+		}
+		Class<?> cls = (Class<?>) generic;
 		try {
-			Class<?> clazz = Class.forName( generic.getTypeName() );
-			target = clazz.getDeclaredConstructor().newInstance();
+			// Class<?> clazz = Class.forName( generic.getTypeName() );
+			target = cls.getDeclaredConstructor().newInstance();
 		} catch (InstantiationException | IllegalArgumentException
 				| InvocationTargetException | NoSuchMethodException
-				| SecurityException | ClassNotFoundException e) {
+				| SecurityException e) {
 			IllegalAccessException ex = new IllegalAccessException(
 					_makeErrorInfo( "Cannot create generic: " + generic ) );
 			ex.initCause( e );
