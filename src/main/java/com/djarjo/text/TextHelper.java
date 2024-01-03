@@ -911,7 +911,31 @@ public class TextHelper {
 		return name;
 	}
 
-	/******************************************************************
+	/************************************
+	 * Gets the last word of a string.
+	 * <p>
+	 * The words in the string can be separated by '/', ' ', '.' or '-'. If none
+	 * of this separation characters was found then the text itself will be
+	 * returned;
+	 * 
+	 * @param text
+	 *            string like "abc.def"
+	 * @return last word or text itself
+	 */
+	public static String getLastWord( String text ) {
+		if ( text == null || text.isBlank() ) {
+			return text;
+		}
+		// --- determine separation character
+		String separationChar = text.contains( "." ) ? "."
+				: text.contains( "/" ) ? "/"
+						: text.contains( "-" ) ? "-"
+								: text.contains( " " ) ? " " : "";
+		String[] parts = text.split( separationChar );
+		return parts[parts.length - 1];
+	}
+
+	/************************************
 	 * Gets the location for the given index into the text. Returns the string
 	 * "line l column c".
 	 *
@@ -1285,7 +1309,7 @@ public class TextHelper {
 			return null;
 		}
 		String byteString = text.stripLeading().toLowerCase();
-		if ( ! text.startsWith( "0x" ) || text.length() < 3 ) {
+		if ( !text.startsWith( "0x" ) || text.length() < 3 ) {
 			return null;
 		}
 		// --- Build value from left to right
