@@ -28,6 +28,62 @@ import java.text.ParseException;
  */
 public class Jetson {
 
+    // --- Setting: encode to JSON 5 {@link https://json5.org}
+    private boolean _json5 = false;
+
+    // --- Setting: encode an array or list of bytes into a Base64 string
+    private boolean _bytesToBase64 = true;
+
+    public Jetson withBytesToBase64( boolean with ) {
+        this._bytesToBase64 = with;
+        return this;
+    }
+
+    // --- Setting: if to encode members with a value of {@code null}
+    private boolean _withNulls = false;
+
+    /**
+     * Encodes values from objects having a value of {@code null}.
+     * <p>
+     * 
+     * @param with
+     *            default is {@code false}
+     * @return
+     */
+    public Jetson withNulls( boolean with ) {
+        this._withNulls = with;
+        return this;
+    }
+
+    /**
+     * Pretty prints the encoded json string by writing each item on a separate
+     * line and indenting it with the given {@code indent}.
+     * <p>
+     * A value of {@code null} will encode into a one line string
+     * </p>
+     * 
+     * @param indent
+     *            default is no indentation
+     * @return this for fluent API
+     */
+    public Jetson withPrettyPrint( String indent ) {
+        this._indent = indent;
+        return this;
+    }
+
+    // --- Setting: indentation character(s)
+    private String _indent = null;
+
+    /**
+     * Constructor without parameters
+     */
+    public Jetson() {
+    }
+
+    public static Jetson newInstance() {
+        return new Jetson();
+    }
+
     /**
      * Decodes the given Json string into a basic value, a list or a map.
      * <p>
@@ -102,7 +158,7 @@ public class Jetson {
      * @return encoded object in Json5 format
      */
     static public String encodeJson5( Object object ) {
-        return JsonEncoder.encoder().withJson5( true ).encode( object );
+        return JsonEncoder.encoder().toJson5( true ).encode( object );
     }
 
     /**
@@ -110,7 +166,25 @@ public class Jetson {
      *
      * @return new instance of JsonEncoder
      */
-    public static JsonEncoder encoder() {
-        return new JsonEncoder();
+    public JsonEncoder encoder() {
+        return JsonEncoder
+            .encoder()
+            .toJson5( _json5 )
+            .withBytesToBase64( _bytesToBase64 )
+            .withNulls( _withNulls )
+            .withPrettyPrint( _indent );
+    }
+
+    public Jetson toJson5( boolean to ) {
+        this._json5 = to;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return String
+            .format( "Encoder %s %s %s %s", _json5 ? "toJson5" : "",
+                _bytesToBase64 ? "toBase64" : "", _withNulls ? "withNulls" : "",
+                (_indent == null) ? "" : "indent='" + _indent + "'" );
     }
 }

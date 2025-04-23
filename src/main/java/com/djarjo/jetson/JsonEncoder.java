@@ -174,7 +174,7 @@ public class JsonEncoder {
 	 *            default = {@code false}
 	 * @return encoder for streaming API
 	 */
-	public JsonEncoder withJson5( boolean json5 ) {
+	public JsonEncoder toJson5( boolean json5 ) {
 		_json5 = json5;
 		if ( json5 && (_indent == null) ) {
 			withPrettyPrint( "  " );
