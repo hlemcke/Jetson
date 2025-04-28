@@ -12,6 +12,12 @@ import java.time.format.DateTimeParseException;
 public class OffsetDateTimeConverter4json
 		implements JsonConverter<OffsetDateTime> {
 
+	/**
+	 * Useless public constructor implemented for Javadoc only
+	 */
+	public OffsetDateTimeConverter4json() {
+	}
+
 	@Override
 	public String encodeToJson( OffsetDateTime iso8601dateTime ) {
 		return iso8601dateTime.toString();

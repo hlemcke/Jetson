@@ -32,6 +32,12 @@ import com.google.common.flogger.FluentLogger;
 public class BeanHelper {
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 
+	/**
+	 * Useless public constructor implemented for Javadoc only
+	 */
+	public BeanHelper() {
+	}
+
 	/******************************************************************
 	 * Obtains all fields from the bean which have a getter method and store
 	 * them in the map. The key is the name of the getter (lower case without
@@ -308,8 +314,8 @@ public class BeanHelper {
 				field.setAccessible( true );
 				value = field.get( bean );
 			} else if ( kind == ElementKind.METHOD ) {
-				Method method = bean.getClass().getDeclaredMethod( name,
-						(Class<?>[]) null );
+				Method method = bean.getClass()
+						.getDeclaredMethod( name, (Class<?>[]) null );
 				method.setAccessible( true );
 				value = method.invoke( bean, (Object[]) null );
 			}
@@ -370,8 +376,9 @@ public class BeanHelper {
 	 * @return name of the variable or {@code null}
 	 */
 	public static String getVarnameFromMethodname( String methodName ) {
-		if ( methodName.length() < 4 )
+		if ( methodName.length() < 4 ) {
 			return null;
+		}
 		String[] prefixes = { "get", "has", "is", "set" };
 		for ( String prefix : prefixes ) {
 			if ( methodName.startsWith( prefix ) ) {
@@ -545,16 +552,20 @@ public class BeanHelper {
 				continue;
 			}
 			if ( name.startsWith( "get" ) || name.startsWith( "has" ) ) {
-				if ( name.length() < 4 )
+				if ( name.length() < 4 ) {
 					continue;
-				if ( Character.isLowerCase( name.charAt( 3 ) ) )
+				}
+				if ( Character.isLowerCase( name.charAt( 3 ) ) ) {
 					continue;
+				}
 				getters.add( method );
 			} else if ( name.startsWith( "is" ) ) {
-				if ( name.length() < 3 )
+				if ( name.length() < 3 ) {
 					continue;
-				if ( Character.isLowerCase( name.charAt( 2 ) ) )
+				}
+				if ( Character.isLowerCase( name.charAt( 2 ) ) ) {
 					continue;
+				}
 				getters.add( method );
 			}
 		}
@@ -607,14 +618,18 @@ public class BeanHelper {
 		for ( Method method : methods ) {
 			// --- Skip non setters
 			name = method.getName();
-			if ( name.startsWith( "set" ) == false )
+			if ( name.startsWith( "set" ) == false ) {
 				continue;
-			if ( name.length() < 4 )
+			}
+			if ( name.length() < 4 ) {
 				continue;
-			if ( Character.isLowerCase( name.charAt( 3 ) ) )
+			}
+			if ( Character.isLowerCase( name.charAt( 3 ) ) ) {
 				continue;
-			if ( method.getParameterCount() != 1 )
+			}
+			if ( method.getParameterCount() != 1 ) {
 				continue;
+			}
 			setters.add( method );
 		}
 		return setters.toArray( new Method[0] );
@@ -861,8 +876,9 @@ public class BeanHelper {
 		try {
 			field.set( bean, value );
 		} catch (IllegalArgumentException e) {
-			logger.atWarning().log(
-					"Cannot set " + field + "( " + type + " ) to " + value );
+			logger.atWarning()
+					.log( "Cannot set " + field + "( " + type + " ) to "
+							+ value );
 			throw e;
 		}
 		return oldValue;
@@ -920,9 +936,10 @@ public class BeanHelper {
 					}
 					parms[0] = newList;
 				} catch (ClassNotFoundException e) {
-					logger.atWarning().withCause( e ).log(
-							"set( cannot instantiate generic %s",
-							genericTypeName );
+					logger.atWarning()
+							.withCause( e )
+							.log( "set( cannot instantiate generic %s",
+									genericTypeName );
 				}
 			}
 		} else {

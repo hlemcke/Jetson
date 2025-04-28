@@ -160,6 +160,12 @@ public class TextHelper {
 	 */
 	public final static int REMOVE_ALL = 8191;
 
+	/**
+	 * Useless public constructor implemented for Javadoc only
+	 */
+	public TextHelper() {
+	}
+
 	/******************************************************************
 	 * Inserts the given word to the sorted comma separated list.
 	 * <p>
@@ -1165,6 +1171,17 @@ public class TextHelper {
 		return s;
 	}
 
+	/**
+	 * Gets minimum of three supplied values.
+	 * 
+	 * @param a
+	 *            first value
+	 * @param b
+	 *            second value
+	 * @param c
+	 *            third value
+	 * @return smallest value
+	 */
 	public static int minimum( int a, int b, int c ) {
 		return Math.min( Math.min( a, b ), c );
 	}
@@ -1173,7 +1190,8 @@ public class TextHelper {
 	 * Parses the given text as a decimal number.
 	 *
 	 * @param text
-	 * @return Returns a new BigDecmial or <em>null</em> if the text is not a
+	 *            to be parsed
+	 * @return a new BigDecmial or <em>null</em> if the text is not a
 	 *         number at all
 	 */
 	public static BigDecimal parseBigDecimal( String text ) {
@@ -1193,8 +1211,8 @@ public class TextHelper {
 	 * case, to the string "true".
 	 *
 	 * @param text
-	 *            The text to parse
-	 * @return Returns <em>true</em> if the text is 'true' ignoring case
+	 *            text to parse
+	 * @return <em>true</em> if the text is 'true' ignoring case
 	 */
 	public static Boolean parseBoolean( String text ) {
 		if ( isEmpty( text ) ) {

@@ -14,8 +14,15 @@ import com.google.common.flogger.FluentLogger;
  * <p>
  * Recursively invokes just another Json converter.
  */
+@SuppressWarnings("javadoc")
 public class CollectionConverter4json implements JsonConverter<Collection<?>> {
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
+
+	/**
+	 * Useless public constructor implemented for Javadoc only
+	 */
+	public CollectionConverter4json() {
+	}
 
 	@Override
 	public String encodeToJson( Collection<?> jsonObject ) {
@@ -34,8 +41,9 @@ public class CollectionConverter4json implements JsonConverter<Collection<?>> {
 				collection = Collections.unmodifiableCollection( collection );
 			}
 		} catch (IllegalAccessException | ParseException e) {
-			logger.atSevere().log( "Exception %s while decoding '%s'",
-					e.getMessage(), jsonValue );
+			logger.atSevere()
+					.log( "Exception %s while decoding '%s'", e.getMessage(),
+							jsonValue );
 		}
 		return collection;
 	}

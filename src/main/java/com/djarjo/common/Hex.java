@@ -1,12 +1,19 @@
 package com.djarjo.common;
 
 /**********************************************************************
- *
+ * Helper class to manage hex-codes.
+ * 
  * @author Hajo Lemcke
  */
 public class Hex {
 
 	private static final String hexChars = "0123456789abcdef";
+
+	/**
+	 * Useless public constructor implemented for Javadoc only
+	 */
+	public Hex() {
+	}
 
 	/**
 	 * Encodes byte to hey string

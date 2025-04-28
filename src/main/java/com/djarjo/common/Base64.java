@@ -45,6 +45,12 @@ public class Base64 {
 			'4', '5', '6', '7', '8', '9', '-', '_' };
 
 	/**
+	 * Default constructor without parameters doing nothing
+	 */
+	public Base64() {
+	}
+
+	/**
 	 * Instantiates a new decoder (fluent API).
 	 *
 	 * @return new instance of Decoder
@@ -106,31 +112,38 @@ public class Base64 {
 			while ( i < inputLength ) {
 
 				// --- Base64 char 0
-				if ( (decoded = indexOf( base64Data[i++] )) < 0 )
+				if ( (decoded = indexOf( base64Data[i++] )) < 0 ) {
 					break;
+				}
 				decodedBytes[j] = (byte) (decoded << 2);
-				if ( i >= inputLength )
+				if ( i >= inputLength ) {
 					break;
+				}
 
 				// --- Base64 char 1
-				if ( (decoded = indexOf( base64Data[i++] )) < 0 )
+				if ( (decoded = indexOf( base64Data[i++] )) < 0 ) {
 					break;
+				}
 				decodedBytes[j++] |= ((byte) (decoded >>> 4));
 				decodedBytes[j] = (byte) (decoded << 4);
-				if ( i >= inputLength )
+				if ( i >= inputLength ) {
 					break;
+				}
 
 				// --- Base64 char 2
-				if ( (decoded = indexOf( base64Data[i++] )) < 0 )
+				if ( (decoded = indexOf( base64Data[i++] )) < 0 ) {
 					break;
+				}
 				decodedBytes[j++] |= ((byte) (decoded >>> 2));
 				decodedBytes[j] = (byte) ((decoded & 0x0003) << 6);
-				if ( i >= inputLength )
+				if ( i >= inputLength ) {
 					break;
+				}
 
 				// --- Base64 char 3
-				if ( (decoded = indexOf( base64Data[i++] )) < 0 )
+				if ( (decoded = indexOf( base64Data[i++] )) < 0 ) {
 					break;
+				}
 				decodedBytes[j++] |= ((byte) (decoded & 0x003F));
 			}
 			return decodedBytes;
@@ -145,8 +158,9 @@ public class Base64 {
 		 *         '=', -1 if not a valid Base64 char
 		 */
 		private byte indexOf( byte c ) {
-			if ( c == paddingChar )
+			if ( c == paddingChar ) {
 				return -2;
+			}
 			if ( (c == '+') || (c == '-') ) {
 				return 62;
 			}
@@ -227,8 +241,9 @@ public class Base64 {
 			int i = 0;
 			while ( true ) {
 				// --- First char
-				if ( i >= len )
+				if ( i >= len ) {
 					break;
+				}
 				val = (binaryInput[i] >>> 2) & 0x003F;
 				binaryOutput[j++] = _codeTable[val];
 
@@ -269,15 +284,10 @@ public class Base64 {
 			return new String( binaryOutput );
 		}
 
-		public Encoder withPadding() {
-			this._withPadding = true;
-			return this;
-		}
-
 		/**
 		 * Sets creation of line breaks every 64 chars. Default = {@code false}.
 		 *
-		 * @return encoder for fluent api
+		 * @return encoder for fluent API
 		 */
 		public Encoder withLineBreaks() {
 			this._lineBreaks = true;
@@ -285,9 +295,19 @@ public class Base64 {
 		}
 
 		/**
+		 * Activates padding with "=" characters. Defaults to {@code false}
+		 * 
+		 * @return encoder for fluent API
+		 */
+		public Encoder withPadding() {
+			this._withPadding = true;
+			return this;
+		}
+
+		/**
 		 * Set coding to standard. Defaults to web-safe.
 		 *
-		 * @return encoder for fluent api
+		 * @return encoder for fluent API
 		 */
 		public Encoder withStandard() {
 			_codeTable = BASE64_BYTES_STANDARD;

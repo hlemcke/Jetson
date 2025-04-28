@@ -10,6 +10,12 @@ import java.security.NoSuchAlgorithmException;
 public class Crypto {
 
 	/**
+	 * Useless public constructor implemented for Javadoc only
+	 */
+	public Crypto() {
+	}
+
+	/**
 	 * Crypts the given string with MD5.
 	 *
 	 * @param input

@@ -8,6 +8,12 @@ import java.util.Locale;
  */
 public class LocaleConverter4json implements JsonConverter<Locale> {
 
+	/**
+	 * Useless public constructor implemented for Javadoc only
+	 */
+	public LocaleConverter4json() {
+	}
+
 	@Override
 	public String encodeToJson( Locale locale ) {
 		return (locale == null) ? null : locale.getLanguage();

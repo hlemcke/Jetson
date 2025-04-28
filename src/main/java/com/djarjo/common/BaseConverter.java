@@ -31,6 +31,12 @@ public class BaseConverter {
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 
 	/**
+	 * Useless public constructor implemented for Javadoc only
+	 */
+	public BaseConverter() {
+	}
+
+	/**
 	 * Converts a Base64 encoded UUID (16 bytes) back to a valid UUID.
 	 *
 	 * @param text
