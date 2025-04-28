@@ -1572,7 +1572,8 @@ public class TextHelper {
 	 * Parses given text as a UUID (128bit).
 	 *
 	 * @param text
-	 * @return uuid or null
+	 *            uuid in string format or {@code null} or an empty string
+	 * @return uuid or {@code null}
 	 */
 	public static UUID parseUuid( final String text ) {
 		if ( text == null || text.isBlank() ) {
