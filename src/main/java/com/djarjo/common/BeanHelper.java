@@ -1,27 +1,12 @@
 package com.djarjo.common;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.flogger.FluentLogger;
 
 import javax.lang.model.element.ElementKind;
-
-import com.google.common.flogger.FluentLogger;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.*;
+import java.text.ParseException;
+import java.util.*;
 
 /**********************************************************************
  * Some helper methods for beans.
@@ -31,6 +16,10 @@ import com.google.common.flogger.FluentLogger;
  */
 public class BeanHelper {
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
+	private static final Comparator<Object> keyComparator =
+		  Comparator.comparing(Object::toString);
+	private static final Comparator<Method> methodNameComparator =
+		  Comparator.comparing(Method::getName);
 
 	/**
 	 * Useless public constructor implemented for Javadoc only
@@ -55,11 +44,11 @@ public class BeanHelper {
 	 * @throws InvocationTargetException
 	 *             if getter must not be invoked
 	 */
-	public static Map<String, Object> describe( Object bean )
-			throws IllegalAccessException, IllegalArgumentException,
-			InvocationTargetException {
-		Method[] getters = obtainGetters( bean.getClass() );
-		return describe( bean, getters );
+	public static Map<String, Object> describe(Object bean)
+		  throws IllegalAccessException, IllegalArgumentException,
+		  InvocationTargetException {
+		Method[] getters = obtainGetters(bean.getClass());
+		return describe(bean, getters);
 	}
 
 	/******************************************************************
@@ -79,9 +68,9 @@ public class BeanHelper {
 	 * @throws InvocationTargetException
 	 *             if getter must not be invoked
 	 */
-	public static Map<String, Object> describe( Object bean, Method[] getters )
-			throws IllegalAccessException, IllegalArgumentException,
-			InvocationTargetException {
+	public static Map<String, Object> describe(Object bean, Method[] getters)
+		  throws IllegalAccessException, IllegalArgumentException,
+		  InvocationTargetException {
 
 		// ----- Prepare resulting map
 		Map<String, Object> map = new HashMap<>();
@@ -89,11 +78,11 @@ public class BeanHelper {
 		// --- Put values into map
 		String key = null;
 		Object value = null;
-		for ( Method method : getters ) {
-			key = getVarnameFromMethodname( method.getName() );
-			method.setAccessible( true );
-			value = method.invoke( bean, (Object[]) null );
-			map.put( key, value );
+		for (Method method : getters) {
+			key = getVarnameFromMethodname(method.getName());
+			method.setAccessible(true);
+			value = method.invoke(bean, (Object[]) null);
+			map.put(key, value);
 		}
 		return map;
 	}
@@ -102,28 +91,27 @@ public class BeanHelper {
 	 * Obtains all fields from the bean and stores them in a map where key is
 	 * the name of the field.
 	 *
-	 * @param bean
-	 *            The bean to describe
+	 * @param bean The bean to describe
 	 * @return map with field names and their values
-	 * @throws IllegalAccessException
-	 *             if access is prohibited
+	 * @throws IllegalAccessException if access is prohibited
 	 */
-	public static Map<String, Object> describeFields( Object bean )
-			throws IllegalAccessException {
+	public static Map<String, Object> describeFields(Object bean)
+		  throws IllegalAccessException {
 		Map<String, Object> map = new HashMap<>();
 
 		// --- Put values into map
 		String key = null;
 		Object value = null;
-		Field[] fields = bean.getClass().getDeclaredFields();
-		for ( Field field : fields ) {
+		Field[] fields = bean.getClass()
+			  .getDeclaredFields();
+		for (Field field : fields) {
 			key = field.getName();
-			if ( Modifier.isStatic( field.getModifiers() ) ) {
+			if (Modifier.isStatic(field.getModifiers())) {
 				continue;
 			}
-			field.setAccessible( true );
-			value = field.get( bean );
-			map.put( key, value );
+			field.setAccessible(true);
+			value = field.get(bean);
+			map.put(key, value);
 		}
 		return map;
 	}
@@ -136,19 +124,19 @@ public class BeanHelper {
 	 *            The full name of a class or interface
 	 * @return package name
 	 */
-	public static String extractPackageFromName( String fullName ) {
+	public static String extractPackageFromName(String fullName) {
 		String str = fullName;
-		if ( fullName.endsWith( ".class" ) ) {
-			str = fullName.substring( 0, fullName.length() - 6 );
-		} else if ( fullName.endsWith( ".java" ) ) {
-			str = fullName.substring( 0, fullName.length() - 5 );
+		if (fullName.endsWith(".class")) {
+			str = fullName.substring(0, fullName.length() - 6);
+		} else if (fullName.endsWith(".java")) {
+			str = fullName.substring(0, fullName.length() - 5);
 		}
 		// --- adapt path to package
-		str = str.replace( '/', '.' );
-		str = str.replace( '\\', '.' );
-		int i = str.lastIndexOf( '.' );
-		if ( i > 0 ) {
-			str = str.substring( 0, i );
+		str = str.replace('/', '.');
+		str = str.replace('\\', '.');
+		int i = str.lastIndexOf('.');
+		if (i > 0) {
+			str = str.substring(0, i);
 		}
 		return str;
 	}
@@ -167,9 +155,9 @@ public class BeanHelper {
 	 *            The name of the property
 	 * @return Returns the method or <em>null</em> if not found
 	 */
-	public static Method findGetter( Class<?> beanClass, String propertyName ) {
-		Method[] methods = obtainGetters( beanClass );
-		return findGetter( methods, propertyName );
+	public static Method findGetter(Class<?> beanClass, String propertyName) {
+		Method[] methods = obtainGetters(beanClass);
+		return findGetter(methods, propertyName);
 	}
 
 	/******************************************************************
@@ -186,22 +174,22 @@ public class BeanHelper {
 	 *            The name of the property
 	 * @return Returns the method or <em>null</em> when not found
 	 */
-	public static Method findGetter( Method[] methods, String propertyName ) {
+	public static Method findGetter(Method[] methods, String propertyName) {
 		assert methods != null : "No methods given";
-		if ( propertyName == null || propertyName.length() == 0 ) {
+		if (propertyName == null || propertyName.isEmpty()) {
 			return null;
 		}
-		String[] prefixes = { "get", "has", "is" };
-		String name = "" + Character.toUpperCase( propertyName.charAt( 0 ) );
-		if ( propertyName.length() > 1 ) {
-			name += propertyName.substring( 1 );
+		String[] prefixes = {"get", "has", "is"};
+		String name = "" + Character.toUpperCase(propertyName.charAt(0));
+		if (propertyName.length() > 1) {
+			name += propertyName.substring(1);
 		}
 		String methodName = null;
-		for ( Method method : methods ) {
+		for (Method method : methods) {
 			methodName = method.getName();
-			for ( String prefix : prefixes ) {
-				if ( methodName.startsWith( prefix ) && name
-						.equals( methodName.substring( prefix.length() ) ) ) {
+			for (String prefix : prefixes) {
+				if (methodName.startsWith(prefix) && name
+					  .equals(methodName.substring(prefix.length()))) {
 					return method;
 				}
 			}
@@ -218,19 +206,19 @@ public class BeanHelper {
 	 *            The annotation which must be present on the method
 	 * @return annotated methods or <em>null</em> if none found
 	 */
-	public static Method[] findMethods( Class<?> cls,
-			Class<? extends Annotation> annoClass ) {
+	public static Method[] findMethods(Class<?> cls,
+	                                   Class<? extends Annotation> annoClass) {
 		List<Method> annotatedMethods = new ArrayList<>();
 		Method[] methods = cls.getMethods();
-		for ( Method method : methods ) {
-			if ( method.isAnnotationPresent( annoClass ) ) {
-				annotatedMethods.add( method );
+		for (Method method : methods) {
+			if (method.isAnnotationPresent(annoClass)) {
+				annotatedMethods.add(method);
 			}
 		}
 		Method[] array = null;
-		if ( annotatedMethods.size() > 0 ) {
+		if (!annotatedMethods.isEmpty()) {
 			array = new Method[annotatedMethods.size()];
-			array = annotatedMethods.toArray( array );
+			array = annotatedMethods.toArray(array);
 		}
 		return array;
 	}
@@ -250,14 +238,14 @@ public class BeanHelper {
 	 *            The name of the property
 	 * @return method or <em>null</em> if not found
 	 */
-	public static Method findSetter( Class<?> beanClass, String propertyName ) {
+	public static Method findSetter(Class<?> beanClass, String propertyName) {
 		assert beanClass != null : "No class given";
-		String name = makeMethodName( "set", propertyName );
-		if ( name == null ) {
+		String name = makeMethodName("set", propertyName);
+		if (name == null) {
 			return null;
 		}
-		for ( Method method : beanClass.getDeclaredMethods() ) {
-			if ( name.equals( method.getName() ) ) {
+		for (Method method : beanClass.getDeclaredMethods()) {
+			if (name.equals(method.getName())) {
 				return method;
 			}
 		}
@@ -279,14 +267,14 @@ public class BeanHelper {
 	 *            The name of the property
 	 * @return method or <em>null</em> if not found
 	 */
-	public static Method findSetter( Method[] methods, String propertyName ) {
+	public static Method findSetter(Method[] methods, String propertyName) {
 		assert methods != null : "No methods given";
-		if ( propertyName == null || propertyName.length() == 0 ) {
+		if (propertyName == null || propertyName.isEmpty()) {
 			return null;
 		}
-		String name = makeMethodName( "set", propertyName );
-		for ( Method method : methods ) {
-			if ( name.equals( method.getName() ) ) {
+		String name = makeMethodName("set", propertyName);
+		for (Method method : methods) {
+			if (name.equals(method.getName())) {
 				return method;
 			}
 		}
@@ -305,26 +293,29 @@ public class BeanHelper {
 	 *            name of the element
 	 * @return value of the element
 	 */
-	public static Object getValue( Object bean, ElementKind kind,
-			String name ) {
+	public static Object getValue(Object bean, ElementKind kind,
+	                              String name) {
 		Object value = null;
 		try {
-			if ( kind == ElementKind.FIELD ) {
-				Field field = bean.getClass().getDeclaredField( name );
-				field.setAccessible( true );
-				value = field.get( bean );
-			} else if ( kind == ElementKind.METHOD ) {
+			if (kind == ElementKind.FIELD) {
+				Field field = bean.getClass()
+					  .getDeclaredField(name);
+				field.setAccessible(true);
+				value = field.get(bean);
+			} else if (kind == ElementKind.METHOD) {
 				Method method = bean.getClass()
-						.getDeclaredMethod( name, (Class<?>[]) null );
-				method.setAccessible( true );
-				value = method.invoke( bean, (Object[]) null );
+					  .getDeclaredMethod(name, (Class<?>[]) null);
+				method.setAccessible(true);
+				value = method.invoke(bean, (Object[]) null);
 			}
 		} catch (IllegalAccessException | IllegalArgumentException
-				| InvocationTargetException | NoSuchFieldException
-				| SecurityException | NoSuchMethodException e) {
+		         | InvocationTargetException | NoSuchFieldException
+		         | SecurityException | NoSuchMethodException e) {
 			String msg = "Error reading value from " + name + " in bean "
-					+ bean.getClass();
-			logger.atWarning().withCause( e ).log( msg );
+				  + bean.getClass();
+			logger.atWarning()
+				  .withCause(e)
+				  .log(msg);
 		}
 		return value;
 	}
@@ -340,27 +331,27 @@ public class BeanHelper {
 	 *            The field or method in the bean
 	 * @return Returns the value of the element
 	 */
-	public static Object getValue( Object bean, AnnotatedElement element ) {
+	public static Object getValue(Object bean, AnnotatedElement element) {
 		Object value = null;
 		try {
-			if ( element instanceof Field ) {
-				Field field = (Field) element;
-				field.setAccessible( true );
-				value = field.get( bean );
-			} else if ( element instanceof Method ) {
-				Method method = (Method) element;
-				method.setAccessible( true );
+			if (element instanceof Field field) {
+				field.setAccessible(true);
+				value = field.get(bean);
+			} else if (element instanceof Method method) {
+				method.setAccessible(true);
 				int count = method.getParameterCount();
-				if ( count != 0 ) {
-					throw new IllegalArgumentException( "Method " + method
-							+ " may not have parameters but has " + count );
+				if (count != 0) {
+					throw new IllegalArgumentException("Method " + method
+						  + " may not have parameters but has " + count);
 				}
-				value = method.invoke( bean, (Object[]) null );
+				value = method.invoke(bean, (Object[]) null);
 			}
 		} catch (IllegalAccessException | IllegalArgumentException
-				| InvocationTargetException e) {
+		         | InvocationTargetException e) {
 			String msg = "Error reading value from " + element;
-			logger.atWarning().withCause( e ).log( msg );
+			logger.atWarning()
+				  .withCause(e)
+				  .log(msg);
 		}
 		return value;
 	}
@@ -375,21 +366,16 @@ public class BeanHelper {
 	 *            The name of the method
 	 * @return name of the variable or {@code null}
 	 */
-	public static String getVarnameFromMethodname( String methodName ) {
-		if ( methodName.length() < 4 ) {
+	public static String getVarnameFromMethodname(String methodName) {
+		if (methodName.length() < 4) {
 			return null;
 		}
-		String[] prefixes = { "get", "has", "is", "set" };
-		for ( String prefix : prefixes ) {
-			if ( methodName.startsWith( prefix ) ) {
+		String[] prefixes = {"get", "has", "is", "set"};
+		for (String prefix : prefixes) {
+			if (methodName.startsWith(prefix)) {
 				int len = prefix.length();
-				if ( methodName.length() <= len ) {
-					return null;
-				}
-				String varname =
-						Character.toLowerCase( methodName.charAt( len ) )
-								+ methodName.substring( len + 1 );
-				return varname;
+				return Character.toLowerCase(methodName.charAt(len))
+					  + methodName.substring(len + 1);
 			}
 		}
 		return null;
@@ -398,28 +384,21 @@ public class BeanHelper {
 	/**
 	 * Injects {@code value} into {@code object}.{@code fieldName}
 	 *
-	 * @param bean
-	 *            target object
-	 * @param fieldName
-	 *            name of target field in bean
-	 * @param value
-	 *            value to set
-	 * @throws IllegalAccessException
-	 *             if access is prohibited
-	 * @throws IllegalArgumentException
-	 *             if type of value is wrong
-	 * @throws NoSuchFieldException
-	 *             if bean does not have an attribute named {@code fieldName}
-	 * @throws SecurityException
-	 *             if access is prohibited
+	 * @param bean      target object
+	 * @param fieldName name of target field in bean
+	 * @param value     value to set
+	 * @throws IllegalAccessException   if access is prohibited
+	 * @throws IllegalArgumentException if type of value is wrong
+	 * @throws NoSuchFieldException     if bean does not have an attribute named {@code fieldName}
+	 * @throws SecurityException        if access is prohibited
 	 */
-	public static void inject( Object bean, String fieldName, Object value )
-			throws NoSuchFieldException, SecurityException,
-			IllegalArgumentException, IllegalAccessException {
+	public static void inject(Object bean, String fieldName, Object value)
+		  throws NoSuchFieldException, SecurityException,
+		  IllegalArgumentException, IllegalAccessException {
 		Class<?> clazz = bean.getClass();
-		Field internalField = clazz.getDeclaredField( fieldName );
-		internalField.setAccessible( true );
-		internalField.set( bean, value );
+		Field internalField = clazz.getDeclaredField(fieldName);
+		internalField.setAccessible(true);
+		internalField.set(bean, value);
 	}
 
 	/******************************************************************
@@ -430,9 +409,9 @@ public class BeanHelper {
 	 *            Name of a method or field
 	 * @return name with first char made upper case
 	 */
-	public static String makeClassName( String name ) {
+	public static String makeClassName(String name) {
 		String fname =
-				Character.toUpperCase( name.charAt( 0 ) ) + name.substring( 1 );
+			  Character.toUpperCase(name.charAt(0)) + name.substring(1);
 		return fname;
 	}
 
@@ -467,28 +446,28 @@ public class BeanHelper {
 	 *            some name
 	 * @return field name
 	 */
-	public static String makeFieldName( String name ) {
+	public static String makeFieldName(String name) {
 		boolean hasLowerCase = false;
 		int i = 0;
-		for ( i = 0; i < name.length(); i++ ) {
-			if ( Character.isLowerCase( name.charAt( i ) ) ) {
+		for (i = 0; i < name.length(); i++) {
+			if (Character.isLowerCase(name.charAt(i))) {
 				hasLowerCase = true;
 				break;
 			}
 		}
-		if ( hasLowerCase == false ) {
+		if (!hasLowerCase) {
 			name = name.toLowerCase();
 		} else {
-			name = Character.toLowerCase( name.charAt( 0 ) )
-					+ name.substring( 1 );
+			name = Character.toLowerCase(name.charAt(0))
+				  + name.substring(1);
 		}
 
-		StringBuilder fieldName = new StringBuilder( name );
-		for ( i = 0; i < fieldName.length(); i++ ) {
-			if ( fieldName.charAt( i ) == '_' ) {
-				fieldName.deleteCharAt( i );
-				fieldName.setCharAt( i,
-						Character.toUpperCase( fieldName.charAt( i ) ) );
+		StringBuilder fieldName = new StringBuilder(name);
+		for (i = 0; i < fieldName.length(); i++) {
+			if (fieldName.charAt(i) == '_') {
+				fieldName.deleteCharAt(i);
+				fieldName.setCharAt(i,
+					  Character.toUpperCase(fieldName.charAt(i)));
 			}
 		}
 		return fieldName.toString();
@@ -505,17 +484,17 @@ public class BeanHelper {
 	 *            The name of a property
 	 * @return method name or <em>null</em>
 	 */
-	public static String makeMethodName( String prefix, String propertyName ) {
-		if ( propertyName == null || propertyName.length() == 0 ) {
+	public static String makeMethodName(String prefix, String propertyName) {
+		if (propertyName == null || propertyName.isEmpty()) {
 			return null;
 		}
-		if ( prefix == null ) {
+		if (prefix == null) {
 			prefix = "";
 		}
 		String name =
-				prefix + Character.toUpperCase( propertyName.charAt( 0 ) );
-		if ( propertyName.length() > 1 ) {
-			name += propertyName.substring( 1 );
+			  prefix + Character.toUpperCase(propertyName.charAt(0));
+		if (propertyName.length() > 1) {
+			name += propertyName.substring(1);
 		}
 		return name;
 	}
@@ -537,40 +516,40 @@ public class BeanHelper {
 	 *
 	 * @param cls
 	 *            The Java class to obtain the getter methods from
-	 * @return map with property name and getter method
+	 * @return array of getter methods
 	 */
-	public static Method[] obtainGetters( Class<?> cls ) {
+	public static Method[] obtainGetters(Class<?> cls) {
 		List<Method> getters = new ArrayList<>();
 		String name = null;
 		Method[] methods = cls.getMethods();
-		for ( Method method : methods ) {
+		for (Method method : methods) {
 			name = method.getName();
 			// --- Skip static, with parameters, getClass()
-			if ( Modifier.isStatic( method.getModifiers() )
-					|| (method.getParameterCount() != 0)
-					|| "getClass".equals( name ) ) {
+			if (Modifier.isStatic(method.getModifiers())
+				  || (method.getParameterCount() != 0)
+				  || "getClass".equals(name)) {
 				continue;
 			}
-			if ( name.startsWith( "get" ) || name.startsWith( "has" ) ) {
-				if ( name.length() < 4 ) {
+			if (name.startsWith("get") || name.startsWith("has")) {
+				if (name.length() < 4) {
 					continue;
 				}
-				if ( Character.isLowerCase( name.charAt( 3 ) ) ) {
+				if (Character.isLowerCase(name.charAt(3))) {
 					continue;
 				}
-				getters.add( method );
-			} else if ( name.startsWith( "is" ) ) {
-				if ( name.length() < 3 ) {
+				getters.add(method);
+			} else if (name.startsWith("is")) {
+				if (name.length() < 3) {
 					continue;
 				}
-				if ( Character.isLowerCase( name.charAt( 2 ) ) ) {
+				if (Character.isLowerCase(name.charAt(2))) {
 					continue;
 				}
-				getters.add( method );
+				getters.add(method);
 			}
 		}
-		getters.sort( methodNameComparator );
-		return getters.toArray( new Method[0] );
+		getters.sort(methodNameComparator);
+		return getters.toArray(new Method[0]);
 	}
 
 	/******************************************************************
@@ -580,11 +559,11 @@ public class BeanHelper {
 	 *            The getter method
 	 * @return setter method or <em>null</em> if there is none
 	 */
-	public static Method obtainSetter( Method getter ) {
+	public static Method obtainSetter(Method getter) {
 		Method setter = null;
-		String name = getVarnameFromMethodname( getter.getName() );
-		if ( name != null ) {
-			setter = findSetter( getter.getDeclaringClass(), name );
+		String name = getVarnameFromMethodname(getter.getName());
+		if (name != null) {
+			setter = findSetter(getter.getDeclaringClass(), name);
 		}
 		return setter;
 	}
@@ -605,72 +584,63 @@ public class BeanHelper {
 	 *            {@code true} includes inherited classes
 	 * @return array of setter methods
 	 */
-	public static Method[] obtainSetters( Class<?> clazz,
-			boolean withInheritance ) {
+	public static Method[] obtainSetters(Class<?> clazz,
+	                                     boolean withInheritance) {
 		List<Method> setters = new ArrayList<>();
 		String name = null;
 		Method[] methods = {};
-		if ( withInheritance ) {
+		if (withInheritance) {
 			methods = clazz.getMethods();
 		} else {
 			methods = clazz.getDeclaredMethods();
 		}
-		for ( Method method : methods ) {
+		for (Method method : methods) {
 			// --- Skip non setters
 			name = method.getName();
-			if ( name.startsWith( "set" ) == false ) {
+			if (!name.startsWith("set")) {
 				continue;
 			}
-			if ( name.length() < 4 ) {
+			if (name.length() < 4) {
 				continue;
 			}
-			if ( Character.isLowerCase( name.charAt( 3 ) ) ) {
+			if (Character.isLowerCase(name.charAt(3))) {
 				continue;
 			}
-			if ( method.getParameterCount() != 1 ) {
+			if (method.getParameterCount() != 1) {
 				continue;
 			}
-			setters.add( method );
+			setters.add(method);
 		}
-		return setters.toArray( new Method[0] );
+		return setters.toArray(new Method[0]);
 	}
 
 	/**
 	 * Obtains all setter methods of the given class.
 	 *
-	 * @param clazz
-	 *            The Java class to obtain the setter methods from
+	 * @param clazz The Java class to obtain the setter methods from
 	 * @return array of setter methods
 	 */
-	public static Method[] obtainSetters( Class<?> clazz ) {
-		return obtainSetters( clazz, false );
+	public static Method[] obtainSetters(Class<?> clazz) {
+		return obtainSetters(clazz, false);
 	}
 
 	/**
 	 * Populates a Java object from a map.
 	 *
-	 * @param bean
-	 *            Java object to populate
-	 * @param setters
-	 *            array of setter methods
-	 * @param map
-	 *            map with values
+	 * @param bean    Java object to populate
+	 * @param setters array of setter methods
+	 * @param map     map with values
 	 * @return number of values set
-	 *
-	 * @throws IllegalAccessException
-	 *             if access is prohibited
-	 * @throws IllegalArgumentException
-	 *             if getter name is wrong
-	 * @throws InvocationTargetException
-	 *             if getter must not be invoked
-	 * @throws ParseException
-	 *             if map has wrong structure
+	 * @throws IllegalAccessException    if access is prohibited
+	 * @throws IllegalArgumentException  if getter name is wrong
+	 * @throws InvocationTargetException if getter must not be invoked
+	 * @throws ParseException            if map has wrong structure
 	 */
-	public static int populate( Object bean, Method[] setters,
-			Map<String, Object> map )
-			throws IllegalAccessException, IllegalArgumentException,
-			InvocationTargetException, ParseException {
-		return populate( bean, setters, map, false );
+	public static int populate(Object bean, Method[] setters,
+	                           Map<String, Object> map)
+		  throws IllegalAccessException, IllegalArgumentException,
+		  InvocationTargetException, ParseException {
+		return populate(bean, setters, map, false);
 	}
 
 	/******************************************************************
@@ -695,31 +665,33 @@ public class BeanHelper {
 	 * @throws ParseException
 	 *             if a parsing error occurs
 	 */
-	public static int populate( Object bean, Method[] setters,
-			Map<String, Object> map, boolean withInherited )
-			throws IllegalAccessException, IllegalArgumentException,
-			InvocationTargetException, ParseException {
-		logger.atFiner().log( bean + ", " + map );
+	public static int populate(Object bean, Method[] setters,
+	                           Map<String, Object> map, boolean withInherited)
+		  throws IllegalAccessException, IllegalArgumentException,
+		  InvocationTargetException, ParseException {
+		logger.atFiner()
+			  .log(bean + ", " + map);
 		int counter = 0;
 
 		// --- No setters given => obtain here
-		if ( setters == null ) {
-			setters = obtainSetters( bean.getClass(), withInherited );
+		if (setters == null) {
+			setters = obtainSetters(bean.getClass(), withInherited);
 		}
 
 		// --- Loop through setter methods
 		String key = null;
-		for ( Method setter : setters ) {
-			key = getVarnameFromMethodname( setter.getName() );
-			if ( map.containsKey( key ) ) {
-				if ( set( bean, setter, map.get( key ) ) ) {
+		for (Method setter : setters) {
+			key = getVarnameFromMethodname(setter.getName());
+			if (map.containsKey(key)) {
+				if (set(bean, setter, map.get(key))) {
 					counter++;
 				}
 			}
 		}
 
 		// ----- Return number of settings
-		logger.atFiner().log( "= " + counter );
+		logger.atFiner()
+			  .log("= " + counter);
 		return counter;
 	}
 
@@ -727,14 +699,12 @@ public class BeanHelper {
 	 * Pretty prints {@code bean} by converting it to JSON 5 format with each
 	 * key on a separate line.
 	 *
-	 * @param bean
-	 *            to be pretty printed
-	 * @param withNullValues
-	 *            {@code false} will drop properties having a null value
+	 * @param bean           to be pretty printed
+	 * @param withNullValues {@code false} will drop properties having a null value
 	 * @return string with one property per line
 	 */
-	public static String prettyPrint( Object bean, boolean withNullValues ) {
-		return prettyPrint( bean, 0, withNullValues );
+	public static String prettyPrint(Object bean, boolean withNullValues) {
+		return prettyPrint(bean, 0, withNullValues);
 	}
 
 	/******************************************************************
@@ -749,108 +719,113 @@ public class BeanHelper {
 	 *            {@code true} prints properties with a null value
 	 * @return string with one property per line
 	 */
-	public static String prettyPrint( Object bean, int maxDepth,
-			boolean withNullValues ) {
-		String s = _prettyPrintIndent( bean, maxDepth, withNullValues, 0,
-				new HashSet<Object>() );
-		s = (s.startsWith( "\n" ) ? s.substring( 1 ) : s);
+	public static String prettyPrint(Object bean, int maxDepth,
+	                                 boolean withNullValues) {
+		String s = _prettyPrintIndent(bean, maxDepth, withNullValues, 0,
+			  new HashSet<Object>());
+		s = (s.startsWith("\n") ? s.substring(1) : s);
 		return s;
 	}
 
-	private static String _prettyPrintIndent( Object bean, int maxDepth,
-			boolean withNullValues, int curDepth, Set<Object> path ) {
-		if ( bean == null ) {
+	private static String _prettyPrintIndent(Object bean, int maxDepth,
+	                                         boolean withNullValues, int curDepth, Set<Object> path) {
+		if (bean == null) {
 			return withNullValues ? "null" : null;
 		}
-		if ( bean instanceof Boolean || bean instanceof Byte
-				|| bean instanceof Short || bean instanceof Integer
-				|| bean instanceof Long ) {
+		if (bean instanceof Boolean || bean instanceof Byte
+			  || bean instanceof Short || bean instanceof Integer
+			  || bean instanceof Long) {
 			return bean.toString();
 		}
-		if ( bean instanceof Float || bean instanceof Double
-				|| bean instanceof java.math.BigDecimal
-				|| bean instanceof java.math.BigInteger ) {
+		if (bean instanceof Float || bean instanceof Double
+			  || bean instanceof java.math.BigDecimal
+			  || bean instanceof java.math.BigInteger) {
 			return bean.toString();
 		}
-		if ( bean instanceof Character || bean instanceof CharSequence ) {
-			return "\"" + bean.toString() + "\"";
+		if (bean instanceof Character || bean instanceof CharSequence) {
+			return "\"" + bean + "\"";
 		}
-		if ( bean instanceof java.time.LocalDate
-				|| bean instanceof java.util.Locale
-				|| bean instanceof java.time.LocalDateTime
-				|| bean instanceof java.time.OffsetDateTime
-				|| bean instanceof java.util.UUID ) {
-			return "\"" + bean.toString() + "\"";
+		if (bean instanceof java.time.LocalDate
+			  || bean instanceof java.util.Locale
+			  || bean instanceof java.time.LocalDateTime
+			  || bean instanceof java.time.OffsetDateTime
+			  || bean instanceof java.util.UUID) {
+			return "\"" + bean + "\"";
 		}
-		if ( bean instanceof Enum ) {
+		if (bean instanceof Enum) {
 			return bean.toString();
 		}
 		// --- current output
-		String s = "";
+		StringBuilder s = new StringBuilder();
 
 		// --- Array
-		if ( bean.getClass().isArray() ) {
-			for ( int i = 0; i < Array.getLength( bean ); i++ ) {
-				s += _prettyPrintIndent( Array.get( bean, i ), maxDepth,
-						withNullValues, curDepth + 1, path ) + ", ";
+		if (bean.getClass()
+			  .isArray()) {
+			for (int i = 0; i < Array.getLength(bean); i++) {
+				s.append(_prettyPrintIndent(Array.get(bean, i), maxDepth,
+							withNullValues, curDepth + 1, path))
+					  .append(", ");
 			}
-			return (s.length() > 0) ? "[ " + s + " ]" : "[]";
+			return s.isEmpty() ? "[]" : "[ " + s + " ]";
 		}
 
 		// --- Collection
-		if ( bean instanceof Collection ) {
-			for ( Object item : (Collection<?>) bean ) {
-				s += _prettyPrintIndent( item, maxDepth, withNullValues,
-						curDepth + 1, path ) + ", ";
+		if (bean instanceof Collection) {
+			for (Object item : (Collection<?>) bean) {
+				s.append(_prettyPrintIndent(item, maxDepth, withNullValues,
+							curDepth + 1, path))
+					  .append(", ");
 			}
-			return (s.length() > 0) ? "[ " + s + " ]" : "[]";
+			return s.isEmpty() ? "[]" : "[ " + s + " ]";
 		}
 
 		// --- Prepare indentation
 		final String spaces = "                              ";
-		String indent = spaces.substring( 0, curDepth * 2 );
+		String indent = spaces.substring(0, curDepth * 2);
 
 		// --- Map
 		Object value = null;
-		if ( bean instanceof Map ) {
-			Map<?, ?> map = (Map<?, ?>) bean;
-			Object[] keys = map.keySet().toArray( new Object[map.size()] );
-			Arrays.sort( keys, keyComparator );
-			for ( Object key : keys ) {
-				value = _prettyPrintIndent( map.get( key ), maxDepth,
-						withNullValues, curDepth + 1, path );
-				s += (withNullValues || value != null)
-						? String.format( "%s%s: %s,\n", indent, key, value )
-						: "";
+		if (bean instanceof Map<?, ?> map) {
+			Object[] keys = map.keySet()
+				  .toArray(new Object[map.size()]);
+			Arrays.sort(keys, keyComparator);
+			for (Object key : keys) {
+				value = _prettyPrintIndent(map.get(key), maxDepth,
+					  withNullValues, curDepth + 1, path);
+				s.append((withNullValues || value != null)
+					  ? String.format("%s%s: %s,\n", indent, key, value)
+					  : "");
 			}
-			return (s.length() > 0) ? "{\n " + s + indent + " }" : "{}";
+			return s.isEmpty() ? "{}" : "{\n " + s + indent + " }";
 		}
 
 		// --- Bean -> prevent recursion and deep dive
-		if ( path.contains( bean ) || (curDepth > 11)
-				|| (maxDepth > 0 && curDepth >= maxDepth) ) {
+		if (path.contains(bean) || (curDepth > 11)
+			  || (maxDepth > 0 && curDepth >= maxDepth)) {
 			return "\"" + bean + "\"";
 		}
-		path.add( bean );
-		Method[] getters = BeanHelper.obtainGetters( bean.getClass() );
-		for ( Method getter : getters ) {
+		path.add(bean);
+		Method[] getters = BeanHelper.obtainGetters(bean.getClass());
+		for (Method getter : getters) {
 			try {
-				value = getter.invoke( bean, (Object[]) null );
-				s += (withNullValues || value != null)
-						? indent + getVarnameFromMethodname( getter.getName() )
-								+ ": "
-								+ _prettyPrintIndent( value, maxDepth,
-										withNullValues, curDepth + 1, path )
-								+ ",\n"
-						: "";
+				value = getter.invoke(bean, (Object[]) null);
+				s.append((withNullValues || value != null)
+					  ? indent + getVarnameFromMethodname(getter.getName())
+					  + ": "
+					  + _prettyPrintIndent(value, maxDepth,
+					  withNullValues, curDepth + 1, path)
+					  + ",\n"
+					  : "");
 			} catch (IllegalAccessException | IllegalArgumentException
-					| InvocationTargetException e) {
-				s += "\"" + bean + "\"";
+			         | InvocationTargetException e) {
+				s.append("\"")
+					  .append(bean)
+					  .append("\"");
 			}
 		}
-		path.remove( bean );
-		return ((s.length() > 0) || withNullValues) ? "{\n" + s + indent + "}"
-				: null;
+		path.remove(bean);
+		return ((!s.isEmpty()) || withNullValues) ? "{\n" + s + indent + "}"
+			  : null;
 	}
 
 	/******************************************************************
@@ -868,17 +843,17 @@ public class BeanHelper {
 	 * @throws IllegalArgumentException
 	 *             if value has incorrect type
 	 */
-	public static Object set( Object bean, Field field, Object value )
-			throws IllegalArgumentException, IllegalAccessException {
+	public static Object set(Object bean, Field field, Object value)
+		  throws IllegalArgumentException, IllegalAccessException {
 		Class<?> type = field.getType();
-		value = BaseConverter.convertToType( value, type );
-		Object oldValue = field.get( bean );
+		value = BaseConverter.convertToType(value, type);
+		Object oldValue = field.get(bean);
 		try {
-			field.set( bean, value );
+			field.set(bean, value);
 		} catch (IllegalArgumentException e) {
 			logger.atWarning()
-					.log( "Cannot set " + field + "( " + type + " ) to "
-							+ value );
+				  .log("Cannot set " + field + "( " + type + " ) to "
+						+ value);
 			throw e;
 		}
 		return oldValue;
@@ -902,52 +877,51 @@ public class BeanHelper {
 	 * @throws InvocationTargetException
 	 *             in setter cannot be invoked
 	 */
-	public static boolean set( Object bean, Method setter, Object value )
-			throws IllegalAccessException, IllegalArgumentException,
-			InvocationTargetException {
+	public static boolean set(Object bean, Method setter, Object value)
+		  throws IllegalAccessException, IllegalArgumentException,
+		  InvocationTargetException {
 
 		// --- Verify type of parameter
 		Class<?>[] pTypes = setter.getParameterTypes();
-		if ( pTypes.length != 1 ) {
+		if (pTypes.length != 1) {
 			throw new IllegalAccessException(
-					"Method " + setter + " must have exactly one parameter" );
+				  "Method " + setter + " must have exactly one parameter");
 		}
 		Class<?> pType = pTypes[0];
 		Object[] parms = new Object[1];
 
 		// --- Its a list => convert list elements
-		if ( pType.equals( List.class ) ) {
-			System.out.println( "its a list" );
+		if (pType.equals(List.class)) {
 			Type[] paramTypes = setter.getGenericParameterTypes();
 			String paramTypeName = paramTypes[0].toString();
-			int i = paramTypeName.indexOf( '<' );
-			if ( i > 0 ) {
-				String genericTypeName = paramTypeName.substring( i + 1,
-						paramTypeName.length() - 1 );
-				System.out.println( paramTypeName );
-				System.out.println( genericTypeName.toString() );
+			int i = paramTypeName.indexOf('<');
+			if (i > 0) {
+				String genericTypeName = paramTypeName.substring(i + 1,
+					  paramTypeName.length() - 1);
+				System.out.println(paramTypeName);
+				System.out.println(genericTypeName);
 				try {
-					Class<?> genericType = Class.forName( genericTypeName );
+					Class<?> genericType = Class.forName(genericTypeName);
 					// --- Convert all list elements
 					List<Object> newList = new ArrayList<>();
-					for ( Object item : (List<?>) value ) {
-						newList.add( BaseConverter.convertToType( item,
-								genericType ) );
+					for (Object item : (List<?>) value) {
+						newList.add(BaseConverter.convertToType(item,
+							  genericType));
 					}
 					parms[0] = newList;
 				} catch (ClassNotFoundException e) {
 					logger.atWarning()
-							.withCause( e )
-							.log( "set( cannot instantiate generic %s",
-									genericTypeName );
+						  .withCause(e)
+						  .log("set( cannot instantiate generic %s",
+								genericTypeName);
 				}
 			}
 		} else {
 			// --- Convert value to type of parameter for setter method
-			parms[0] = BaseConverter.convertToType( value, pType );
+			parms[0] = BaseConverter.convertToType(value, pType);
 		}
-		setter.setAccessible( true );
-		setter.invoke( bean, parms );
+		setter.setAccessible(true);
+		setter.invoke(bean, parms);
 		return true;
 	}
 
@@ -979,17 +953,11 @@ public class BeanHelper {
 	 * @return Returns <em>true</em> when the field was found and the value
 	 *         could be set
 	 */
-	public static boolean set( Object bean, String propertyName,
-			Object value ) {
-		String[] props = propertyName.split( "\\." );
-		for ( int i = 0; i < props.length - 1; i++ ) {
+	public static boolean set(Object bean, String propertyName,
+	                          Object value) {
+		String[] props = propertyName.split("\\.");
+		for (int i = 0; i < props.length - 1; i++) {
 		}
 		return true;
 	}
-
-	private static Comparator<Object> keyComparator =
-			Comparator.comparing( Object::toString );
-
-	private static Comparator<Method> methodNameComparator =
-			Comparator.comparing( Method::getName );
 }
