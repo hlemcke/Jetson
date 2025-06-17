@@ -410,9 +410,7 @@ public class BeanHelper {
 	 * @return name with first char made upper case
 	 */
 	public static String makeClassName(String name) {
-		String fname =
-			  Character.toUpperCase(name.charAt(0)) + name.substring(1);
-		return fname;
+		return Character.toUpperCase(name.charAt(0)) + name.substring(1);
 	}
 
 	/******************************************************************
@@ -898,11 +896,14 @@ public class BeanHelper {
 			if (i > 0) {
 				String genericTypeName = paramTypeName.substring(i + 1,
 					  paramTypeName.length() - 1);
-				System.out.println(paramTypeName);
-				System.out.println(genericTypeName);
+				logger.atFine()
+					  .log("paramType=%s, genericType=%s", paramTypeName, genericTypeName);
 				try {
-					Class<?> genericType = Class.forName(genericTypeName);
-					// --- Convert all list elements
+					Class<?> genericType = Thread.currentThread()
+						  .getContextClassLoader()
+						  .loadClass(genericTypeName);
+
+					// --- Convert all list elements to accepted generic type
 					List<Object> newList = new ArrayList<>();
 					for (Object item : (List<?>) value) {
 						newList.add(BaseConverter.convertToType(item,
