@@ -123,15 +123,15 @@ public class JsonEncoder {
 		if (obj instanceof Array) {
 			return ((Object[]) obj).length == 0;
 		} else if (obj instanceof String) {
-			if (((String) obj).length() == 0)
+			if (((String) obj).isEmpty())
 				return true;
 			return obj.equals("null");
 		} else if (obj instanceof List) {
-			return ((List<?>) obj).size() == 0;
+			return ((List<?>) obj).isEmpty();
 		} else if (obj instanceof Map) {
-			return ((Map<?, ?>) obj).size() == 0;
+			return ((Map<?, ?>) obj).isEmpty();
 		} else if (obj instanceof Set) {
-			return ((Set<?>) obj).size() == 0;
+			return ((Set<?>) obj).isEmpty();
 		}
 		return false;
 	}
@@ -280,6 +280,10 @@ public class JsonEncoder {
 	/**
 	 * Encodes the given plain old Java object (POJO) into {@literal "{" key ":"
 	 * value [", " key ":" value]* "}"
+	 * <p>
+	 * If POJO contains the method {@code toJson()} then this will be used instead
+	 * of checking fields and getters.
+	 * </p>
 	 */
 	private String _encodePojo(Object pojo) {
 		Json anno = null;
@@ -308,8 +312,7 @@ public class JsonEncoder {
 		}
 
 		// --- Encode methods
-		Method[] methods = pojo.getClass()
-			  .getMethods();
+		Method[] methods = BeanHelper.obtainGetters(pojo.getClass());
 		for (Method method : methods) {
 			anno = method.getAnnotation(Json.class);
 			if ((anno != null) && anno.encodable()) {
@@ -342,7 +345,6 @@ public class JsonEncoder {
 	 * @param anno  Complete annotation with parameters
 	 * @param name  Name of field
 	 * @param value value to be encoded
-	 * @return {@literal key:value} or {@code null}
 	 */
 	private void _encodePojoMember(StringBuilder builder, Json anno,
 	                               String name, Object value) {
@@ -379,7 +381,6 @@ public class JsonEncoder {
 	 * <li>perform recursion on array, collection, map or pojo</li>
 	 * </ol>
 	 *
-	 * @param anno  Json annotation
 	 * @param value Java object to be encoded
 	 * @return part for a Json string
 	 */
@@ -463,7 +464,8 @@ public class JsonEncoder {
 
 	private String _stripLeadingComma(StringBuilder builder) {
 		if (_prettyPrint) {
-			builder.append("\n" + _indentation[_stack.size() - 1]);
+			builder.append("\n")
+				  .append(_indentation[_stack.size() - 1]);
 		}
 		return ((builder.length() > 2) && (builder.charAt(0) == ','))
 			  ? builder.substring(1)
