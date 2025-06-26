@@ -1,12 +1,8 @@
 package com.djarjo.jetson;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import com.djarjo.jetson.converter.JsonConverter;
+
+import java.lang.annotation.*;
 
 /**
  * Annotate a property or a getter method will encode its value into a Json
@@ -23,20 +19,17 @@ import com.djarjo.jetson.converter.JsonConverter;
  * exactly the same as not annotating the field at all.
  *
  * @author Hajo Lemcke
- * @version 2024-07-07 added annotation on class level to apply settings
- * @version 2023-08-11 added encodable and decodable
- * @version 2020-04-29 Added defaultName
  * @version 2014-12-06 Initial version
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.FIELD, ElementType.METHOD })
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD})
 public @interface Json {
 
 	/**
 	 * Just tells the annotation parser that this annotation is default
 	 */
-	static String defaultName = "##default";
+	String defaultName = "##default";
 
 	/**
 	 * Converter encodes a given value into a Json string and decodes a given
@@ -70,7 +63,7 @@ public @interface Json {
 	 * </p>
 	 * <p>
 	 * Example:<br />
-	 * 
+	 *
 	 * <pre>
 	 * &#64;Json( enumAccessor = "getCode" )
 	 * enum SomeEnum {
@@ -80,17 +73,28 @@ public @interface Json {
 	 *   SomeEnum( int code ) { this.code = code; }
 	 *   public int getCode() { return code; }
 	 * </pre>
-	 * 
+	 * <p>
 	 * will encode {@code SomeEnum.VAL1} to {@code 17} and
 	 * decode any one of {@code 17} or {@code VAL1} or {@code SomeEnum.VAL1}
 	 * to SomeEnum.VAL1;
-	 * 
+	 * <p>
 	 * DO NOT PUT slash P here! produces a false javadoc error :-(
-	 * 
+	 *
 	 * @return name of getter method to obtain the enumeration value for
-	 *         encoding
+	 * encoding
 	 */
 	String enumAccessor() default defaultName;
+
+	/**
+	 * Controls behaviour when decoding a JSON string into a collection property of an existing object.
+	 * <p>
+	 * Default {@code false} will completely replace the collection of the object by a new one from JSON string.
+	 * {@code true} will keep existing entries in the collection and merge values from JSON string.
+	 * </p>
+	 *
+	 * @return {@code true} if collection items will be kept
+	 */
+	boolean mergeCollection() default false;
 
 	/**
 	 * The key used for the value in the Json string. Defaults to the name of
@@ -103,7 +107,7 @@ public @interface Json {
 	 * &#64;Json( key="PassWord" )
 	 * public String getUserPw() { return "badPw; }
 	 * </pre>
-	 *
+	 * <p>
 	 * will write {@code "PassWord":"badPw"} into the Json string during
 	 * encoding instead of {@code "userPw":"badPw"}. Decoding also expects the
 	 * key "PassWord".

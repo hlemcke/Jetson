@@ -3,8 +3,7 @@
  */
 package com.djarjo.jetson;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -12,22 +11,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class Jetson5Test {
-	TestData.PojoBasics entity = null;
-
 	static String commentJson = """
 			// Start comment
 			{ name: 'comment test',
@@ -63,7 +54,8 @@ class Jetson5Test {
 			  trailingComma: 'in objects', andIn: ['arrays',],
 			  "backwardsCompatible": "with JSON",
 			}
-						""";
+			""";
+	TestData.PojoBasics entity = null;
 
 	public static void main( String[] args ) throws IOException {
 		Jetson5Test cmd = new Jetson5Test();
@@ -108,18 +100,20 @@ class Jetson5Test {
 			Object object = Jetson.decode( commentJson );
 			assertEquals( HashMap.class, object.getClass() );
 			Map<?, ?> map = (Map<?, ?>) object;
-			assertEquals( ArrayList.class, map.get( "array" ).getClass() );
+			assertEquals( ArrayList.class, map.get( "array" )
+					.getClass() );
 			ArrayList<?> array = (ArrayList<?>) map.get( "array" );
 			assertEquals( 3, array.size() );
 			assertEquals( "abc", array.get( 0 ) );
 			assertEquals( "def", array.get( 1 ) );
 			assertEquals( "ghi", array.get( 2 ) );
-		} catch (IllegalAccessException | ParseException e) {
+		} catch ( IllegalAccessException | ParseException e ) {
 			e.printStackTrace();
 		}
 	}
 
 	/**
+	 *
 	 */
 	@Order(2)
 	@Test
@@ -130,7 +124,7 @@ class Jetson5Test {
 			Map<?, ?> map = (Map<?, ?>) object;
 			assertEquals( 8, map.size() );
 			assertTrue( (boolean) map.get( "boolVal" ) );
-		} catch (IllegalAccessException | ParseException e) {
+		} catch ( IllegalAccessException | ParseException e ) {
 			e.printStackTrace();
 		}
 	}
@@ -144,8 +138,7 @@ class Jetson5Test {
 			assertEquals( HashMap.class, object.getClass() );
 			Map<?, ?> map = (Map<?, ?>) object;
 			assertEquals( 10, map.size() );
-			assertEquals( "and you can quote me on that",
-					map.get( "unquoted" ) );
+			assertEquals( "and you can quote me on that", map.get( "unquoted" ) );
 			assertEquals( "I can use \"double quotes\" here",
 					map.get( "singleQuotes" ) );
 			// System.out.println( map.get( "lineBreaks" ) );
@@ -157,12 +150,12 @@ class Jetson5Test {
 			assertEquals( 1, map.get( "positiveSign" ) );
 			assertEquals( "in objects", map.get( "trailingComma" ) );
 			assertEquals( ArrayList.class, map.get( "andIn" ) );
-			@SuppressWarnings("unchecked")
-			ArrayList<String> arrays = (ArrayList<String>) map.get( "andIn" );
+			@SuppressWarnings("unchecked") ArrayList<String> arrays =
+					(ArrayList<String>) map.get( "andIn" );
 			assertEquals( "arrays", arrays.get( 0 ) );
 			assertEquals( "with JSON", "backwardsCompatible" );
 			assertTrue( (boolean) map.get( "boolVal" ) );
-		} catch (IllegalAccessException | ParseException e) {
+		} catch ( IllegalAccessException | ParseException e ) {
 			e.printStackTrace();
 		}
 	}
@@ -170,11 +163,12 @@ class Jetson5Test {
 	@Order(10)
 	@Test
 	void testJson5Encode() {
-		String expected = "{ unquoted: 'and you can quote me on that',\n"
-				+ "singleQuotes: 'I can use \"double quotes\" here',\n"
-				+ "lineBreaks: 'Look, Mom! No n\'s!,\n"
-				+ "trailingComma: 'in objects', andIn: [\'arrays\',],\n}";
-		String encoded = Jetson.encodeJson5( new Json5Entity() );
+		String expected = "{ unquoted: 'and you can quote me on that',\n" +
+				"singleQuotes: " + "'I can use \"double quotes\" here',\n" + "lineBreaks" +
+				": 'Look, Mom! No n's!,\n" + "trailingComma: 'in objects', andIn: " +
+				"['arrays',],\n}";
+		String encoded = Jetson.toJson5()
+				.encode( new Json5Entity() );
 		assertEquals( expected, encoded );
 	}
 

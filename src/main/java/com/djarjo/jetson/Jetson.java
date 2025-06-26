@@ -7,8 +7,7 @@ import java.text.ParseException;
 
 /**
  * Jetson wraps {@link com.djarjo.jetson.JsonDecoder JsonDecoder} and
- * {@link com.djarjo.jetson.JsonEncoder JsonEncoder} by using their default
- * settings.
+ * {@link com.djarjo.jetson.JsonEncoder JsonEncoder}.
  *
  * <h2>Json Specification</h2>
  *
@@ -27,29 +26,7 @@ import java.text.ParseException;
  */
 public class Jetson {
 
-	// --- Setting: encode to JSON 5 {@link https://json5.org}
-	private boolean _json5 = false;
-
-	// --- Setting: encode an array or list of bytes into a Base64 string
-	private boolean _bytesToBase64 = true;
-	// --- Setting: if to encode members with a value of {@code null}
-	private boolean _withNulls = false;
-	// --- Setting: indentation character(s)
-	private String _indent = null;
-
-	/**
-	 * Constructor without parameters
-	 */
-	public Jetson() {
-	}
-
-	/**
-	 * Create a new instance
-	 *
-	 * @return new instance
-	 */
-	public static Jetson newInstance() {
-		return new Jetson();
+	private Jetson() {
 	}
 
 	/**
@@ -63,12 +40,12 @@ public class Jetson {
 	 * @param jsonString Json string to be decoded
 	 * @return new instance of basic value, list or map
 	 * @throws IllegalAccessException will not occur (Java exception definition problem)
-	 * @throws ParseException         in case of an error in the Json string
+	 * @throws ParseException in case of an error in the Json string
 	 */
-	static public Object decode(String jsonString)
-		  throws IllegalAccessException, ParseException {
+	public static Object decode(
+			String jsonString ) throws IllegalAccessException, ParseException {
 		return JsonDecoder.decoder()
-			  .decode(jsonString);
+				.decode( jsonString );
 	}
 
 	/**
@@ -83,15 +60,16 @@ public class Jetson {
 	 * </p>
 	 *
 	 * @param jsonString Json string to decode
-	 * @param target     target object with annotated getter methods
+	 * @param target target object with annotated getter methods
 	 * @return target updated with values from jsonString
-	 * @throws IllegalAccessException if a decoded value cannot be set into the target object
-	 * @throws ParseException         in case of an error in the Json string
+	 * @throws IllegalAccessException if a decoded value cannot be set into the target
+	 * object
+	 * @throws ParseException in case of an error in the Json string
 	 */
-	static public Object decode(String jsonString, Object target)
-		  throws IllegalAccessException, ParseException {
+	public static Object decodeIntoObject( String jsonString,
+			Object target ) throws IllegalAccessException, ParseException {
 		JsonDecoder.decoder()
-			  .decode(jsonString, target);
+				.decodeIntoObject( jsonString, target );
 		return target;
 	}
 
@@ -110,43 +88,39 @@ public class Jetson {
 	 * @param object to be encoded
 	 * @return encoded object
 	 */
-	static public String encode(Object object) {
+	public static String encode( Object object ) {
 		return JsonEncoder.encoder()
-			  .encode(object);
+				.encode( object );
 	}
 
 	/**
-	 * Encodes object to Json5
+	 * Gets a new instance of JsonEncoder
 	 *
-	 * @param object to be encoded. Requires annotations "@Json"
-	 * @return encoded object in Json5 format
+	 * @return new instance of JsonEncoder
 	 */
-	static public String encodeJson5(Object object) {
+	public static JsonEncoder encoder() {
+		return new JsonEncoder();
+	}
+
+	/**
+	 * Encodes byte arrays to a list instead of a BASE64 string.
+	 *
+	 * @return Encoder for fluent API
+	 */
+	public static JsonEncoder bytesToList() {
 		return JsonEncoder.encoder()
-			  .toJson5(true)
-			  .encode(object);
+				.bytesToList();
 	}
 
 	/**
-	 * Automatically encodes byte arrays to BASE64 (default).
+	 * Decoding a Json string will merge collection items from string into already existing
+	 * items of a collection.
 	 *
-	 * @param with {@code false} will suppress encoding to base64
-	 * @return this for fluent API
+	 * @return decoder for fluent API
 	 */
-	public Jetson withBytesToBase64(boolean with) {
-		this._bytesToBase64 = with;
-		return this;
-	}
-
-	/**
-	 * Encodes values from objects having a value of {@code null}.
-	 *
-	 * @param with default is {@code false}
-	 * @return this for fluent API
-	 */
-	public Jetson withNulls(boolean with) {
-		this._withNulls = with;
-		return this;
+	public static JsonDecoder mergeCollection() {
+		return JsonDecoder.decoder()
+				.mergeCollections();
 	}
 
 	/**
@@ -159,39 +133,28 @@ public class Jetson {
 	 * @param indent default is no indentation
 	 * @return this for fluent API
 	 */
-	public Jetson withPrettyPrint(String indent) {
-		this._indent = indent;
-		return this;
-	}
-
-	/**
-	 * Gets a new instance of JsonEncoder
-	 *
-	 * @return new instance of JsonEncoder
-	 */
-	public JsonEncoder encoder() {
+	public static JsonEncoder prettyPrint( String indent ) {
 		return JsonEncoder.encoder()
-			  .toJson5(_json5)
-			  .withBytesToBase64(_bytesToBase64)
-			  .withNulls(_withNulls)
-			  .withPrettyPrint(_indent);
+				.prettyPrint( indent );
 	}
 
 	/**
 	 * Encodes to JSON-5 syntax.
 	 *
-	 * @param to {@code true} encodes to JSON-5
 	 * @return this for fluent API
 	 */
-	public Jetson toJson5(boolean to) {
-		this._json5 = to;
-		return this;
+	public static JsonEncoder toJson5() {
+		return JsonEncoder.encoder()
+				.toJson5();
 	}
 
-	@Override
-	public String toString() {
-		return String.format("Encoder %s %s %s %s", _json5 ? "toJson5" : "",
-			  _bytesToBase64 ? "toBase64" : "", _withNulls ? "withNulls" : "",
-			  (_indent == null) ? "" : "indent='" + _indent + "'");
+	/**
+	 * Encodes values from objects having a value of {@code null} instead of skipping them.
+	 *
+	 * @return this for fluent API
+	 */
+	public static JsonEncoder withNulls() {
+		return JsonEncoder.encoder()
+				.withNulls();
 	}
 }

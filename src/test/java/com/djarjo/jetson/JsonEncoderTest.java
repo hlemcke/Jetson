@@ -3,9 +3,7 @@
  */
 package com.djarjo.jetson;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 import java.text.ParseException;
 import java.time.OffsetDateTime;
@@ -13,53 +11,13 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Hajo Lemcke
- *
  */
 class JsonEncoderTest {
 	static boolean isVerbose = false;
-
-	public static void main( String[] args )
-			throws IllegalAccessException, ParseException {
-		isVerbose = true;
-		JsonEncoderTest test = new JsonEncoderTest();
-		test.testPrettyPrint();
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@BeforeAll
-	static void setUpBeforeClass() throws Exception {
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@AfterAll
-	static void tearDownAfterClass() throws Exception {
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@BeforeEach
-	void setUp() throws Exception {
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@AfterEach
-	void tearDown() throws Exception {
-	}
 
 	/**
 	 * Test method for
@@ -67,7 +25,8 @@ class JsonEncoderTest {
 	 */
 	@Test
 	void testIsEmpty() {
-		assertTrue( JsonEncoder.encoder().isEmpty( "null" ) );
+		assertTrue( JsonEncoder.encoder()
+				.isEmpty( "null" ) );
 	}
 
 	/**
@@ -76,9 +35,10 @@ class JsonEncoderTest {
 	@Test
 	void testGetIndent() {
 		String indent = " ";
-		JsonEncoder encoder = JsonEncoder.encoder().withPrettyPrint( indent );
+		JsonEncoder encoder = JsonEncoder.encoder()
+				.prettyPrint( indent );
 		assertEquals( indent, encoder.getIndent() );
-		encoder.withPrettyPrint( "-+" );
+		encoder.prettyPrint( "-+" );
 		assertEquals( "  ", encoder.getIndent() );
 	}
 
@@ -88,7 +48,8 @@ class JsonEncoderTest {
 	@Test
 	void testEncoder_Basics() {
 		Locale loc = Locale.US;
-		String jsonText = JsonEncoder.encoder().encode( loc );
+		String jsonText = JsonEncoder.encoder()
+				.encode( loc );
 		assertEquals( "\"en_US\"", jsonText );
 	}
 
@@ -97,8 +58,9 @@ class JsonEncoderTest {
 	 */
 	@Test
 	void testEncoder_Arrays() {
-		Integer[] ints = { 4711, null, 69 };
-		String jsonText = JsonEncoder.encoder().encode( ints );
+		Integer[] ints = {4711, null, 69};
+		String jsonText = JsonEncoder.encoder()
+				.encode( ints );
 		assertEquals( "[4711,null,69]", jsonText );
 	}
 
@@ -112,36 +74,38 @@ class JsonEncoderTest {
 		map.put( "key4711", 4711 );
 		map.put( "keyNull", null );
 		map.put( "keyNow", now );
-		String jsonText = JsonEncoder.encoder().encode( map );
+		String jsonText = JsonEncoder.encoder()
+				.encode( map );
 		System.out.println( isVerbose ? jsonText : "" );
 		assertTrue( jsonText.contains( "\"key4711\":4711" ) );
-		assertTrue(
-				jsonText.contains( "\"keyNow\":\"" + now.toString() + "\"" ) );
+		assertTrue( jsonText.contains( "\"keyNow\":\"" + now + "\"" ) );
 		assertFalse( jsonText.contains( "keyNull" ) );
 		// --- now with nulls included
-		jsonText = JsonEncoder.encoder().withNulls( true ).encode( map );
+		jsonText = JsonEncoder.encoder()
+				.withNulls()
+				.encode( map );
 		System.out.println( isVerbose ? jsonText : "" );
 		assertTrue( jsonText.contains( "\"key4711\":4711" ) );
-		assertTrue(
-				jsonText.contains( "\"keyNow\":\"" + now.toString() + "\"" ) );
+		assertTrue( jsonText.contains( "\"keyNow\":\"" + now + "\"" ) );
 		assertTrue( jsonText.contains( "keyNull" ) );
 	}
 
 	@Test
-	void testEncoder_PojoBasics()
-			throws IllegalAccessException, ParseException {
+	void testEncoder_PojoBasics() throws IllegalAccessException, ParseException {
 		// --- Test with empty object
 		TestData.PojoBasics basics = new TestData.PojoBasics();
-		String jsonText = JsonEncoder.encoder().encode( basics );
+		String jsonText = JsonEncoder.encoder()
+				.encode( basics );
 		System.out.println( isVerbose ? jsonText : "" );
 		assertEquals( "{\"intVar\":0}", jsonText );
 		// --- Test with initialized object
 		basics.initialize();
-		jsonText = JsonEncoder.encoder().encode( basics );
+		jsonText = JsonEncoder.encoder()
+				.encode( basics );
 		System.out.println( isVerbose ? jsonText : "" );
-		@SuppressWarnings("unchecked")
-		Map<String, Object> map =
-				(Map<String, Object>) JsonDecoder.decoder().decode( jsonText );
+		@SuppressWarnings("unchecked") Map<String, Object> map =
+				(Map<String, Object>) JsonDecoder.decoder()
+				.decode( jsonText );
 		assertEquals( basics.decimalConst.toString(), map.get( "decimalVar" ) );
 		assertFalse( (Boolean) map.get( "boolVar" ) );
 		assertEquals( basics.longConst, map.get( "intVar" ) );
@@ -153,14 +117,15 @@ class JsonEncoderTest {
 	}
 
 	@Test
-	void testDecoder_PojoBasics()
-			throws IllegalAccessException, ParseException {
+	void testDecoder_PojoBasics() throws IllegalAccessException, ParseException {
 		TestData.PojoBasics basics = new TestData.PojoBasics();
 		basics.initialize();
-		String jsonText = JsonEncoder.encoder().encode( basics );
+		String jsonText = JsonEncoder.encoder()
+				.encode( basics );
 		System.out.println( isVerbose ? jsonText : "" );
 		TestData.PojoBasics decoded = new TestData.PojoBasics();
-		JsonDecoder.decoder().decode( jsonText, decoded );
+		JsonDecoder.decoder()
+				.decodeIntoObject( jsonText, decoded );
 		assertEquals( basics.decimalConst, decoded.decimalVar );
 		assertFalse( decoded.boolVar );
 		assertEquals( basics.longConst, decoded.intVar );
@@ -175,15 +140,17 @@ class JsonEncoderTest {
 	void testPrettyPrint() {
 		TestData.PojoCollections colls = new TestData.PojoCollections();
 		colls.initialize();
-		String jsonText = JsonEncoder.encoder().encode( colls );
+		String jsonText = JsonEncoder.encoder()
+				.encode( colls );
 		System.out.println( isVerbose ? jsonText : "" );
 		System.out.println( jsonText );
 		// --- assertion samples
 		assertTrue( jsonText.contains( "\"floatSet\":[" ) );
 		assertTrue( jsonText.contains( "\"mapKey_1\":\"mapValue_1\"" ) );
 		// --- now pretty printing it
-		jsonText =
-				JsonEncoder.encoder().withPrettyPrint( "  " ).encode( colls );
+		jsonText = JsonEncoder.encoder()
+				.prettyPrint( "  " )
+				.encode( colls );
 		System.out.println( "---------\n" + jsonText );
 	}
 }

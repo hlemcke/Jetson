@@ -39,10 +39,13 @@ public class JsonEncoder {
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 	private final int MAX_INDENT = 10;
 	private final String[] _indentation = new String[MAX_INDENT];
+
 	// --- Setting: encode an array or list of bytes into a Base64 string
 	private boolean _bytesToBase64 = true;
+
 	// --- Setting: encode to JSON 5 {@link https://json5.org}
-	private boolean _json5 = false;
+	private boolean _toJson5 = false;
+
 	// --- Setting: indentation character(s)
 	private String _indent = null;
 	private boolean _prettyPrint = false;
@@ -50,8 +53,8 @@ public class JsonEncoder {
 	// --- Used to prevent circular references in object hierarchy
 	private Set<Object> _stack;
 
-	// --- Setting: if to encode members with a value of {@code null}
-	private boolean _withNullMembers = false;
+	// --- Setting: true encodes members with a {@code null} value
+	private boolean _withNulls = false;
 
 	/**
 	 * Empty no arg constructor
@@ -85,9 +88,9 @@ public class JsonEncoder {
 	 * @return encoded object as a Json string or {@code null} if the parameter
 	 * is {@code null} or an error has occurred
 	 */
-	public String encode(Object object) {
+	public String encode( Object object ) {
 		_stack = new HashSet<>();
-		return _encodeValue(object);
+		return _encodeValue( object );
 	}
 
 	/**
@@ -99,7 +102,7 @@ public class JsonEncoder {
 		return _indent;
 	}
 
-	/******************************************************************
+	/**
 	 * Checks whether an object is empty.
 	 *
 	 * <p>
@@ -112,63 +115,59 @@ public class JsonEncoder {
 	 * any element</li>
 	 * </ul>
 	 *
-	 * @param obj
-	 *            bean to check
+	 * @param obj bean to check
 	 * @return true if object is effectively empty
 	 */
-	public boolean isEmpty(Object obj) {
-		if (obj == null) {
+	public boolean isEmpty( Object obj ) {
+		if ( obj == null ) {
 			return true;
 		}
-		if (obj instanceof Array) {
+		if ( obj instanceof Array ) {
 			return ((Object[]) obj).length == 0;
-		} else if (obj instanceof String) {
-			if (((String) obj).isEmpty())
-				return true;
-			return obj.equals("null");
-		} else if (obj instanceof List) {
+		} else if ( obj instanceof String ) {
+			if ( ((String) obj).isEmpty() ) return true;
+			return obj.equals( "null" );
+		} else if ( obj instanceof List ) {
 			return ((List<?>) obj).isEmpty();
-		} else if (obj instanceof Map) {
+		} else if ( obj instanceof Map ) {
 			return ((Map<?, ?>) obj).isEmpty();
-		} else if (obj instanceof Set) {
+		} else if ( obj instanceof Set ) {
 			return ((Set<?>) obj).isEmpty();
 		}
 		return false;
 	}
 
 	/**
-	 * If to encode an array or list of bytes into a Base64 string.
+	 * Encodes an array or list of bytes into a json list of comma separated integer values
+	 * instead of a Base64 string.
 	 *
-	 * @param toBase64 default = {@code true}
-	 * @return encoder for streaming API
+	 * @return this for fluent API
 	 */
-	public JsonEncoder withBytesToBase64(boolean toBase64) {
-		_bytesToBase64 = toBase64;
+	public JsonEncoder bytesToList() {
+		_bytesToBase64 = false;
 		return this;
 	}
 
 	/**
 	 * Encode to <a href="https://json5.org">JSON 5</a>
 	 *
-	 * @param json5 default = {@code false}
-	 * @return encoder for streaming API
+	 * @return this for fluent API
 	 */
-	public JsonEncoder toJson5(boolean json5) {
-		_json5 = json5;
-		if (json5 && (_indent == null)) {
-			withPrettyPrint("  ");
+	public JsonEncoder toJson5() {
+		_toJson5 = true;
+		if ( _indent == null ) {
+			prettyPrint( "  " );
 		}
 		return this;
 	}
 
 	/**
-	 * Encode members of an object with a value of {@code null}
+	 * Encode members of an object with a value of {@code null} instead of skipping them.
 	 *
-	 * @param withNulls default = {@code false}
 	 * @return encoder for streaming API
 	 */
-	public JsonEncoder withNulls(boolean withNulls) {
-		_withNullMembers = withNulls;
+	public JsonEncoder withNulls() {
+		_withNulls = true;
 		return this;
 	}
 
@@ -185,9 +184,9 @@ public class JsonEncoder {
 	 * @param indent default = {@code null}
 	 * @return encoder for streaming API
 	 */
-	public JsonEncoder withPrettyPrint(String indent) {
-		for (int i = 0; i < indent.length(); i++) {
-			if (indent.charAt(i) != ' ' && indent.charAt(i) != '\t') {
+	public JsonEncoder prettyPrint( String indent ) {
+		for ( int i = 0; i < indent.length(); i++ ) {
+			if ( indent.charAt( i ) != ' ' && indent.charAt( i ) != '\t' ) {
 				indent = "  ";
 				break;
 			}
@@ -197,7 +196,7 @@ public class JsonEncoder {
 		// --- Prepare indentations for depth up to MAX_INDENT
 		_indentation[0] = "";
 		_indentation[1] = _indent;
-		for (int i = 2; i < MAX_INDENT; i++) {
+		for ( int i = 2; i < MAX_INDENT; i++ ) {
 			_indentation[i] = _indentation[i - 1] + _indent;
 		}
 		return this;
@@ -210,52 +209,50 @@ public class JsonEncoder {
 	 * into a Base64 string instead.
 	 * </p>
 	 */
-	private String _encodeArray(Object array) {
+	private String _encodeArray( Object array ) {
 		Class<?> _elemClazz = array.getClass()
-			  .getComponentType();
-		if (_bytesToBase64 && (_elemClazz.equals(byte.class)
-			  || _elemClazz.equals(Byte.class))) {
+				.getComponentType();
+		if ( _bytesToBase64 && (_elemClazz.equals( byte.class ) || _elemClazz.equals( Byte.class )) ) {
 			return "\"" + Base64.encoder()
-				  .encode((byte[]) array) + "\"";
+					.encode( (byte[]) array ) + "\"";
 		}
 		StringBuilder jsonStringBuilder = new StringBuilder();
-		Object[] _array = BaseConverter.convertToArray(array);
-		for (Object obj : _array) {
-			jsonStringBuilder.append(_prettyPrint ? ",\n" : ",");
-			jsonStringBuilder.append(_encodeValueIndented(obj));
+		Object[] _array = BaseConverter.convertToArray( array );
+		for ( Object obj : _array ) {
+			jsonStringBuilder.append( _prettyPrint ? ",\n" : "," );
+			jsonStringBuilder.append( _encodeValueIndented( obj ) );
 		}
-		return "[" + _stripLeadingComma(jsonStringBuilder) + "]";
+		return "[" + _stripLeadingComma( jsonStringBuilder ) + "]";
 	}
 
 	/**
 	 * Encodes the given collection into {@literal "[" value ["," value]* "]"}
 	 */
-	private String _encodeCollection(Collection<?> collection) {
+	private String _encodeCollection( Collection<?> collection ) {
 		StringBuilder jsonStringBuilder = new StringBuilder();
-		for (Object obj : collection) {
-			jsonStringBuilder.append(_prettyPrint ? ",\n" : ",");
-			jsonStringBuilder.append(_encodeValueIndented(obj));
+		for ( Object obj : collection ) {
+			jsonStringBuilder.append( _prettyPrint ? ",\n" : "," );
+			jsonStringBuilder.append( _encodeValueIndented( obj ) );
 		}
-		return "[" + _stripLeadingComma(jsonStringBuilder) + "]";
+		return "[" + _stripLeadingComma( jsonStringBuilder ) + "]";
 	}
 
 	/**
 	 * Appends "key:value" to builder if value is not null or IsWithNulls
 	 *
 	 * @param builder current json text part
-	 * @param key     key from map or Pojo
-	 * @param value   value of key
+	 * @param key key from map or Pojo
+	 * @param value value of key
 	 */
-	private void _encodeKeyValue(StringBuilder builder, String key,
-	                             Object value) {
-		if (value != null || _withNullMembers) {
-			builder.append(",");
-			if (_prettyPrint) {
-				builder.append("\n");
-				builder.append(_indentation[_stack.size()]);
+	private void _encodeKeyValue( StringBuilder builder, String key, Object value ) {
+		if ( value != null || _withNulls ) {
+			builder.append( "," );
+			if ( _prettyPrint ) {
+				builder.append( "\n" );
+				builder.append( _indentation[_stack.size()] );
 			}
-			builder.append(_json5 ? key + ": " : "\"" + key + "\":");
-			builder.append(value);
+			builder.append( _toJson5 ? key + ": " : "\"" + key + "\":" );
+			builder.append( value );
 		}
 	}
 
@@ -263,18 +260,17 @@ public class JsonEncoder {
 	 * Encodes the given map into {@literal "{" key ":" value [", " key ":"
 	 * value]* "}"
 	 */
-	private String _encodeMap(Map<Object, Object> map) {
+	private String _encodeMap( Map<Object, Object> map ) {
 		StringBuilder jsonStringBuilder = new StringBuilder();
 		Iterator<Map.Entry<Object, Object>> iter = map.entrySet()
-			  .iterator();
+				.iterator();
 		Map.Entry<Object, Object> entry = null;
-		while (iter.hasNext()) {
+		while ( iter.hasNext() ) {
 			entry = iter.next();
-			_encodeKeyValue(jsonStringBuilder, entry.getKey()
-						.toString(),
-				  _encodeValue(entry.getValue()));
+			_encodeKeyValue( jsonStringBuilder, entry.getKey()
+					.toString(), _encodeValue( entry.getValue() ) );
 		}
-		return "{" + _stripLeadingComma(jsonStringBuilder) + "}";
+		return "{" + _stripLeadingComma( jsonStringBuilder ) + "}";
 	}
 
 	/**
@@ -285,7 +281,7 @@ public class JsonEncoder {
 	 * of checking fields and getters.
 	 * </p>
 	 */
-	private String _encodePojo(Object pojo) {
+	private String _encodePojo( Object pojo ) {
 		Json anno = null;
 		StringBuilder builder = new StringBuilder();
 		String name = null;
@@ -293,45 +289,42 @@ public class JsonEncoder {
 
 		// --- Encode fields
 		Field[] fields = pojo.getClass()
-			  .getFields();
-		for (Field field : fields) {
-			anno = field.getAnnotation(Json.class);
-			if ((anno != null) && anno.encodable()) {
+				.getFields();
+		for ( Field field : fields ) {
+			anno = field.getAnnotation( Json.class );
+			if ( (anno != null) && anno.encodable() ) {
 				try {
-					field.setAccessible(true);
-					value = field.get(pojo);
+					field.setAccessible( true );
+					value = field.get( pojo );
 					name = field.getName();
-					_encodePojoMember(builder, anno, name, value);
-				} catch (IllegalArgumentException | IllegalAccessException e) {
+					_encodePojoMember( builder, anno, name, value );
+				} catch ( IllegalArgumentException | IllegalAccessException e ) {
 					logger.atWarning()
-						  .withCause(e)
-						  .log(
-								"Cannot encode field " + field + " for " + value);
+							.withCause( e )
+							.log( "Cannot encode field " + field + " for " + value );
 				}
 			}
 		}
 
 		// --- Encode methods
-		Method[] methods = BeanHelper.obtainGetters(pojo.getClass());
-		for (Method method : methods) {
-			anno = method.getAnnotation(Json.class);
-			if ((anno != null) && anno.encodable()) {
+		Method[] methods = BeanHelper.obtainGetters( pojo.getClass() );
+		for ( Method method : methods ) {
+			anno = method.getAnnotation( Json.class );
+			if ( (anno != null) && anno.encodable() ) {
 				try {
-					method.setAccessible(true);
-					value = method.invoke(pojo, (Object[]) null);
-					name = BeanHelper
-						  .getVarnameFromMethodname(method.getName());
-					_encodePojoMember(builder, anno, name, value);
-				} catch (IllegalArgumentException | InvocationTargetException
-				         | IllegalAccessException e) {
+					method.setAccessible( true );
+					value = method.invoke( pojo, (Object[]) null );
+					name = BeanHelper.getVarnameFromMethodname( method.getName() );
+					_encodePojoMember( builder, anno, name, value );
+				} catch ( IllegalArgumentException | InvocationTargetException |
+				          IllegalAccessException e ) {
 					logger.atWarning()
-						  .log("JsonCodec._encodePojo( " + pojo
-								+ " ). Cannot invoke " + method + ": "
-								+ e.getMessage());
+							.log( "JsonCodec._encodePojo( " + pojo + " ). Cannot invoke " + method +
+									": " + e.getMessage() );
 				}
 			}
 		}
-		return "{" + _stripLeadingComma(builder) + "}";
+		return "{" + _stripLeadingComma( builder ) + "}";
 	}
 
 	/**
@@ -342,33 +335,33 @@ public class JsonEncoder {
 	 * <li>check {@code Json.converter()}</li>
 	 * </ol>
 	 *
-	 * @param anno  Complete annotation with parameters
-	 * @param name  Name of field
+	 * @param anno Complete annotation with parameters
+	 * @param name Name of field
 	 * @param value value to be encoded
 	 */
-	private void _encodePojoMember(StringBuilder builder, Json anno,
-	                               String name, Object value) {
+	private void _encodePojoMember( StringBuilder builder, Json anno, String name,
+			Object value ) {
 
 		// --- Use optional key from annotation
-		if (!anno.key()
-			  .equals(Json.defaultName)) {
+		if ( !anno.key()
+				.equals( Json.defaultName ) ) {
 			name = anno.key();
 		}
-		value = _encodeWithConverter(anno, value);
-		_encodeKeyValue(builder, name, _encodeValue(value));
+		value = _encodeWithConverter( anno, value );
+		_encodeKeyValue( builder, name, _encodeValue( value ) );
 	}
 
-	private String _encodeString(String str) {
-		str = str.replace("\\", "\\\\");
-		if (_json5) {
+	private String _encodeString( String str ) {
+		str = str.replace( "\\", "\\\\" );
+		if ( _toJson5 ) {
 			return "'" + str + "'";
 		}
-		str = str.replace("\"", "\\\"");
+		str = str.replace( "\"", "\\\"" );
 		return "\"" + str + "\"";
 	}
 
-	private String _encodeValueIndented(Object value) {
-		String encoded = _encodeValue(value);
+	private String _encodeValueIndented( Object value ) {
+		String encoded = _encodeValue( value );
 		return _prettyPrint ? _indentation[_stack.size()] + encoded : encoded;
 	}
 
@@ -385,90 +378,77 @@ public class JsonEncoder {
 	 * @return part for a Json string
 	 */
 	@SuppressWarnings("unchecked")
-	private String _encodeValue(Object value) {
-		if (isEmpty(value)) {
-			return _withNullMembers ? "null" : null;
+	private String _encodeValue( Object value ) {
+		if ( isEmpty( value ) ) {
+			return _withNulls ? "null" : null;
 		}
 
 		// --- Encode basic value
-		if (value instanceof Boolean || value instanceof Byte
-			  || value instanceof Double || value instanceof Float
-			  || value instanceof Integer || value instanceof Long
-			  || value instanceof Short) {
+		if ( value instanceof Boolean || value instanceof Byte || value instanceof Double || value instanceof Float || value instanceof Integer || value instanceof Long || value instanceof Short ) {
 			return value.toString();
 		}
 		// --- Encode derived value
-		if (value instanceof BigDecimal || value instanceof Character
-			  || value instanceof Currency || value instanceof Enum
-			  || value instanceof LocalDate || value instanceof Locale
-			  || value instanceof OffsetDateTime || value instanceof String
-			  || value instanceof UUID || value instanceof URI
-			  || value instanceof URL) {
-			return _encodeString(value.toString());
+		if ( value instanceof BigDecimal || value instanceof Character || value instanceof Currency || value instanceof Enum || value instanceof LocalDate || value instanceof Locale || value instanceof OffsetDateTime || value instanceof String || value instanceof UUID || value instanceof URI || value instanceof URL ) {
+			return _encodeString( value.toString() );
 		}
 
 		// --- Encode recursive objects
-		if (_stack.contains(value)) {
-			throw new RecursionException("Json Encoding Exception."
-				  + " Already encoded: " + value + "\n" + _stack);
+		if ( _stack.contains( value ) ) {
+			throw new RecursionException( "Json Encoding Exception." + " Already encoded: " + value + "\n" + _stack );
 		}
-		_stack.add(value);
+		_stack.add( value );
 		String json = null;
-		if (value.getClass()
-			  .isArray()) {
-			json = _encodeArray(value);
-		} else if (value instanceof List) {
-			json = _encodeCollection((Collection<?>) value);
-		} else if (value instanceof AbstractCollection) {
-			json = _encodeCollection((Collection<?>) value);
-		} else if (value instanceof Map) {
-			json = _encodeMap((Map<Object, Object>) value);
+		if ( value.getClass()
+				.isArray() ) {
+			json = _encodeArray( value );
+		} else if ( value instanceof List ) {
+			json = _encodeCollection( (Collection<?>) value );
+		} else if ( value instanceof AbstractCollection ) {
+			json = _encodeCollection( (Collection<?>) value );
+		} else if ( value instanceof Map ) {
+			json = _encodeMap( (Map<Object, Object>) value );
 		} else {
-			json = _encodePojo(value);
+			json = _encodePojo( value );
 		}
-		_stack.remove(value);
+		_stack.remove( value );
 		return json;
 	}
 
 	/**
 	 * Gets value from {@code Json.converter()} parameter.
 	 *
-	 * @param anno  Json annotation
+	 * @param anno Json annotation
 	 * @param value value to be encoded
 	 * @return converted value or given {@code value}
 	 */
 	@SuppressWarnings({"rawtypes", "unchecked"})
-	private Object _encodeWithConverter(Json anno, Object value) {
-		if ((anno != null) && (value != null)) {
-			Class<? extends JsonConverter> annotatedConverter =
-				  anno.converter();
-			if (annotatedConverter != JsonConverter.class) {
+	private Object _encodeWithConverter( Json anno, Object value ) {
+		if ( (anno != null) && (value != null) ) {
+			Class<? extends JsonConverter> annotatedConverter = anno.converter();
+			if ( annotatedConverter != JsonConverter.class ) {
 				try {
-					JsonConverter converter = annotatedConverter
-						  .getDeclaredConstructor()
-						  .newInstance();
-					value = converter.encodeToJson(value);
-				} catch (InstantiationException | IllegalAccessException
-				         | IllegalArgumentException | InvocationTargetException
-				         | NoSuchMethodException | SecurityException e) {
+					JsonConverter converter = annotatedConverter.getDeclaredConstructor()
+							.newInstance();
+					value = converter.encodeToJson( value );
+				} catch ( InstantiationException | IllegalAccessException |
+				          IllegalArgumentException | InvocationTargetException |
+				          NoSuchMethodException | SecurityException e ) {
 					logger.atWarning()
-						  .withCause(e)
-						  .log("JsonCodec._encodeWithConverter( " + anno
-								+ ", '" + value + "') failed with "
-								+ e.getMessage());
+							.withCause( e )
+							.log( "JsonCodec._encodeWithConverter( " + anno + ", '" + value + "') " +
+									"failed with " + e.getMessage() );
 				}
 			}
 		}
 		return value;
 	}
 
-	private String _stripLeadingComma(StringBuilder builder) {
-		if (_prettyPrint) {
-			builder.append("\n")
-				  .append(_indentation[_stack.size() - 1]);
+	private String _stripLeadingComma( StringBuilder builder ) {
+		if ( _prettyPrint ) {
+			builder.append( "\n" )
+					.append( _indentation[_stack.size() - 1] );
 		}
-		return ((builder.length() > 2) && (builder.charAt(0) == ','))
-			  ? builder.substring(1)
-			  : builder.toString();
+		return ((builder.length() > 2) && (builder.charAt( 0 ) == ',')) ?
+				builder.substring( 1 ) : builder.toString();
 	}
 }

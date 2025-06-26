@@ -3,67 +3,43 @@
  */
 package com.djarjo.jetson;
 
-import static org.junit.Assert.fail;
-
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.text.ParseException;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 /**
  *
  */
 class JetsonTest {
 
-	public static void main( String[] args ) {
-
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@BeforeAll
-	static void setUpBeforeClass() throws Exception {
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@AfterAll
-	static void tearDownAfterClass() throws Exception {
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@BeforeEach
-	void setUp() throws Exception {
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@AfterEach
-	void tearDown() throws Exception {
-	}
-
 	/**
 	 * Test method for
 	 * {@link com.djarjo.jetson.Jetson#decode(java.lang.String)}.
 	 */
 	@Test
-	void testDecodeString() {
-		fail( "Not yet implemented" );
+	void testDecodeToLong() throws ParseException, IllegalAccessException {
+		//--- given
+		String json = "123456789";
+		//--- when
+		Object value = Jetson.decode( json );
+		//--- then
+		assertEquals( 123_456_789L, value );
 	}
 
-	/**
-	 * Test method for
-	 * {@link com.djarjo.jetson.Jetson#decode(java.lang.String, java.lang.Object)}.
-	 */
 	@Test
-	void testDecodeStringObject() {
-		fail( "Not yet implemented" );
+	void testDecodeToList() throws ParseException, IllegalAccessException {
+		//--- given
+		String json = "[ 123, 456, 789 ]";
+		//--- when
+		Object value = Jetson.decode( json );
+		//--- then
+		assertInstanceOf( List.class, value );
+		List<?> list = (List<?>) value;
+		assertEquals( 3, list.size() );
+		assertEquals( 123L, list.get( 0 ) );
 	}
-
 }
