@@ -3,7 +3,6 @@
  */
 package com.djarjo.jetson;
 
-import com.djarjo.common.Base64;
 import com.djarjo.common.BaseConverter;
 import com.djarjo.common.BeanHelper;
 import com.djarjo.jetson.converter.JsonConverter;
@@ -213,8 +212,9 @@ public class JsonEncoder {
 		Class<?> _elemClazz = array.getClass()
 				.getComponentType();
 		if ( _bytesToBase64 && (_elemClazz.equals( byte.class ) || _elemClazz.equals( Byte.class )) ) {
-			return "\"" + Base64.encoder()
-					.encode( (byte[]) array ) + "\"";
+			return "\"" + Base64.getUrlEncoder()
+					.withoutPadding()
+					.encodeToString( (byte[]) array ) + "\"";
 		}
 		StringBuilder jsonStringBuilder = new StringBuilder();
 		Object[] _array = BaseConverter.convertToArray( array );

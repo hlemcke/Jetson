@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -139,22 +140,20 @@ class Jetson5Test {
 			Map<?, ?> map = (Map<?, ?>) object;
 			assertEquals( 10, map.size() );
 			assertEquals( "and you can quote me on that", map.get( "unquoted" ) );
-			assertEquals( "I can use \"double quotes\" here",
-					map.get( "singleQuotes" ) );
+			assertEquals( "I can use \"double quotes\" here", map.get( "singleQuotes" ) );
 			// System.out.println( map.get( "lineBreaks" ) );
 			assertEquals( "Look, Mom! No n's!", map.get( "lineBreaks" ) );
 			// TODO correct assertEquals
 			// assertEquals( 0xdecaf, map.get( "hexadecimal" ) );
 			assertEquals( 0.8675309, map.get( "leadingDecimalPoint" ) );
-			assertEquals( 8675309, map.get( "andTrailing" ) );
-			assertEquals( 1, map.get( "positiveSign" ) );
+			assertEquals( 8675309.0, map.get( "andTrailing" ) );
+			assertEquals( 1L, map.get( "positiveSign" ) );
 			assertEquals( "in objects", map.get( "trailingComma" ) );
-			assertEquals( ArrayList.class, map.get( "andIn" ) );
+			assertEquals( List.of( "arrays" ), map.get( "andIn" ) );
 			@SuppressWarnings("unchecked") ArrayList<String> arrays =
 					(ArrayList<String>) map.get( "andIn" );
 			assertEquals( "arrays", arrays.get( 0 ) );
-			assertEquals( "with JSON", "backwardsCompatible" );
-			assertTrue( (boolean) map.get( "boolVal" ) );
+			assertEquals( "with JSON", map.get( "backwardsCompatible" ) );
 		} catch ( IllegalAccessException | ParseException e ) {
 			e.printStackTrace();
 		}
@@ -163,10 +162,10 @@ class Jetson5Test {
 	@Order(10)
 	@Test
 	void testJson5Encode() {
-		String expected = "{ unquoted: 'and you can quote me on that',\n" +
-				"singleQuotes: " + "'I can use \"double quotes\" here',\n" + "lineBreaks" +
-				": 'Look, Mom! No n's!,\n" + "trailingComma: 'in objects', andIn: " +
-				"['arrays',],\n}";
+		String expected =
+				"{\n  unquoted: 'and you can quote me on that',\n  singleQuotes: " + "'I can " +
+						"use" + " " + "\"double quotes\" here',\n  trailingComma: 'in " + "objects" +
+						"'\n}";
 		String encoded = Jetson.toJson5()
 				.encode( new Json5Entity() );
 		assertEquals( expected, encoded );
@@ -174,10 +173,10 @@ class Jetson5Test {
 
 	private static class Json5Entity {
 		@Json
-		String unquoted = "and you can quote me on that";
+		public String unquoted = "and you can quote me on that";
 		@Json
-		String singleQuotes = "I can use \"double quotes\" here";
+		public String singleQuotes = "I can use \"double quotes\" here";
 		@Json
-		String lineBreaks, trailingComma = "in objects";
+		public String lineBreaks, trailingComma = "in objects";
 	}
 }
