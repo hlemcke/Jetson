@@ -80,20 +80,20 @@ public class Tokenizer {
 		Symbol currentSymbol = _token.symbol;
 		Symbol matchingSymbol = _getMatchingSymbol();
 		_token = new Token(Symbol.UNKNOWN);
-		if (matchingSymbol == Symbol.UNKNOWN) {
+		if (matchingSymbol==Symbol.UNKNOWN) {
 			return _token;
 		}
 		int startPos = _curPos, depth = 1;
 		while (true) {
 			_token = nextToken();
-			if (_token.symbol == currentSymbol) {
+			if (_token.symbol==currentSymbol) {
 				depth++;
-			} else if (_token.symbol == matchingSymbol) {
+			} else if (_token.symbol==matchingSymbol) {
 				depth--;
 				if (depth <= 0) {
 					_token.value = _text.substring(startPos,
-						  _curPos - _token.symbol.getText()
-								.length());
+							_curPos - _token.symbol.getText()
+									.length());
 					_token.value = _token.value.replaceAll("\r", "");
 					break;
 				}
@@ -118,10 +118,10 @@ public class Tokenizer {
 			_token = nextToken();
 			if (symbolSet.contains(_token.symbol)) {
 				_token.value = _text
-					  .substring(startPos,
-							_curPos - _token.symbol.getText()
-								  .length())
-					  .replaceAll("\r", "");
+						.substring(startPos,
+								_curPos - _token.symbol.getText()
+										.length())
+						.replaceAll("\r", "");
 				break;
 			}
 		}
@@ -146,7 +146,7 @@ public class Tokenizer {
 			j = _textLength;
 		}
 		String clip = "..." + _text.substring(i, _curPos) + "<<<<"
-			  + _text.substring(_curPos, j) + "...";
+				+ _text.substring(_curPos, j) + "...";
 		return clip;
 	}
 
@@ -292,15 +292,15 @@ public class Tokenizer {
 
 	private Symbol _getMatchingSymbol() {
 		Symbol result = Symbol.UNKNOWN;
-		if (_token.symbol == Symbol.LEFT_BRACE) {
+		if (_token.symbol==Symbol.LEFT_BRACE) {
 			result = Symbol.RIGHT_BRACE;
-		} else if (_token.symbol == Symbol.LEFT_BRACKET) {
+		} else if (_token.symbol==Symbol.LEFT_BRACKET) {
 			result = Symbol.RIGHT_BRACKET;
-		} else if (_token.symbol == Symbol.LEFT_C_COMMENT) {
+		} else if (_token.symbol==Symbol.LEFT_C_COMMENT) {
 			result = Symbol.RIGHT_C_COMMENT;
-		} else if (_token.symbol == Symbol.LEFT_PARENTHESIS) {
+		} else if (_token.symbol==Symbol.LEFT_PARENTHESIS) {
 			result = Symbol.RIGHT_PARENTHESIS;
-		} else if (_token.symbol == Symbol.LEFT_XML_COMMENT) {
+		} else if (_token.symbol==Symbol.LEFT_XML_COMMENT) {
 			result = Symbol.RIGHT_XML_COMMENT;
 		}
 		return result;
@@ -319,37 +319,38 @@ public class Tokenizer {
 			return 0;
 		}
 		// --- Skip useless Mickisoft returns
-		while ((_curPos < _textLength) && (_text.charAt(_curPos) == '\r')) {
+		while ((_curPos < _textLength) && (_text.charAt(_curPos)=='\r')) {
 			_curPos++;
 		}
 		char c = _text.charAt(_curPos++);
 		_colNo++;
-		if (c == '\n') {
+		if (c=='\n') {
 			_lineNo++;
 			_colNo = 1;
 		}
 		// --- Skip useless Mickisoft returns
-		while ((_curPos < _textLength) && (_text.charAt(_curPos) == '\r')) {
+		while ((_curPos < _textLength) && (_text.charAt(_curPos)=='\r')) {
 			_curPos++;
 		}
 		return c;
 	}
 
-	/******************************************************************
+	/**
 	 * Parses the input stream to obtain the next token. Sets value and
-	 * position. Uses options from constructor..
+	 * position. Uses options from constructor.
 	 */
 	private void _parse() {
 		_token = new Token(Symbol.EOF);
+		_token.position = _curPos;
 		if (_curPos >= _textLength) {
 			return;
 		}
 		char chr = _nextChar();
 		// --- Check for skipping LF and / or whitespaces
-		while (chr != 0) {
-			if (chr == '\n') {
+		while (chr!=0) {
+			if (chr=='\n') {
 				if (_skipEnabled && _options
-					  .contains(TokenizerOption.SKIP_LINEBREAK)) {
+						.contains(TokenizerOption.SKIP_LINEBREAK)) {
 					chr = _nextChar();
 				} else {
 					_token.symbol = Symbol.LINEBREAK;
@@ -357,19 +358,19 @@ public class Tokenizer {
 				}
 			} else if (Character.isWhitespace(chr)) {
 				if (_skipEnabled && _options
-					  .contains(TokenizerOption.SKIP_WHITESPACE)) {
+						.contains(TokenizerOption.SKIP_WHITESPACE)) {
 					chr = _nextChar();
 				} else {
 					_token.symbol = Symbol.WHITESPACE;
 					return;
 				}
-			} else if (chr == '\r') { // Skip useless CR
+			} else if (chr=='\r') { // Skip useless CR
 				chr = _nextChar();
 			} else {
 				break;
 			}
 		}
-		if (chr == 0) {
+		if (chr==0) {
 			return;
 		}
 		_token.symbol = Symbol.UNKNOWN; // Default
@@ -379,45 +380,45 @@ public class Tokenizer {
 			_parseNumber();
 		} else if (Character.isLetter(chr)) {
 			_parseWord();
-		} else if (chr == '\"' || chr == '\'') {
+		} else if (chr=='\"' || chr=='\'') {
 			_parseString(chr);
-		} else if (chr == '&') {
+		} else if (chr=='&') {
 			_token.symbol = Symbol.AMPERSAND;
-		} else if (chr == ':') {
+		} else if (chr==':') {
 			_token.symbol = Symbol.COLON;
-		} else if (chr == ',') {
+		} else if (chr==',') {
 			_token.symbol = Symbol.COMMA;
-		} else if (chr == '$') {
+		} else if (chr=='$') {
 			_token.symbol = Symbol.DOLLAR;
-		} else if (chr == '#') {
+		} else if (chr=='#') {
 			_token.symbol = Symbol.HASH;
-		} else if (chr == '{') {
+		} else if (chr=='{') {
 			_token.symbol = Symbol.LEFT_BRACE;
-		} else if (chr == '[') {
+		} else if (chr=='[') {
 			_token.symbol = Symbol.LEFT_BRACKET;
-		} else if (chr == '(') {
+		} else if (chr=='(') {
 			_token.symbol = Symbol.LEFT_PARENTHESIS;
-		} else if (chr == '%') {
+		} else if (chr=='%') {
 			_token.symbol = Symbol.PERCENT;
-		} else if (chr == '.') {
+		} else if (chr=='.') {
 			_token.symbol = Symbol.PERIOD;
-		} else if (chr == '|') {
+		} else if (chr=='|') {
 			_token.symbol = Symbol.PIPE;
-		} else if (chr == '?') {
+		} else if (chr=='?') {
 			_token.symbol = Symbol.QUESTION;
-		} else if (chr == '}') {
+		} else if (chr=='}') {
 			_token.symbol = Symbol.RIGHT_BRACE;
-		} else if (chr == ']') {
+		} else if (chr==']') {
 			_token.symbol = Symbol.RIGHT_BRACKET;
-		} else if (chr == ')') {
+		} else if (chr==')') {
 			_token.symbol = Symbol.RIGHT_PARENTHESIS;
-		} else if (chr == ';') {
+		} else if (chr==';') {
 			_token.symbol = Symbol.SEMICOLON;
-		} else if (chr == '~') {
+		} else if (chr=='~') {
 			_token.symbol = Symbol.TILDE;
 		}
 		// --- Token starting with "@"
-		else if (chr == '@') {
+		else if (chr=='@') {
 			_token.symbol = Symbol.AT;
 			_token.value = "";
 			if (Character.isLetter(_getChar())) {
@@ -429,73 +430,73 @@ public class Tokenizer {
 			}
 		}
 		// --- Token starting with "*"
-		else if (chr == '*') {
+		else if (chr=='*') {
 			_token.symbol = Symbol.ASTERISK;
-			if (_getChar() == '/') {
+			if (_getChar()=='/') {
 				_token.symbol = Symbol.RIGHT_C_COMMENT;
 				_token.value = "*/";
 				_nextChar();
 			}
 		}
 		// --- Token starting with "\"
-		else if (chr == '\\') {
+		else if (chr=='\\') {
 			_token.symbol = Symbol.BACKSLASH;
-			if (_getChar() == '\n') {
+			if (_getChar()=='\n') {
 				_nextChar();
 				_token.symbol = Symbol.CONTINUATION;
 			}
 		}
 		// --- Token starting with "="
-		else if (chr == '=') {
+		else if (chr=='=') {
 			_token.symbol = Symbol.EQUAL;
-			if (_getChar() == '=') {
+			if (_getChar()=='=') {
 				_token.symbol = Symbol.DOUBLE_EQUAL;
 				_token.value = "==";
 				_nextChar();
-			} else if (_getChar() == '<') {
+			} else if (_getChar()=='<') {
 				_token.symbol = Symbol.LESS_EQUAL;
 				_token.value = "<=";
 				_nextChar();
-			} else if (_getChar() == '>') {
+			} else if (_getChar()=='>') {
 				_token.symbol = Symbol.GREATER_EQUAL;
 				_token.value = "=>";
 				_nextChar();
 			}
 		}
 		// ----- Token starting with '!'
-		else if (chr == '!') {
+		else if (chr=='!') {
 			_token.symbol = Symbol.EXCLAMATION;
-			if (_getChar() == '=') {
+			if (_getChar()=='=') {
 				_token.symbol = Symbol.NOT_EQUAL;
 				_token.value = "!=";
 				_nextChar();
 			}
 		}
 		// ----- Token starting with '>'
-		else if (chr == '>') {
+		else if (chr=='>') {
 			_token.symbol = Symbol.GREATER_THAN;
-			if (_getChar() == '=') {
+			if (_getChar()=='=') {
 				_token.symbol = Symbol.GREATER_EQUAL;
 				_token.value = ">=";
 				_nextChar();
 			}
 		}
 		// --- Token starting with '<'
-		else if (chr == '<') {
+		else if (chr=='<') {
 			_token.symbol = Symbol.LESS_THAN;
-			if (_getChar() == '=') {
+			if (_getChar()=='=') {
 				_token.symbol = Symbol.LESS_EQUAL;
 				_token.value = "<=";
 				_nextChar();
 			} else if ((_curPos + 3 < _textLength) && (_text
-				  .startsWith("!--", _curPos))) {
+					.startsWith("!--", _curPos))) {
 				_token.symbol = Symbol.LEFT_XML_COMMENT;
 				_token.value = "<!--";
 				_nextChar();
 				_nextChar();
 				_nextChar();
 				if (!_options
-					  .contains(TokenizerOption.EXPLODE_XML_COMMENT)) {
+						.contains(TokenizerOption.EXPLODE_XML_COMMENT)) {
 					clipUntilMatching();
 					_token.symbol = Symbol.COMMENT;
 					return;
@@ -503,52 +504,52 @@ public class Tokenizer {
 			}
 		}
 		// --- Token starting with "-"
-		else if (chr == '-') {
+		else if (chr=='-') {
 			_token.symbol = Symbol.MINUS;
 			if (Character.isDigit(_getChar())) {
 				_parseNumber();
 			} else if ((_curPos + 2 < _textLength) && (_text
-				  .startsWith("->", _curPos))) {
+					.startsWith("->", _curPos))) {
 				_token.symbol = Symbol.RIGHT_XML_COMMENT;
 				_token.value = "-->";
 				_nextChar();
 				_nextChar();
-			} else if (_getChar() == '-') {
+			} else if (_getChar()=='-') {
 				_token.symbol = Symbol.DOUBLE_MINUS;
 				_token.value = "--";
 				_nextChar();
 			}
 		}
 		// --- Token starting with "+"
-		else if (chr == '+') {
+		else if (chr=='+') {
 			_token.symbol = Symbol.PLUS;
 			if (Character.isDigit(_getChar())) {
 				_parseNumber();
-			} else if (_getChar() == '+') {
+			} else if (_getChar()=='+') {
 				_token.symbol = Symbol.DOUBLE_PLUS;
 				_token.value = "++";
 				_nextChar();
 			}
 		}
 		// --- Token starting with '/'
-		else if (chr == '/') {
+		else if (chr=='/') {
 			_token.symbol = Symbol.SLASH;
-			if (_getChar() == '/') {
+			if (_getChar()=='/') {
 				_token.symbol = Symbol.DOUBLE_SLASH;
 				_token.value = "//";
 				_nextChar();
 				if (_options.contains(
-					  TokenizerOption.SKIP_DOUBLESLASH_UNTIL_EOL)) {
+						TokenizerOption.SKIP_DOUBLESLASH_UNTIL_EOL)) {
 					clipUntilSymbol(Symbol.LINEBREAK);
 					_parse();
 					return;
 				}
-			} else if (_getChar() == '*') {
+			} else if (_getChar()=='*') {
 				_token.symbol = Symbol.LEFT_C_COMMENT;
 				_token.value = "/*";
 				_nextChar();
 				if (!_options
-					  .contains(TokenizerOption.EXPLODE_C_COMMENT)) {
+						.contains(TokenizerOption.EXPLODE_C_COMMENT)) {
 					clipUntilMatching();
 					_token.symbol = Symbol.COMMENT;
 					return;
@@ -556,10 +557,10 @@ public class Tokenizer {
 			}
 		}
 		// --- Token starting with "_"
-		else if (chr == '_') {
+		else if (chr=='_') {
 			_token.symbol = Symbol.UNDERSCORE;
 			if (Character.isDigit(_getChar())
-				  || Character.isLetter(_getChar())) {
+					|| Character.isLetter(_getChar())) {
 				_token.symbol = Symbol.IDENTIFIER;
 				_parseWord();
 			}
@@ -567,7 +568,7 @@ public class Tokenizer {
 
 		// --- Return type of token
 		logger.atFinest()
-			  .log("token: %s", _token);
+				.log("token: %s", _token);
 	}
 
 	/**
@@ -584,21 +585,21 @@ public class Tokenizer {
 		boolean isHex = false;
 		int idx = 0;
 		if ("0".equals(_token.value)
-			  && ((_getChar() == 'x') || (_getChar() == 'X'))) {
+				&& ((_getChar()=='x') || (_getChar()=='X'))) {
 			isHex = true;
 			_token.symbol = Symbol.VALUE_HEX;
 			_token.value = "0x";
 			_nextChar();
 		}
-		while (_getChar() != 0) {
+		while (_getChar()!=0) {
 			idx = numberChars.indexOf(_getChar());
 			if (idx < 0) {
-				if (_getChar() == '_') {
+				if (_getChar()=='_') {
 					if (!_options.contains(TokenizerOption.JAVA_INT)) {
 						break;
 					}
 					_nextChar(); // just skip
-				} else if (_getChar() == '.') {
+				} else if (_getChar()=='.') {
 					if (!_options.contains(TokenizerOption.INT_ONLY)) {
 						_token.symbol = Symbol.VALUE_DECIMAL;
 						_token.value += _getChar();
@@ -611,12 +612,12 @@ public class Tokenizer {
 				_token.value += _nextChar(); // digit
 			} else if (isHex && idx > 0) {
 				_token.value += _nextChar();
-			} else if (_getChar() == 'e' || _getChar() == 'E') {
+			} else if (_getChar()=='e' || _getChar()=='E') {
 				_token.symbol = Symbol.VALUE_DOUBLE;
 				_token.value += _nextChar();
-				if (_getChar() == '-') {
+				if (_getChar()=='-') {
 					_token.value += _nextChar();
-				} else if (_getChar() == '+') {
+				} else if (_getChar()=='+') {
 					_nextChar();
 				}
 			} else {
@@ -631,22 +632,22 @@ public class Tokenizer {
 		_token.value = ""; // value is without quotes
 		do {
 			nextCharacter = _getChar();
-			if (nextCharacter == 0) {
+			if (nextCharacter==0) {
 				break;
-			} else if (nextCharacter == '\\'
-				  && _text.charAt(_curPos + 1) == '\"') {
+			} else if (nextCharacter=='\\'
+					&& _text.charAt(_curPos + 1)=='\"') {
 				_curPos++;
 				_nextChar();
 				_token.value += "\"";
-			} else if (nextCharacter == '\\'
-				  && _text.charAt(_curPos + 1) == '\\') {
+			} else if (nextCharacter=='\\'
+					&& _text.charAt(_curPos + 1)=='\\') {
 				_curPos++;
 				_nextChar();
 				_token.value += "\\";
-			} else if (nextCharacter == '\\'
-				  && _text.charAt(_curPos + 1) != '\"') {
+			} else if (nextCharacter=='\\'
+					&& _text.charAt(_curPos + 1)!='\"') {
 				_nextChar();
-			} else if (nextCharacter == matchingChar) {
+			} else if (nextCharacter==matchingChar) {
 				break;
 			} else {
 				_token.value += nextCharacter;
@@ -669,15 +670,15 @@ public class Tokenizer {
 	private void _parseWord() {
 		char c = 0;
 		_token.symbol = Symbol.WORD;
-		while ((c = _getChar()) != 0) {
+		while ((c = _getChar())!=0) {
 			if (Character.isLetter(c)) {
 				_token.value += _nextChar();
-			} else if (Character.isDigit(c) || c == '_') {
+			} else if (Character.isDigit(c) || c=='_') {
 				_token.symbol = Symbol.IDENTIFIER;
 				_token.value += _nextChar();
-			} else if ((c == '/' || c == '\\' || c == ':' || c == '.'
-				  || c == '-')
-				  && (_options.contains(TokenizerOption.ACCEPT_PATH))) {
+			} else if ((c=='/' || c=='\\' || c==':' || c=='.'
+					|| c=='-')
+					&& (_options.contains(TokenizerOption.ACCEPT_PATH))) {
 				_token.symbol = Symbol.PATH;
 				_token.value += _nextChar();
 			} else {

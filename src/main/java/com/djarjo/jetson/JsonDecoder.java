@@ -80,7 +80,7 @@ public class JsonDecoder {
 	 */
 	public Object decodeIntoObject( String jsonString,
 			Object target ) throws ParseException, IllegalAccessException {
-		if ( jsonString == null || jsonString.isEmpty() ) {
+		if ( jsonString==null || jsonString.isEmpty() ) {
 			return null;
 		}
 		_tokenizer = new Tokenizer( jsonString, TokenizerOption.SKIP_DOUBLESLASH_UNTIL_EOL,
@@ -102,17 +102,17 @@ public class JsonDecoder {
 	@SuppressWarnings("unchecked")
 	public <T> Collection<T> decodeList( String jsonString,
 			Class<T> itemClass ) throws ParseException, IllegalAccessException {
-		if ( jsonString == null || jsonString.isEmpty() ) {
+		if ( jsonString==null || jsonString.isEmpty() ) {
 			return null;
 		}
 		_tokenizer = new Tokenizer( jsonString, TokenizerOption.SKIP_DOUBLESLASH_UNTIL_EOL,
 				TokenizerOption.SKIP_LINEBREAK, TokenizerOption.SKIP_WHITESPACE );
 		Token token = _tokenizer.nextToken();
-		if ( token.symbol != Symbol.LEFT_BRACKET ) {
+		if ( token.symbol!=Symbol.LEFT_BRACKET ) {
 			String s = _makeErrorInfo( "Syntax error. '[' expected to parse a list" );
 			throw new ParseException( s, 0 );
 		}
-		return _decodeList( null, itemClass );
+		return _decodeList( new ArrayList<T>(), itemClass );
 	}
 
 	/**
@@ -124,7 +124,7 @@ public class JsonDecoder {
 	 * @return this for fluent API
 	 */
 	public JsonDecoder keysToSkip( String... keys ) {
-		_keysToSkip = (_keysToSkip == null) ? new HashSet<>() : _keysToSkip;
+		_keysToSkip = (_keysToSkip==null) ? new HashSet<>() : _keysToSkip;
 		Collections.addAll( _keysToSkip, keys );
 		return this;
 	}
@@ -177,42 +177,55 @@ public class JsonDecoder {
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	private Collection _decodeList( Collection target,
 			Type valueType ) throws IllegalAccessException, ParseException {
+		String jsonListElement;
 		Token token;
-		Collection targetClone = null;
-		if ( target == null ) {
-			target = new ArrayList<>();
-		} else {
-			targetClone = _cloneCollection( target );
-		}
+		target = (target==null) ? new ArrayList<>() : target;
+
+		//--- Build a new list
+		List<Object> listFromJson = new ArrayList<>();
 		while ( true ) {
 			token = _tokenizer.nextToken();
-			if ( token.symbol == Symbol.COMMA ) {
+			if ( token.symbol==Symbol.COMMA ) {
 				token = _tokenizer.nextToken();
 			}
-			if ( token.symbol == Symbol.RIGHT_BRACKET ) {
+			if ( token.symbol==Symbol.RIGHT_BRACKET ) {
 				break; // --- Safely skip , in front of }
 			}
-			if ( token.symbol == Symbol.EOF ) {
+			if ( token.symbol==Symbol.EOF ) {
 				String s = _makeErrorInfo( "Syntax error. Value or ']' expected" );
 				throw new ParseException( s, _tokenizer.getPosition() );
 			}
+			//--- extract json list element (if map) for optional second parse
+			int startIndex = (token.symbol==Symbol.LEFT_BRACE) ? token.position : -1;
+			//--- Value from Json string
 			Object value = _decodeValue( null, null, valueType );
-			if ( valueType != null ) {
+			if ( valueType!=null ) {
 				value = BaseConverter.convertToType( value, (Class<?>) valueType );
 			}
-			// --- Replace existing items in given target
-			if ( targetClone != null ) {
-				target.remove( value ); // remove before adding
-				targetClone.remove( value ); // only orphans will remain
+			boolean isMerged = false;
+			if ( startIndex >= 0 ) {
+				int endIndex = _tokenizer.getPosition();
+				String jsonElement = _tokenizer.getText().substring( startIndex, endIndex );
+				logger.atInfo().log( "start=%d, end = %d, text=%s", startIndex, endIndex, jsonElement );
+				//--- Search for this object (if it is an object) in target
+				for ( Object element : target ) {
+					if ( value.equals( element ) ) {
+						JsonDecoder.decoder().decodeIntoObject( jsonElement, element );
+						isMerged = true;
+						break;
+					}
+				}
 			}
-			target.add( value );
-		}
-		// --- Remove orphans in given target
-		if ( targetClone != null && !targetClone.isEmpty() ) {
-			for ( Object o : targetClone ) {
-				target.remove( o );
+			//--- Append value to new list ensures order from json string
+			if ( !_mergeCollections || !isMerged ) {
+				listFromJson.add( value );
 			}
 		}
+		// --- Transfer json elements into target
+		if ( !_mergeCollections ) {
+			target.clear();
+		}
+		target.addAll( listFromJson );
 		return target;
 	}
 
@@ -234,15 +247,15 @@ public class JsonDecoder {
 			Map<Object, Object> target,
 			Type keyType, Type valueType ) throws ParseException, IllegalAccessException {
 		Object key = null, value = null;
-		if ( target == null ) {
+		if ( target==null ) {
 			target = new HashMap<>();
 		}
 		while ( true ) {
 			key = _obtainNameFromJson();
-			if ( key == null ) {
+			if ( key==null ) {
 				break;
 			}
-			if ( keyType != null ) {
+			if ( keyType!=null ) {
 				key = BaseConverter.convertToType( key, (Class<?>) keyType );
 			}
 			tokenizer.getToken();
@@ -273,8 +286,8 @@ public class JsonDecoder {
 		Object value = null;
 
 		// --- New target if none given
-		if ( target == null ) {
-			if ( valueType == null || valueType == Object.class ) {
+		if ( target==null ) {
+			if ( valueType==null || valueType==Object.class ) {
 				return _decodeMap( _tokenizer, null, null, valueType );
 			}
 			target = _getInstanceFromGeneric( valueType );
@@ -289,12 +302,12 @@ public class JsonDecoder {
 		// --- Loop through Json object until "}"
 		while ( true ) {
 			name = _obtainNameFromJson();
-			if ( name == null ) {
+			if ( name==null ) {
 				break;
 			}
 			Member member = members.get( name );
-			if ( member == null ) {
-				if ( (_logLevel4MissingAttribute != Level.OFF) && (!_keysToSkip.contains( name )) ) {
+			if ( member==null ) {
+				if ( (_logLevel4MissingAttribute!=Level.OFF) && (!_keysToSkip.contains( name )) ) {
 					String message =
 							_makeErrorInfo( "Name '" + name + "' does not exist in " + target.getClass() );
 					logger.at( _logLevel4MissingAttribute )
@@ -303,10 +316,10 @@ public class JsonDecoder {
 				_skipValue();
 				continue;
 			}
-
+			Json anno = member.getClass().getAnnotation( Json.class );
 			// --- Next token must be the value. Delay target instantiation
 			token = _tokenizer.getToken();
-			if ( token.symbol == Symbol.LEFT_BRACKET || token.symbol == Symbol.LEFT_BRACE ) {
+			if ( token.symbol==Symbol.LEFT_BRACKET || token.symbol==Symbol.LEFT_BRACE ) {
 				value = _decodeObjectValue( target, member );
 			} else {
 				value = _decodeValue( null, null, null );
@@ -339,19 +352,19 @@ public class JsonDecoder {
 			if ( Collection.class.getName()
 					.equals( rawTypeName ) || List.class.getName()
 					.equals( rawTypeName ) ) {
-				if ( newTarget == null ) {
+				if ( newTarget==null ) {
 					newTarget = new ArrayList<>();
 				}
 				valueType = _getActualTypeArgument( pType, 0 );
 			} else if ( Set.class.getName()
 					.equals( rawTypeName ) ) {
-				if ( newTarget == null ) {
+				if ( newTarget==null ) {
 					newTarget = new HashSet<>();
 				}
 				valueType = _getActualTypeArgument( pType, 0 );
 			} else if ( Map.class.getName()
 					.equals( rawTypeName ) ) {
-				if ( newTarget == null ) {
+				if ( newTarget==null ) {
 					newTarget = new HashMap<>();
 				}
 				keyType = _getActualTypeArgument( pType, 0 );
@@ -360,12 +373,12 @@ public class JsonDecoder {
 					.contentEquals( rawTypeName ) ) {
 				keyType = _getActualTypeArgument( pType, 0 );
 				valueType = _getActualTypeArgument( pType, 1 );
-				if ( newTarget == null ) {
+				if ( newTarget==null ) {
 					newTarget = new EnumMap( (Class<?>) keyType );
 				}
 			}
 		}
-		if ( newTarget == null ) {
+		if ( newTarget==null ) {
 			valueType = type;
 		}
 		return _decodeValue( newTarget, keyType, valueType );
@@ -397,11 +410,11 @@ public class JsonDecoder {
 		Object retval = null;
 		Token token = _tokenizer.getToken();
 
-		if ( token.symbol == Symbol.LEFT_BRACKET ) { // Json List
+		if ( token.symbol==Symbol.LEFT_BRACKET ) { // Json List
 			retval = _decodeList( (Collection<?>) target, valueType );
-		} else if ( token.symbol == Symbol.LEFT_BRACE ) { // --- Json Object
+		} else if ( token.symbol==Symbol.LEFT_BRACE ) { // --- Json Object
 			retval = _decodeObject( target, keyType, valueType );
-		} else if ( token.symbol == Symbol.WORD ) {
+		} else if ( token.symbol==Symbol.WORD ) {
 			String name = token.value;
 			if ( name.equalsIgnoreCase( "false" ) ) {
 				retval = Boolean.FALSE;
@@ -416,27 +429,27 @@ public class JsonDecoder {
 		}
 
 		// --- Value is an integer
-		else if ( token.symbol == Symbol.VALUE_INTEGER ) {
+		else if ( token.symbol==Symbol.VALUE_INTEGER ) {
 			retval = token.getAsLong();
 		}
 
 		// --- Value is hexadecimal
-		else if ( token.symbol == Symbol.VALUE_HEX ) {
+		else if ( token.symbol==Symbol.VALUE_HEX ) {
 			retval = TextHelper.parseHex( token.value );
 		}
 
 		// --- Value is a decimal or double
-		else if ( token.symbol == Symbol.VALUE_DECIMAL ) {
+		else if ( token.symbol==Symbol.VALUE_DECIMAL ) {
 			retval = Double.parseDouble( token.value );
 		}
 
 		// --- Value is a decimal
-		else if ( token.symbol == Symbol.VALUE_DOUBLE ) {
+		else if ( token.symbol==Symbol.VALUE_DOUBLE ) {
 			retval = token.getAsDouble();
 		}
 
 		// --- Value is a string
-		else if ( token.symbol == Symbol.STRING ) {
+		else if ( token.symbol==Symbol.STRING ) {
 			retval = token.value;
 		} else {
 			String s = _makeErrorInfo( "Unknown token " + token );
@@ -455,7 +468,7 @@ public class JsonDecoder {
 						.getContextClassLoader()
 						.loadClass( typeArgument );
 			} catch ( ClassNotFoundException | IllegalArgumentException |
-			          SecurityException e ) {
+								SecurityException e ) {
 				logger.atWarning()
 						.withCause( e )
 						.log( _makeErrorInfo( "Cannot obtain generic type '" + typeArgument + "'" ) );
@@ -482,7 +495,7 @@ public class JsonDecoder {
 			target = cls.getDeclaredConstructor()
 					.newInstance();
 		} catch ( InstantiationException | IllegalArgumentException |
-		          InvocationTargetException | NoSuchMethodException | SecurityException e ) {
+							InvocationTargetException | NoSuchMethodException | SecurityException e ) {
 			IllegalAccessException ex =
 					new IllegalAccessException( _makeErrorInfo( "Cannot " + "create generic: " + generic ) );
 			ex.initCause( e );
@@ -521,7 +534,7 @@ public class JsonDecoder {
 		for ( Field field : target.getClass()
 				.getFields() ) {
 			Json anno = field.getAnnotation( Json.class );
-			if ( anno != null ) {
+			if ( anno!=null ) {
 				String name = anno.key();
 				if ( name.equals( Json.defaultName ) ) {
 					name = field.getName();
@@ -534,7 +547,7 @@ public class JsonDecoder {
 		for ( Method method : target.getClass()
 				.getMethods() ) {
 			Json anno = method.getAnnotation( Json.class );
-			if ( anno != null ) {
+			if ( anno!=null ) {
 				String name = anno.key();
 				if ( name.equals( Json.defaultName ) ) {
 					name = BeanHelper.getVarnameFromMethodname( method.getName() );
@@ -556,27 +569,27 @@ public class JsonDecoder {
 		Token token = _tokenizer.nextToken();
 
 		// --- '}' ends parsing
-		if ( token.symbol == Symbol.RIGHT_BRACE ) {
+		if ( token.symbol==Symbol.RIGHT_BRACE ) {
 			return null;
 		}
 
 		// --- Skip comma ',' as separator between elements
-		if ( token.symbol == Symbol.COMMA ) {
+		if ( token.symbol==Symbol.COMMA ) {
 			token = _tokenizer.nextToken();
 		}
-		if ( token.symbol == Symbol.RIGHT_BRACE ) {
+		if ( token.symbol==Symbol.RIGHT_BRACE ) {
 			return null; // --- Safely skip , in front of }
 		}
 
 		// --- "name" expected
-		if ( (token.symbol != Symbol.STRING) && (token.symbol != Symbol.WORD) ) {
+		if ( (token.symbol!=Symbol.STRING) && (token.symbol!=Symbol.WORD) ) {
 			throw new JsonParseException( _makeErrorInfo( "Syntax error. Name or '}' expected" ) );
 		}
 		String name = token.value;
 
 		// --- ':' expected
 		token = _tokenizer.nextToken();
-		if ( token.symbol != Symbol.COLON ) {
+		if ( token.symbol!=Symbol.COLON ) {
 			throw new JsonParseException( _makeErrorInfo( "Syntax error. Colon ':' expected" ) );
 		}
 
@@ -606,7 +619,7 @@ public class JsonDecoder {
 
 		if ( anno.decodable() ) {
 			// --- Use "converter" if present
-			if ( anno.converter() != JsonConverter.class ) {
+			if ( anno.converter()!=JsonConverter.class ) {
 				value = _useConverterToDecode( anno, value );
 			}
 
@@ -617,7 +630,7 @@ public class JsonDecoder {
 					BeanHelper.set( target, (Field) member, value );
 				} else {
 					Method setter = BeanHelper.obtainSetter( (Method) member );
-					if ( setter == null ) {
+					if ( setter==null ) {
 						logger.atWarning()
 								.log( _makeErrorInfo( "No matching setter for " + member ) );
 					} else {
@@ -652,9 +665,9 @@ public class JsonDecoder {
 	 */
 	private void _skipValue() {
 		Token token = _tokenizer.getToken();
-		if ( token.symbol == Symbol.LEFT_BRACKET ) {
+		if ( token.symbol==Symbol.LEFT_BRACKET ) {
 			_skipCollection();
-		} else if ( token.symbol == Symbol.LEFT_BRACE ) {
+		} else if ( token.symbol==Symbol.LEFT_BRACE ) {
 			_skipMap();
 		}
 	}
@@ -662,15 +675,15 @@ public class JsonDecoder {
 	@SuppressWarnings("rawtypes")
 	private Object _useConverterToDecode( Json anno,
 			Object value ) throws IllegalAccessException {
-		if ( (anno != null) && (value != null) && (anno.converter() != JsonConverter.class) ) {
+		if ( (anno!=null) && (value!=null) && (anno.converter()!=JsonConverter.class) ) {
 			Class<? extends JsonConverter> annotatedConverter = anno.converter();
 			try {
 				JsonConverter converter = annotatedConverter.getDeclaredConstructor()
 						.newInstance();
 				value = converter.decodeFromJson( (String) value );
 			} catch ( InstantiationException | IllegalArgumentException |
-			          InvocationTargetException | NoSuchMethodException |
-			          SecurityException e ) {
+								InvocationTargetException | NoSuchMethodException |
+								SecurityException e ) {
 				IllegalAccessException ex = new IllegalAccessException( _makeErrorInfo( "Cannot "
 						+ "instantiate converter: " + annotatedConverter ) );
 				ex.initCause( e );
