@@ -1,102 +1,109 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-	<artifactId>jetson</artifactId>
-	<description>Json encoder and decoder with annotations and bean management</description>
-	<groupId>com.djarjo</groupId>
-	<name>Djarjo Jetson</name>
-	<organization>
-		<name>djarjo GmbH</name>
-		<url>www.djarjo.com</url>
-	</organization>
-	<packaging>jar</packaging>
-	<url>http://maven.djarjo.com/jetson</url>
-	<version>1.0.0</version>
+    <artifactId>jetson</artifactId>
+    <description>Json encoder and decoder with annotations and bean management</description>
+    <groupId>com.djarjo</groupId>
+    <name>Djarjo Jetson</name>
+    <organization>
+        <name>djarjo GmbH</name>
+        <url>www.djarjo.com</url>
+    </organization>
+    <packaging>jar</packaging>
+    <url>http://maven.djarjo.com/jetson</url>
+    <version>1.1.0</version>
 
-	<properties>
-		<maven.test.skip>true</maven.test.skip>
-		<maven.test.failure.ignore>true</maven.test.failure.ignore>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<java.version>17</java.version>
+    <properties>
+        <maven.test.skip>true</maven.test.skip>
+        <maven.test.failure.ignore>true</maven.test.failure.ignore>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>17</java.version>
 
-		<!-- maven versions -->
-		<org.apache.maven.plugins_maven-jar-plugin_version>3.3.0</org.apache.maven.plugins_maven-jar-plugin_version>
-		<org.apache.maven.plugins_maven-compiler-plugin_version>3.11.0</org.apache.maven.plugins_maven-compiler-plugin_version>
-		<org.apache.maven.plugins_maven-javadoc-plugin_version>3.5.0</org.apache.maven.plugins_maven-javadoc-plugin_version>
-		<org.apache.maven.plugins_maven-source-plugin_version>3.3.0</org.apache.maven.plugins_maven-source-plugin_version>
+        <!-- maven versions -->
+        <org.apache.maven.plugins_maven-jar-plugin_version>3.3.0</org.apache.maven.plugins_maven-jar-plugin_version>
+        <org.apache.maven.plugins_maven-compiler-plugin_version>3.11.0
+        </org.apache.maven.plugins_maven-compiler-plugin_version>
+        <org.apache.maven.plugins_maven-javadoc-plugin_version>3.5.0
+        </org.apache.maven.plugins_maven-javadoc-plugin_version>
+        <org.apache.maven.plugins_maven-source-plugin_version>3.3.0
+        </org.apache.maven.plugins_maven-source-plugin_version>
 
-		<!-- Logging libraries -->
-		<com.google.flogger_flogger_version>0.7.4</com.google.flogger_flogger_version>
-		<com.google.flogger_flogger-system-backend_version>0.7.4</com.google.flogger_flogger-system-backend_version>	
+        <!-- Logging libraries -->
+        <com.google.flogger_flogger_version>0.7.4</com.google.flogger_flogger_version>
+        <com.google.flogger_flogger-system-backend_version>0.7.4</com.google.flogger_flogger-system-backend_version>
 
-		<!-- JUnit -->
-		<org.junit.jupiter_junit-jupiter-api_version>5.10.0</org.junit.jupiter_junit-jupiter-api_version>
-		<org.junit.jupiter_junit-jupiter-engine_version>5.10.0</org.junit.jupiter_junit-jupiter-engine_version>
-	</properties>
+        <!-- JUnit -->
+        <org.junit.jupiter_junit-jupiter-api_version>5.10.0</org.junit.jupiter_junit-jupiter-api_version>
+        <org.junit.jupiter_junit-jupiter-engine_version>5.10.0</org.junit.jupiter_junit-jupiter-engine_version>
+    </properties>
 
-	<dependencies>
-		<dependency>
-    		<groupId>com.google.flogger</groupId>
-    		<artifactId>flogger</artifactId>
-			<scope>provided</scope>
-     		<version>${com.google.flogger_flogger_version}</version> 
-		</dependency>
-		<dependency>
-    		<groupId>com.google.flogger</groupId>
-			<artifactId>flogger-system-backend</artifactId>
-			<scope>provided</scope>
-    		<version>${com.google.flogger_flogger-system-backend_version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-api</artifactId>
-			<scope>test</scope>
-			<version>${org.junit.jupiter_junit-jupiter-api_version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-engine</artifactId>
-			<scope>test</scope>
-			<version>${org.junit.jupiter_junit-jupiter-engine_version}</version>
-		</dependency>
- 	</dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>com.google.flogger</groupId>
+            <artifactId>flogger</artifactId>
+            <scope>provided</scope>
+            <version>${com.google.flogger_flogger_version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.flogger</groupId>
+            <artifactId>flogger-system-backend</artifactId>
+            <scope>provided</scope>
+            <version>${com.google.flogger_flogger-system-backend_version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+            <version>${org.junit.jupiter_junit-jupiter-api_version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+            <version>${org.junit.jupiter_junit-jupiter-engine_version}</version>
+        </dependency>
+    </dependencies>
 
-	<build>
-		<defaultGoal>package</defaultGoal>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${org.apache.maven.plugins_maven-compiler-plugin_version}</version>
-				<configuration>
-					<release>${java.version}</release>
-          		</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>${org.apache.maven.plugins_maven-javadoc-plugin_version}</version>
-				<executions>
-					<execution>
-						<id>attach-javadoc</id>
-						<goals><goal>jar</goal></goals>
-					</execution>					
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<version>${org.apache.maven.plugins_maven-source-plugin_version}</version>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<goals><goal>jar</goal></goals>
-					</execution>					
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+    <build>
+        <defaultGoal>package</defaultGoal>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${org.apache.maven.plugins_maven-compiler-plugin_version}</version>
+                <configuration>
+                    <release>${java.version}</release>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${org.apache.maven.plugins_maven-javadoc-plugin_version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadoc</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${org.apache.maven.plugins_maven-source-plugin_version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

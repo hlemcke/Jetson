@@ -206,7 +206,7 @@ public class JsonDecoder {
 			if ( startIndex >= 0 ) {
 				int endIndex = _tokenizer.getPosition();
 				String jsonElement = _tokenizer.getText().substring( startIndex, endIndex );
-				logger.atInfo().log( "start=%d, end = %d, text=%s", startIndex, endIndex, jsonElement );
+				logger.atFiner().log( "start=%d, end = %d, text=%s", startIndex, endIndex, jsonElement );
 				//--- Search for this object (if it is an object) in target
 				for ( Object element : target ) {
 					if ( value.equals( element ) ) {
