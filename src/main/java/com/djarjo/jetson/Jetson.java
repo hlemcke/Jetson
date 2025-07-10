@@ -4,6 +4,7 @@
 package com.djarjo.jetson;
 
 import java.text.ParseException;
+import java.util.Map;
 
 /**
  * Jetson wraps {@link com.djarjo.jetson.JsonDecoder JsonDecoder} and
@@ -71,6 +72,23 @@ public class Jetson {
 		JsonDecoder.decoder()
 				.decodeIntoObject( jsonString, target );
 		return target;
+	}
+
+	/**
+	 * Decodes given {@code jsonString} into a map.
+	 * <p>
+	 * Utility method includes casting to map and suppresses compiler warning for unchecked conversion.
+	 * </p>
+	 *
+	 * @param jsonString Json string to decode
+	 * @return map
+	 * @throws IllegalAccessException will not happen here
+	 * @throws ParseException in case of an error in the Json string
+	 */
+	@SuppressWarnings("unchecked")
+	public static Map<String, Object> decodeToMap(
+			String jsonString ) throws ParseException, IllegalAccessException {
+		return (Map<String, Object>) JsonDecoder.decoder().decode( jsonString );
 	}
 
 	/**
