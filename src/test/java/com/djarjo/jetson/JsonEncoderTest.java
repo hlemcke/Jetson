@@ -3,13 +3,12 @@
  */
 package com.djarjo.jetson;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.text.ParseException;
 import java.time.OffsetDateTime;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,8 +19,7 @@ class JsonEncoderTest {
 	static boolean isVerbose = false;
 
 	/**
-	 * Test method for
-	 * {@link com.djarjo.jetson.JsonEncoder#isEmpty(java.lang.Object)}.
+	 * Test method for {@link com.djarjo.jetson.JsonEncoder#isEmpty(java.lang.Object)}.
 	 */
 	@Test
 	void testIsEmpty() {
@@ -62,6 +60,26 @@ class JsonEncoderTest {
 		String jsonText = JsonEncoder.encoder()
 				.encode( ints );
 		assertEquals( "[4711,null,69]", jsonText );
+	}
+
+	@Test
+	@DisplayName("List must be encoded as: '[1,2,3]'")
+	void testEncoder_List() {
+		List<String> list = List.of( "first", "second", "first" );
+		String json = JsonEncoder.encoder()
+				.encode( list );
+		assertEquals( "[\"first\",\"second\",\"first\"]", json );
+	}
+
+	@Test
+	@DisplayName("List must be encoded as: '[1,2,3]'")
+	void testEncoder_Set() {
+		Set<String> set = Set.of( "first", "second" );
+		String json = JsonEncoder.encoder()
+				.encode( set );
+		assertTrue( json.startsWith( "[\"" ) );
+		assertTrue( json.contains( "\"first\"" ) );
+		assertTrue( json.contains( "\"second\"" ) );
 	}
 
 	/**
@@ -105,7 +123,7 @@ class JsonEncoderTest {
 		System.out.println( isVerbose ? jsonText : "" );
 		@SuppressWarnings("unchecked") Map<String, Object> map =
 				(Map<String, Object>) JsonDecoder.decoder()
-				.decode( jsonText );
+						.decode( jsonText );
 		assertEquals( basics.decimalConst.toString(), map.get( "decimalVar" ) );
 		assertFalse( (Boolean) map.get( "boolVar" ) );
 		assertEquals( basics.longConst, map.get( "intVar" ) );

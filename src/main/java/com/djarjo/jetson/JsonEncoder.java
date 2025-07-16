@@ -23,13 +23,12 @@ import java.util.*;
 /**
  * Encodes objects into a Json string.
  * <p>
- * The JSON encoder handles numbers, strings, booleans, null, lists, sets, maps,
- * UUID, java.time objects directly. Enumerations will be encoded by their
- * {@code .toJson()} method. If this does not exist then their
- * {@code .toString()} method will be used. Any other object is converted by
- * recursively calling their getter methods which are annotated with
- * {@code @Json}. If no annotated getter is found then {@code .toJson()} will be
- * invoked. If this method does not exist
+ * The JSON encoder handles numbers, strings, booleans, null, lists, sets, maps, UUID,
+ * java.time objects directly. Enumerations will be encoded by their {@code .toJson()}
+ * method. If this does not exist then their {@code .toString()} method will be used. Any
+ * other object is converted by recursively calling their getter methods which are
+ * annotated with {@code @Json}. If no annotated getter is found then {@code .toJson()}
+ * will be invoked. If this method does not exist
  *
  * @author Hajo Lemcke
  * @since 2017-01-02
@@ -62,9 +61,9 @@ public class JsonEncoder {
 	}
 
 	/**
-	 * Instantiates and returns a new instance of this class to be used in
-	 * streaming method calls. This method only exists because Java cannot call
-	 * a method during instantiation.
+	 * Instantiates and returns a new instance of this class to be used in streaming method
+	 * calls. This method only exists because Java cannot call a method during
+	 * instantiation.
 	 *
 	 * @return new JsonEncoder()
 	 */
@@ -75,17 +74,18 @@ public class JsonEncoder {
 	/**
 	 * Encodes the given Java object into a Json string.
 	 * <p>
-	 * If the given object is a collection like a list or a set then it will be
-	 * encoded into a Json array enclosed in square brackets.
+	 * If the given object is a collection like a list or a set then it will be encoded
+	 * into
+	 * a Json array enclosed in square brackets.
 	 * </p>
 	 * <p>
-	 * Any other object will be encoded into a Json object enclosed in curly
-	 * braces. The encoded Json string contains all fields (getters) which are
-	 * annotated with {@link com.djarjo.jetson.Json @Json}.
+	 * Any other object will be encoded into a Json object enclosed in curly braces. The
+	 * encoded Json string contains all fields (getters) which are annotated with
+	 * {@link com.djarjo.jetson.Json @Json}.
 	 *
 	 * @param object The object to be encoded
-	 * @return encoded object as a Json string or {@code null} if the parameter
-	 * is {@code null} or an error has occurred
+	 * @return encoded object as a Json string or {@code null} if the parameter is
+	 * {@code null} or an error has occurred
 	 */
 	public String encode( Object object ) {
 		_stack = new HashSet<>();
@@ -105,8 +105,8 @@ public class JsonEncoder {
 	 * Checks whether an object is empty.
 	 *
 	 * <p>
-	 * If the given parameter is null then {@code true} will be returned. This
-	 * method works on the following types:
+	 * If the given parameter is null then {@code true} will be returned. This method works
+	 * on the following types:
 	 * <ul>
 	 * <li>String is empty when its length is zero, when it only contains spaces
 	 * and tabs or when the text is "null"</li>
@@ -171,13 +171,14 @@ public class JsonEncoder {
 	}
 
 	/**
-	 * Encoder tries to <i>pretty-print</i> values in the resulting Json string
-	 * by prefixing values with the string {@code indent}.
+	 * Encoder tries to <i>pretty-print</i> values in the resulting Json string by
+	 * prefixing
+	 * values with the string {@code indent}.
 	 * <p>
-	 * This string must only contain one or more of space (U+0020) or tab
-	 * (U+0009) characters. If indent is not empty then each single value in the
-	 * resulting json string will be on its own line. Lines are separated by
-	 * line feed characters (U+000a).
+	 * This string must only contain one or more of space (U+0020) or tab (U+0009)
+	 * characters. If indent is not empty then each single value in the resulting json
+	 * string will be on its own line. Lines are separated by line feed characters
+	 * (U+000a).
 	 * </p>
 	 *
 	 * @param indent default = {@code null}
@@ -204,8 +205,8 @@ public class JsonEncoder {
 	/**
 	 * Encodes the given array into {@literal "[" value ["," value]* "]"}.
 	 * <p>
-	 * If {@code bytesToBase64 = true} then an array of bytes will be encoded
-	 * into a Base64 string instead.
+	 * If {@code bytesToBase64 = true} then an array of bytes will be encoded into a Base64
+	 * string instead.
 	 * </p>
 	 */
 	private String _encodeArray( Object array ) {
@@ -257,8 +258,7 @@ public class JsonEncoder {
 	}
 
 	/**
-	 * Encodes the given map into {@literal "{" key ":" value [", " key ":"
-	 * value]* "}"
+	 * Encodes the given map into {@literal "{" key ":" value [", " key ":" value]* "}"
 	 */
 	private String _encodeMap( Map<Object, Object> map ) {
 		StringBuilder jsonStringBuilder = new StringBuilder();
@@ -274,11 +274,11 @@ public class JsonEncoder {
 	}
 
 	/**
-	 * Encodes the given plain old Java object (POJO) into {@literal "{" key ":"
-	 * value [", " key ":" value]* "}"
+	 * Encodes the given plain old Java object (POJO) into
+	 * {@literal "{" key ":" value [", " key ":" value]* "}"
 	 * <p>
-	 * If POJO contains the method {@code toJson()} then this will be used instead
-	 * of checking fields and getters.
+	 * If POJO contains the method {@code toJson()} then this will be used instead of
+	 * checking fields and getters.
 	 * </p>
 	 */
 	private String _encodePojo( Object pojo ) {
@@ -317,7 +317,7 @@ public class JsonEncoder {
 					name = BeanHelper.getVarnameFromMethodname( method.getName() );
 					_encodePojoMember( builder, anno, name, value );
 				} catch ( IllegalArgumentException | InvocationTargetException |
-				          IllegalAccessException e ) {
+									IllegalAccessException e ) {
 					logger.atWarning()
 							.log( "JsonCodec._encodePojo( " + pojo + " ). Cannot invoke " + method +
 									": " + e.getMessage() );
@@ -328,8 +328,7 @@ public class JsonEncoder {
 	}
 
 	/**
-	 * Encodes the value of a member (from object field or method) into a Json
-	 * string.
+	 * Encodes the value of a member (from object field or method) into a Json string.
 	 * <ol>
 	 * <li>check {@code Json.access()}</li>
 	 * <li>check {@code Json.converter()}</li>
@@ -401,12 +400,10 @@ public class JsonEncoder {
 		if ( value.getClass()
 				.isArray() ) {
 			json = _encodeArray( value );
-		} else if ( value instanceof List ) {
-			json = _encodeCollection( (Collection<?>) value );
-		} else if ( value instanceof AbstractCollection ) {
-			json = _encodeCollection( (Collection<?>) value );
 		} else if ( value instanceof Map ) {
 			json = _encodeMap( (Map<Object, Object>) value );
+		} else if ( value instanceof Collection<?> ) {
+			json = _encodeCollection( (Collection<?>) value );
 		} else {
 			json = _encodePojo( value );
 		}
@@ -431,8 +428,8 @@ public class JsonEncoder {
 							.newInstance();
 					value = converter.encodeToJson( value );
 				} catch ( InstantiationException | IllegalAccessException |
-				          IllegalArgumentException | InvocationTargetException |
-				          NoSuchMethodException | SecurityException e ) {
+									IllegalArgumentException | InvocationTargetException |
+									NoSuchMethodException | SecurityException e ) {
 					logger.atWarning()
 							.withCause( e )
 							.log( "JsonCodec._encodeWithConverter( " + anno + ", '" + value + "') " +
