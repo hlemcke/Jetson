@@ -22,9 +22,9 @@ public class DateTimeParser {
 	private final static String SEPARATOR = ".";
 
 	/**
-	 * When parsing a date string with a 2 digit year, the year will be expanded
-	 * into a 4 digit year. If its smaller than the current year - 2000 + value
-	 * then add 2000 else add 1900.
+	 * When parsing a date string with a 2 digit year, the year will be expanded into a 4
+	 * digit year. If its smaller than the current year - 2000 + value then add 2000 else
+	 * add 1900.
 	 * <p>
 	 * The default value is 20.
 	 *
@@ -70,6 +70,49 @@ public class DateTimeParser {
 	 */
 	public static int getYearsIntoFuture() {
 		return YearsIntoFuture;
+	}
+
+	/**
+	 * Sets computation border for 2 digit years
+	 *
+	 * @param yearsIntoFuture computation border
+	 */
+	public static void setYearsIntoFuture( int yearsIntoFuture ) {
+		YearsIntoFuture = yearsIntoFuture;
+	}
+
+	/**
+	 * Returns a new instance of {@code OffsetDateTime} in which date parts are
+	 * replaced by
+	 * values from [{@code date}.
+	 *
+	 * @param current date time value
+	 * @param date date to replace date part
+	 * @return new instance of OffsetDateTime
+	 */
+	public static OffsetDateTime withDate( OffsetDateTime current,
+			LocalDate date ) {
+		current = current.withYear( date.getYear() )
+				.withMonth( date.getMonthValue() )
+				.withDayOfMonth( date.getDayOfMonth() );
+		return current;
+	}
+
+	/**
+	 * Returns a new instance of {@code OffsetDateTime} in which time parts are
+	 * replaced by
+	 * values from [{@code time}.
+	 *
+	 * @param current date time value
+	 * @param time time to replace time part
+	 * @return new instance of OffsetDateTime
+	 */
+	public static OffsetDateTime withTime( OffsetDateTime current,
+			LocalTime time ) {
+		current = current.withHour( time.getHour() )
+				.withMinute( time.getMinute() ).withSecond( time.getSecond() )
+				.withNano( time.getNano() );
+		return current;
 	}
 
 	/******************************************************************
@@ -330,32 +373,20 @@ public class DateTimeParser {
 		int val = 0;
 		if ( text.equalsIgnoreCase( "midnight" ) ) {
 			result = result.withHour( 0 ).withMinute( 0 ).withSecond( 0 );
-		}
-
-		else if ( text.equals( "noon" ) ) {
+		} else if ( text.equals( "noon" ) ) {
 			result = result.withHour( 12 ).withMinute( 0 ).withSecond( 0 );
-		}
-
-		else if ( text.equals( "now" ) ) {
-		}
-
-		else if ( text.equals( "pm" ) ) {
+		} else if ( text.equals( "now" ) ) {
+		} else if ( text.equals( "pm" ) ) {
 			if ( (val = result.getHour()) <= 12 ) {
 				result = result.withHour( val + 12 );
 			}
-		}
-
-		else if ( text.equals( "today" ) ) {
+		} else if ( text.equals( "today" ) ) {
 			result = result.withHour( 12 ).withMinute( 0 ).withSecond( 0 )
 					.withNano( 0 );
-		}
-
-		else if ( text.equals( "tomorrow" ) ) {
+		} else if ( text.equals( "tomorrow" ) ) {
 			result = result.plusDays( 1 ).withHour( 12 ).withMinute( 0 )
 					.withSecond( 0 ).withNano( 0 );
-		}
-
-		else if ( text.equals( "yesterday" ) ) {
+		} else if ( text.equals( "yesterday" ) ) {
 			result = result.minusDays( 1 ).withHour( 12 ).withMinute( 0 )
 					.withSecond( 0 ).withNano( 0 );
 		}
@@ -363,42 +394,38 @@ public class DateTimeParser {
 	}
 
 	/**
-	 * Time token contains 2, 3 or 4 numbers separated by {@link #SEPARATOR} in
-	 * the order hours, minutes, seconds, milliseconds
+	 * Time token contains 2, 3 or 4 numbers separated by ":" in the order hours,
+	 * minutes,
+	 * seconds, milliseconds
 	 *
-	 * @param text
-	 *            time string to parse
+	 * @param text time string to parse
 	 * @return new instance of {@code LocalTime}
 	 */
-	private LocalTime parseTime( String text ) {
-		String[] numbers = text.split( "\\" + SEPARATOR );
-		int hour = 0, minute = 0, second = 0, nano = 0;
+	public LocalTime parseTime( String text ) {
+		String[] numbers = text.split( ":" );
+		int hour = 0, minute = 0, second = 0, fraction = 0;
 
 		// --- Check for ISO compacted time like 174326
 		if ( numbers.length == 1 ) {
-			hour = TextHelper.parseInteger( text.substring( 0, 2 ) );
-			if ( text.length() >= 4 ) {
-				minute = TextHelper.parseInteger( text.substring( 2, 4 ) );
-			}
+			hour = Integer.parseInt( text.substring( 0, 2 ) );
+			minute = Integer.parseInt( text.substring( 2, 4 ) );
 			if ( text.length() >= 6 ) {
-				second = TextHelper.parseInteger( text.substring( 4, 6 ) );
+				second = Integer.parseInt( text.substring( 4, 6 ) );
 			}
 			if ( text.length() >= 7 ) {
-				nano = TextHelper.parseInteger( text.substring( 7 ) );
+				fraction = Integer.parseInt( text.substring( 7 ) );
 			}
 		}
 		// --- Non compact => use separated values
 		else {
-			hour = TextHelper.parseInteger( numbers[0] );
-			if ( numbers.length > 1 )
-				minute = TextHelper.parseInteger( numbers[1] );
+			hour = Integer.parseInt( numbers[0] );
+			minute = Integer.parseInt( numbers[1] );
 			if ( numbers.length > 2 )
-				second = TextHelper.parseInteger( numbers[2] );
+				second = Integer.parseInt( numbers[2] );
 			if ( numbers.length > 3 )
-				nano = TextHelper.parseInteger( numbers[3] );
+				fraction = Integer.parseInt( numbers[3] );
 		}
-		LocalTime time = LocalTime.of( hour, minute, second, nano );
-		return time;
+		return LocalTime.of( hour, minute, second, fraction );
 	}
 
 	/******************************************************************
@@ -498,14 +525,15 @@ public class DateTimeParser {
 		return tokens;
 	}
 
-	/**********************************************************************
-	 * Checks the current token. If the type is different then create a new
-	 * token with the given type, add it to the list and return it.
+	/**
+	 * Checks the current token. If the type is different then create a new token with
+	 * the
+	 * given type, add it to the list and return it.
 	 *
 	 * @param tokens
 	 * @param activeToken
-	 * @param newType
-	 * @return Returns activeToken if it has the same type or a new Token
+	 * @param type
+	 * @return activeToken if it has the same type or a new Token
 	 */
 	private Token parseTokenizeCheck( List<Token> tokens, Token activeToken,
 			TokenType type ) {
@@ -516,19 +544,17 @@ public class DateTimeParser {
 		return activeToken;
 	}
 
-	/******************************************************************
-	 * Parses special user input to quickly enter end of month. Accepted input
-	 * are:
+	/**
+	 * Parses special user input to quickly enter end of month. Accepted inputs are:
 	 * <ul>
-	 * <li>{@code ,7} will return current year end of July
+	 * <li>{@code ,7} will return current year at end of July
 	 * <li>
 	 * <li>{@code 1903} will return 2019 end of March (2019-03-31)</li>
 	 * <li>{@code 2002} will return 2020 end of February (2020-02-28)</li>
 	 * </ul>
 	 * This method only gets the integer value.
 	 *
-	 * @param value
-	 *            value to parse. See above
+	 * @param value value to parse. See above
 	 * @return new instance of {@code LocalDate}
 	 */
 	private LocalDate parseUltimo( int value ) {
@@ -544,9 +570,7 @@ public class DateTimeParser {
 		else {
 			month = value / 100;
 			year = value % 100;
-			if ( year < 100 ) {
-				year = expandYear( year );
-			}
+			year = expandYear( year );
 			date = date.withYear( year );
 		}
 		date = date.withMonth( month );
@@ -555,49 +579,15 @@ public class DateTimeParser {
 	}
 
 	/**
-	 * Sets computation border for 2 digit years
-	 *
-	 * @param yearsIntoFuture
-	 *            computation border
+	 * Types of a token
 	 */
-	public static void setYearsIntoFuture( int yearsIntoFuture ) {
-		YearsIntoFuture = yearsIntoFuture;
-	}
-
-	/**
-	 * Returns a new instance of {@code OffsetDateTime} in which date parts are
-	 * replaced by values from [{@code date}.
-	 *
-	 * @param current
-	 *            date time value
-	 * @param date
-	 *            date to replace date part
-	 * @return new instance of OffsetDateTime
-	 */
-	public static OffsetDateTime withDate( OffsetDateTime current,
-			LocalDate date ) {
-		current = current.withYear( date.getYear() )
-				.withMonth( date.getMonthValue() )
-				.withDayOfMonth( date.getDayOfMonth() );
-		return current;
-	}
-
-	/**
-	 * Returns a new instance of {@code OffsetDateTime} in which time parts are
-	 * replaced by values from [{@code time}.
-	 *
-	 * @param current
-	 *            date time value
-	 * @param time
-	 *            time to replace time part
-	 * @return new instance of OffsetDateTime
-	 */
-	public static OffsetDateTime withTime( OffsetDateTime current,
-			LocalTime time ) {
-		current = current.withHour( time.getHour() )
-				.withMinute( time.getMinute() ).withSecond( time.getSecond() )
-				.withNano( time.getNano() );
-		return current;
+	private enum TokenType {
+		DATE,
+		NONE,
+		NUMBER,
+		TEXT,
+		TIME,
+		TIMEZONE
 	}
 
 	/******************************************************************
@@ -623,15 +613,4 @@ public class DateTimeParser {
 		}
 	}
 
-	/**
-	 * Types of a token
-	 */
-	private enum TokenType {
-		DATE,
-		NONE,
-		NUMBER,
-		TEXT,
-		TIME,
-		TIMEZONE
-	};
 }
