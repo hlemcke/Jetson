@@ -3,6 +3,7 @@ package com.djarjo.common;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -33,4 +34,31 @@ public class BaseConverterTest {
 		}
 	}
 
+	@Test
+	void toTimeZoneFromMinutes() {
+		//--- given
+		List<Long> inputs = List.of( 0L, 60L, 150L, -210L );
+		List<TimeZone> expected = List.of( TimeZone.getTimeZone( "GMT" ),
+				TimeZone.getTimeZone( "CET" ),
+				TimeZone.getTimeZone( "GMT+02:30" ),
+				TimeZone.getTimeZone( "GMT-03:30" ) );
+
+		//--- when / then
+		for ( int i = 0; i < inputs.size(); i++ ) {
+			TimeZone tz = BaseConverter.toTimeZoneFromMinutes( inputs.get( i ) );
+			assertEquals( expected.get( i ).getRawOffset(), tz.getRawOffset(),
+					String.format( "inputs[%d] = %s", i, inputs.get( i ) ) );
+		}
+	}
+
+	@Test
+	void toTimeZone() {
+		//--- given
+		List<Object> inputs = List.of( "0", "-90", "PT4H", "-PT4H30M", "Europe/Berlin" );
+		List<TimeZone> expected = List.of( TimeZone.getTimeZone( "GMT" ),
+				TimeZone.getTimeZone( "GMT-01:30" ),
+				TimeZone.getTimeZone( "GMT+04:00" ),
+				TimeZone.getTimeZone( "GMT-04:30" ),
+				TimeZone.getTimeZone( "GMT+01:00" ) );
+	}
 }

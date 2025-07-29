@@ -3,16 +3,14 @@ package com.djarjo.text;
 import com.djarjo.common.BaseConverter;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
+import java.time.*;
 import java.util.*;
 
-/**********************************************************************
+/**
  * Static methods for text analysis, modification and parsing.
  * <p>
- * The <em>parseXxx</em> methods parse text for some basic values without
- * throwing exceptions. Other useful methods are:
+ * The <em>parseXxx</em> methods parse text for some basic values without throwing
+ * exceptions. Other useful methods are:
  * <ul>
  * <li>{@link #condense(String, int)} condenses a loaded text file</li>
  * <li>{@link #splitIntoLines(String)} splits a loaded text file into separate
@@ -154,24 +152,23 @@ public class TextHelper {
 	public TextHelper() {
 	}
 
-	/******************************************************************
+	/**
 	 * Inserts the given word to the sorted comma separated list.
 	 * <p>
-	 * The words in the list are sorted. They are separated with commas and the
-	 * list is also enclosed in commas.
+	 * The words in the list are sorted. They are separated with commas and the list is
+	 * also
+	 * enclosed in commas.
 	 * </p>
 	 * <p>
 	 * If list is <em>null</em> then the new word will create a new list.
 	 * </p>
 	 * <p>
-	 * If <em>word</em> is already in the list then the <em>list</em> will be
-	 * returned unmodified.
+	 * If <em>word</em> is already in the list then the <em>list</em> will be returned
+	 * unmodified.
 	 * </p>
 	 *
-	 * @param word
-	 *            The new word to be inserted into the list
-	 * @param list
-	 *            The comma enclosed list of comma separated words
+	 * @param word The new word to be inserted into the list
+	 * @param list The comma enclosed list of comma separated words
 	 * @return Returns a new list with the new word
 	 */
 	public static String addToCommaSeparatedList( String word, String list ) {
@@ -207,16 +204,13 @@ public class TextHelper {
 		return newList.toString();
 	}
 
-	/******************************************************************
-	 * Appends {@code appendix} to {@code source}. This method is <em>null</em>
-	 * save.
+	/**
+	 * Appends {@code appendix} to {@code source}. This method is <em>null</em> save.
 	 *
-	 * @param source
-	 *            The source string
-	 * @param appendix
-	 *            The string to be appended
+	 * @param source The source string
+	 * @param appendix The string to be appended
 	 * @return Returns a new string or <em>null</em> if both {@code source} and
-	 *         {@code appendix} are <em>null</em>
+	 * {@code appendix} are <em>null</em>
 	 */
 	public static String append( String source, String appendix ) {
 		if ( source == null ) {
@@ -225,15 +219,12 @@ public class TextHelper {
 		return source + appendix;
 	}
 
-	/******************************************************************
-	 * Returns a new string with the following changes: replaces CRs, LFs and
-	 * TABs with a space and multiple spaces with a single one. Spaces at start
-	 * and end are removed.
+	/**
+	 * Returns a new string with the following changes: replaces CRs, LFs and TABs with a
+	 * space and multiple spaces with a single one. Spaces at start and end are removed.
 	 *
-	 * @param str
-	 *            well ... the string
-	 * @return Returns condensed string or {@code null} if the given string is
-	 *         {@code null}
+	 * @param str well ... the string
+	 * @return Returns condensed string or {@code null} if the given string is {@code null}
 	 */
 	public static String cleanupString( String str ) {
 		if ( str == null ) {
@@ -246,15 +237,12 @@ public class TextHelper {
 		return (cleanupString( buf ));
 	}
 
-	/******************************************************************
-	 * Returns a new string with the following changes: replaces CRs, LFs and
-	 * TABs with a space and multiple spaces with a single one. Spaces at start
-	 * and end are removed.
+	/**
+	 * Returns a new string with the following changes: replaces CRs, LFs and TABs with a
+	 * space and multiple spaces with a single one. Spaces at start and end are removed.
 	 *
-	 * @param buf
-	 *            buffer to be cleaned
-	 * @return Returns condensed string or {@code null} if the given string is
-	 *         {@code null}
+	 * @param buf buffer to be cleaned
+	 * @return Returns condensed string or {@code null} if the given string is {@code null}
 	 */
 	public static String cleanupString( StringBuilder buf ) {
 		if ( buf == null ) {
@@ -288,13 +276,11 @@ public class TextHelper {
 		return str;
 	}
 
-	/******************************************************************
+	/**
 	 * Computes the <em>Levensthein</em> distance between the two given words.
 	 *
-	 * @param word1
-	 *            First word
-	 * @param word2
-	 *            Second word
+	 * @param word1 First word
+	 * @param word2 Second word
 	 * @return Returns the number of required changes in word1 to get word2
 	 */
 	public static int computeLevenshteinDistance( String word1, String word2 ) {
@@ -321,9 +307,9 @@ public class TextHelper {
 		return distance[word1.length()][word2.length()];
 	}
 
-	/******************************************************************
-	 * Gets the <em>metaphone</em> code of the given word. This algorithm
-	 * provides good results for English names.
+	/**
+	 * Gets the <em>metaphone</em> code of the given word. This algorithm provides good
+	 * results for English names.
 	 *
 	 * <h4>Metaphone code computation algorithm</h4>
 	 * <ol>
@@ -399,11 +385,10 @@ public class TextHelper {
 	 * <li><b>LWRS</b> -&gt; Lowers, Lowerson</li>
 	 * </ul>
 	 *
-	 * @param word
-	 *            The word to be encoded
+	 * @param word The word to be encoded
 	 * @return Returns the word as a <em>metaphone</em> string
 	 * @see <a href="http://www.sound-ex.de/alternative_zu_soundex.htm">
-	 *      Alternative zu Soundex</a>
+	 * Alternative zu Soundex</a>
 	 */
 	public static String computeMetaphone( final String word ) {
 
@@ -462,14 +447,13 @@ public class TextHelper {
 		return metaphone.toString();
 	}
 
-	/******************************************************************
+	/**
 	 * Gets the soundex code for the given word.
 	 * <p>
 	 * This algorithm should only be used for the english name of a person.
 	 * </p>
 	 *
-	 * @param word
-	 *            The word to compute the soundex code for
+	 * @param word The word to compute the soundex code for
 	 * @return Returns the 4 character soundex string
 	 */
 	public static String computeSoundex( String word ) {
@@ -503,10 +487,9 @@ public class TextHelper {
 		return soundex.toString();
 	}
 
-	/******************************************************************
-	 * Condenses the given text according to the given options. A line with a
-	 * backslash '\' at its end will be continued in the next line.
-	 * {@code options} is the sum of:
+	/**
+	 * Condenses the given text according to the given options. A line with a backslash '\'
+	 * at its end will be continued in the next line. {@code options} is the sum of:
 	 * <table>
 	 * <caption>Options</caption>
 	 * <tr>
@@ -548,10 +531,8 @@ public class TextHelper {
 	 * </tr>
 	 * </table>
 	 *
-	 * @param text
-	 *            The text to be condensed
-	 * @param options
-	 *            The options what is to be removed
+	 * @param text The text to be condensed
+	 * @param options The options what is to be removed
 	 * @return The condensed text in a new String
 	 */
 	public static String condense( String text, int options ) {
@@ -742,7 +723,7 @@ public class TextHelper {
 		return buf.toString();
 	}
 
-	/******************************************************************
+	/**
 	 * Returns the offset of the matching char in the string.
 	 * <p>
 	 * Matching characters are:
@@ -754,10 +735,8 @@ public class TextHelper {
 	 * <li>same character as at position {@code start}</li>
 	 * </ul>
 	 *
-	 * @param text
-	 *            text to be searched for the matching char
-	 * @param start
-	 *            index to the opening char
+	 * @param text text to be searched for the matching char
+	 * @param start index to the opening char
 	 * @return offset to the closing char or -1 if not found
 	 */
 	public static int findMatchingCharacter( String text, int start ) {
@@ -828,12 +807,11 @@ public class TextHelper {
 		return generateRandomString( selectables, length );
 	}
 
-	/******************************************************************
+	/**
 	 * Generates a random password with the given length from characters
 	 * {@value #Chars4Password}
 	 *
-	 * @param length
-	 *            length of password
+	 * @param length length of password
 	 * @return random password
 	 */
 	public static String generatePassword( int length ) {
@@ -859,29 +837,25 @@ public class TextHelper {
 		return new String( text );
 	}
 
-	/******************************************************************
-	 * Returns a new string of contiguous characters out of the given string
-	 * starting at position <code>offset</code>.
+	/**
+	 * Returns a new string of contiguous characters out of the given string starting at
+	 * position <code>offset</code>.
 	 * <p>
-	 * The sequence of contiguous characters starts with the first non-blank
-	 * character. It ends when any character is found which is neither a letter,
-	 * a digit nor an underscore.
+	 * The sequence of contiguous characters starts with the first non-blank character. It
+	 * ends when any character is found which is neither a letter, a digit nor an
+	 * underscore.
 	 * </p>
 	 * <p>
-	 * If special characters should be included in the string (like a dot '.' in
-	 * a package name) these have to be given in the parameter
+	 * If special characters should be included in the string (like a dot '.' in a package
+	 * name) these have to be given in the parameter
 	 * <code>includes</code>.
 	 * </p>
 	 *
-	 * @param str
-	 *            The string from which a contiguous sequence of characters
-	 *            should be extracted
-	 * @param offset
-	 *            Reads contiguous characters starting at this offset
-	 * @param includes
-	 *            A string of characters which may occur in the contiguous
-	 *            string in addition to letters and digits or null if only
-	 *            letters and digits.
+	 * @param str The string from which a contiguous sequence of characters should be
+	 * extracted
+	 * @param offset Reads contiguous characters starting at this offset
+	 * @param includes A string of characters which may occur in the contiguous string in
+	 * addition to letters and digits or null if only letters and digits.
 	 * @return Returns a new string of contiguous characters
 	 */
 	public static String getContiguous( String str, int offset,
@@ -906,13 +880,12 @@ public class TextHelper {
 		return str.substring( offset, i );
 	}
 
-	/******************************************************************
-	 * Gets the next word from the given string which starts with a letter. The
-	 * word may contain characters which are letters, digits, underscore or
-	 * point. Any other character ends building the word.
+	/**
+	 * Gets the next word from the given string which starts with a letter. The word may
+	 * contain characters which are letters, digits, underscore or point. Any other
+	 * character ends building the word.
 	 *
-	 * @param str
-	 *            The string from which to get the next Java name
+	 * @param str The string from which to get the next Java name
 	 * @return Returns the Java name or null when none found
 	 */
 	public static String getJavaName( String str ) {
@@ -939,15 +912,13 @@ public class TextHelper {
 		return name;
 	}
 
-	/************************************
+	/**
 	 * Gets the last word of a string.
 	 * <p>
-	 * The words in the string can be separated by '/', ' ', '.' or '-'. If none
-	 * of this separation characters was found then the text itself will be
-	 * returned;
+	 * The words in the string can be separated by '/', ' ', '.' or '-'. If none of this
+	 * separation characters was found then the text itself will be returned;
 	 *
-	 * @param text
-	 *            string like "abc.def"
+	 * @param text string like "abc.def"
 	 * @return last word or text itself
 	 */
 	public static String getLastWord( String text ) {
@@ -963,14 +934,12 @@ public class TextHelper {
 		return parts[parts.length - 1];
 	}
 
-	/************************************
-	 * Gets the location for the given index into the text. Returns the string
-	 * "line l column c".
+	/**
+	 * Gets the location for the given index into the text. Returns the string "line l
+	 * column c".
 	 *
-	 * @param text
-	 *            The text
-	 * @param offset
-	 *            The offset into the text
+	 * @param text The text
+	 * @param offset The offset into the text
 	 * @return Returns the location
 	 */
 	public static String getLocation( String text, int offset ) {
@@ -988,9 +957,9 @@ public class TextHelper {
 		return str;
 	}
 
-	/******************************************************************
-	 * Gets the normalized phone number from the given text by applying the
-	 * following rules:
+	/**
+	 * Gets the normalized phone number from the given text by applying the following
+	 * rules:
 	 * <ol>
 	 * <li>a '+' at start will be replaced by "00"</li>
 	 * <li>all separators (blanks and dashes) will be removed</li>
@@ -998,8 +967,7 @@ public class TextHelper {
 	 * <li>any other character ends parsing</li>
 	 * </ol>
 	 *
-	 * @param text
-	 *            The phone number to be normalized
+	 * @param text The phone number to be normalized
 	 * @return the normalized phone number
 	 */
 	public static String getNormalizedPhone( String text ) {
@@ -1024,15 +992,12 @@ public class TextHelper {
 		return normalizedNbr.toString();
 	}
 
-	/******************************************************************
-	 * Gets the word from the given string starting at the given offset. A word
-	 * consists of letters. It finishes when anything comes in the text which is
-	 * not a letter.
+	/**
+	 * Gets the word from the given string starting at the given offset. A word consists of
+	 * letters. It finishes when anything comes in the text which is not a letter.
 	 *
-	 * @param str
-	 *            The text from which to extract the word
-	 * @param offset
-	 *            Current offset into the text
+	 * @param str The text from which to extract the word
+	 * @param offset Current offset into the text
 	 * @return Returns a new string with the next word from the text
 	 */
 	public static String getWord( String str, int offset ) {
@@ -1076,13 +1041,12 @@ public class TextHelper {
 		return (text == null) || text.isEmpty();
 	}
 
-	/******************************************************************
-	 * Checks the given string if it means <em>false</em>. This is the case when
-	 * the string is "false", "no" or "0". Everything else returns
+	/**
+	 * Checks the given string if it means <em>false</em>. This is the case when the string
+	 * is "false", "no" or "0". Everything else returns
 	 * <em>false</em>. Matching is not case sensitive.
 	 *
-	 * @param booleanString
-	 *            The string to be analyzed
+	 * @param booleanString The string to be analyzed
 	 * @return Returns <em>true</em> if the string means "false"
 	 */
 	public static boolean isFalse( String booleanString ) {
@@ -1092,17 +1056,16 @@ public class TextHelper {
 				|| booleanString.equals( "0" ));
 	}
 
-	/******************************************************************
-	 * Computes the <em>Levenshtein</em> distance between the two words. If the
-	 * distance is smaller than 20% (rounded up) of the length of the first
-	 * word, then {@code true} will be returned.
+	/**
+	 * Computes the <em>Levenshtein</em> distance between the two words. If the distance is
+	 * smaller than 20% (rounded up) of the length of the first word, then {@code true}
+	 * will
+	 * be returned.
 	 *
-	 * @param word1
-	 *            The first word
-	 * @param word2
-	 *            The second word
-	 * @return Returns {@code false} if more than 20% of the characters must be
-	 *         changed to get the second word
+	 * @param word1 The first word
+	 * @param word2 The second word
+	 * @return Returns {@code false} if more than 20% of the characters must be changed to
+	 * get the second word
 	 */
 	public static boolean isSameByLevenshtein( String word1, String word2 ) {
 		int distance = computeLevenshteinDistance( word1, word2 );
@@ -1110,13 +1073,12 @@ public class TextHelper {
 		return distance * 10 <= len * MAX_LEVENSTHEIN_DISTANCE;
 	}
 
-	/******************************************************************
-	 * Checks the given string if it means true. This is the case when the
-	 * string is "true", "yes" or "1". Everything else returns false. Matching
-	 * is not case sensitive.
+	/**
+	 * Checks the given string if it means true. This is the case when the string is
+	 * "true",
+	 * "yes" or "1". Everything else returns false. Matching is not case sensitive.
 	 *
-	 * @param booleanString
-	 *            The string to be analyzed
+	 * @param booleanString The string to be analyzed
 	 * @return Returns true if the string means true
 	 */
 	public static boolean isTrue( String booleanString ) {
@@ -1159,16 +1121,14 @@ public class TextHelper {
 		return Math.min( Math.min( a, b ), c );
 	}
 
-	/******************************************************************
+	/**
 	 * Parses the given text as a decimal number.
 	 *
-	 * @param text
-	 *            to be parsed
-	 * @return a new BigDecmial or <em>null</em> if the text is not a
-	 *         number at all
+	 * @param text to be parsed
+	 * @return a new BigDecmial or <em>null</em> if the text is not a number at all
 	 */
 	public static BigDecimal parseBigDecimal( String text ) {
-		if ( text == null || text.length() == 0 ) {
+		if ( text == null || text.isBlank() ) {
 			return null;
 		}
 		text = parseNumber( text );
@@ -1193,14 +1153,12 @@ public class TextHelper {
 		return Boolean.parseBoolean( text );
 	}
 
-	/******************************************************************
-	 * Parses the given text as a signed byte value (8 bit). Skips leading
-	 * blanks. Reads digits for the value until the first non-digit.
+	/**
+	 * Parses the given text as a signed byte value (8 bit). Skips leading blanks. Reads
+	 * digits for the value until the first non-digit.
 	 *
-	 * @param text
-	 *            Text to be parsed.
-	 * @return Returns the value or <em>null</em> if the text does not have
-	 *         digits
+	 * @param text Text to be parsed.
+	 * @return Returns the value or <em>null</em> if the text does not have digits
 	 */
 	public static Byte parseByte( final String text ) {
 		Long lval = parseLong( text );
@@ -1235,12 +1193,12 @@ public class TextHelper {
 		return parser.parseDate( text, pattern );
 	}
 
-	/******************************************************************
+	/**
 	 * Parses the given input text according to ISO pattern (
-	 * {@value #PATTERN_ISO_COMPACT}) with time.
+	 * {@value #PATTERN_ISO_COMPACT})
+	 * with time.
 	 *
-	 * @param text
-	 *            The text to be parsed
+	 * @param text The text to be parsed
 	 * @return a new instance of {@code OffsetDateTime} or {@code null}
 	 */
 	public static OffsetDateTime parseDateTime( final String text ) {
@@ -1253,8 +1211,7 @@ public class TextHelper {
 			return null;
 		}
 		DateTimeParser parser = new DateTimeParser();
-		OffsetDateTime dateTime = parser.parseDateTime( text, pattern );
-		return dateTime;
+		return parser.parseDateTime( text, pattern );
 	}
 
 	/**
@@ -1295,12 +1252,12 @@ public class TextHelper {
 		return f;
 	}
 
-	/******************************************************************
-	 * Parses the given text as a hexadecimal string. Skips leading blanks.
-	 * Reads digits for the value until the first non-digit.
+	/**
+	 * Parses the given text as a hexadecimal string. Skips leading blanks. Reads digits
+	 * for
+	 * the value until the first non-digit.
 	 *
-	 * @param text
-	 *            Text to be parsed
+	 * @param text Text to be parsed
 	 * @return long value or {@code null} if the text is not hex formatted
 	 */
 	public static Long parseHex( final String text ) {
@@ -1324,14 +1281,13 @@ public class TextHelper {
 		return hexVal;
 	}
 
-	/******************************************************************
-	 * Parses the given text as a signed integer value (32 bit). Skips leading
-	 * blanks. Reads digits for the value until the first non-digit.
+	/**
+	 * Parses the given text as a signed integer value (32 bit). Skips leading blanks.
+	 * Reads
+	 * digits for the value until the first non-digit.
 	 *
-	 * @param text
-	 *            Text to be parsed.
-	 * @return signed integer value or {@code null} if the text does not have
-	 *         digits
+	 * @param text Text to be parsed.
+	 * @return signed integer value or {@code null} if the text does not have digits
 	 */
 	public static Integer parseInteger( final String text ) {
 		Long lval = parseLong( text );
@@ -1341,21 +1297,19 @@ public class TextHelper {
 		return lval.intValue();
 	}
 
-	/******************************************************************
-	 * Parses the given text as a signed long integer value (64 bit). Skips
-	 * leading blanks. Reads digits for the value until the first non-digit.
+	/**
+	 * Parses the given text as a signed long integer value (64 bit). Skips leading blanks.
+	 * Reads digits for the value until the first non-digit.
 	 *
-	 * @param text
-	 *            Text to be parsed.
-	 * @return Return the value or <em>null</em> if the text does not have
-	 *         digits
+	 * @param text Text to be parsed.
+	 * @return Return the value or <em>null</em> if the text does not have digits
 	 */
 	public static Long parseLong( final String text ) {
 		if ( isEmpty( text ) ) {
 			return null;
 		}
 		int sign = 1;
-		Long result = 0L;
+		long result = 0L;
 		int i = skipSpace( text, 0 );
 		if ( i >= text.length() ) {
 			return null;
@@ -1486,22 +1440,16 @@ public class TextHelper {
 				}
 			}
 		}
-
-		if ( buf.length() == 0 ) {
-			return null;
-		}
-		return buf.toString();
+		return buf.isEmpty() ? null : buf.toString();
 	}
 
-	/******************************************************************
-	 * Sets the separator at <em>index</em> to the Java decimal separator DOT
-	 * and removes all other separators. If <em>index</em> is zero then just all
-	 * separators will be cleaned from the buffer.
+	/**
+	 * Sets the separator at <em>index</em> to the Java decimal separator DOT and removes
+	 * all other separators. If <em>index</em> is zero then just all separators will be
+	 * cleaned from the buffer.
 	 *
-	 * @param buf
-	 *            The buffer with the number in text format
-	 * @param index
-	 *            Position of the decimal separator
+	 * @param buf The buffer with the number in text format
+	 * @param index Position of the decimal separator
 	 */
 	private static void parseNumberCleanup( StringBuilder buf, int index ) {
 		if ( index > 0 ) {
@@ -1519,21 +1467,16 @@ public class TextHelper {
 		}
 	}
 
-	/******************************************************************
-	 * Parses the given text as a signed short value (16 bit). Skips leading
-	 * blanks. Reads digits for the value until the first non-digit.
+	/**
+	 * Parses the given text as a signed short value (16 bit). Skips leading blanks. Reads
+	 * digits for the value until the first non-digit.
 	 *
-	 * @param text
-	 *            Text to be parsed.
-	 * @return Returns the value or <em>null</em> if the text does not have
-	 *         digits
+	 * @param text Text to be parsed.
+	 * @return Returns the value or <em>null</em> if the text does not have digits
 	 */
 	public static Short parseShort( final String text ) {
-		Long lval = parseLong( text );
-		if ( lval == null ) {
-			return null;
-		}
-		return lval.shortValue();
+		Long value = parseLong( text );
+		return (value == null) ? null : value.shortValue();
 	}
 
 	/**
@@ -1546,6 +1489,30 @@ public class TextHelper {
 		if ( isEmpty( text ) ) return null;
 		DateTimeParser parser = new DateTimeParser();
 		return parser.parseTime( text );
+	}
+
+	public static TimeZone parseTimeZone( final String text ) {
+		if ( isEmpty( text ) ) return null;
+
+		//--- its a Duration
+		if ( text.startsWith( "PT" ) || text.startsWith( "-PT" ) ) {
+			Duration duration = Duration.parse( text );
+			return BaseConverter.toTimeZoneFromMinutes( duration.toMinutes() );
+		}
+
+		//--- if its just an integer in minutes then it must be a multiple of 60 or 90
+		Integer minutes = parseInteger( text );
+		if ( (minutes != null) && ((minutes % 60 == 0) || (minutes % 90 == 0)) ) {
+			return BaseConverter.toTimeZoneFromMinutes( minutes );
+		}
+
+		//--- seems to be a ZoneId
+		try {
+			ZoneId zoneId = ZoneId.of( text );
+			return TimeZone.getTimeZone( zoneId );
+		} catch ( DateTimeException e ) {
+			return null;
+		}
 	}
 
 	/**
@@ -1572,15 +1539,13 @@ public class TextHelper {
 		return new UUID( high, low );
 	}
 
-	/******************************************************************
+	/**
 	 * Removes the given word from the comma separated list.
 	 *
-	 * @param word
-	 *            The word to be removed
-	 * @param list
-	 *            The current list
-	 * @return new list with the removed word. If the new list is empty then
-	 *         {@code null} will be returned.
+	 * @param word The word to be removed
+	 * @param list The current list
+	 * @return new list with the removed word. If the new list is empty then {@code null}
+	 * will be returned.
 	 */
 	public static String removeFromCommaSeparatedList( String word,
 			String list ) {
@@ -1601,11 +1566,10 @@ public class TextHelper {
 		return newList.toString();
 	}
 
-	/******************************************************************
+	/**
 	 * Skip spaces in string starting at given position.
 	 *
-	 * @param str
-	 *            The string
+	 * @param str The string
 	 * @return Returns new string without leading spaces
 	 */
 	public static String skipSpace( String str ) {
@@ -1619,13 +1583,11 @@ public class TextHelper {
 		return str;
 	}
 
-	/******************************************************************
+	/**
 	 * Skip spaces in string starting at given position.
 	 *
-	 * @param str
-	 *            The string which may start with some space characters
-	 * @param start
-	 *            starting index into string
+	 * @param str The string which may start with some space characters
+	 * @param start starting index into string
 	 * @return Returns index to first non-space character
 	 */
 	public static int skipSpace( String str, int start ) {
@@ -1638,13 +1600,11 @@ public class TextHelper {
 		return start;
 	}
 
-	/******************************************************************
-	 * Splits the given text into separate lines. If a line ends with the
-	 * backslash character '\' then the next line will be appended to the
-	 * current one.
+	/**
+	 * Splits the given text into separate lines. If a line ends with the backslash
+	 * character '\' then the next line will be appended to the current one.
 	 *
-	 * @param text
-	 *            The text (e.g. from a file) with multiple line breaks
+	 * @param text The text (e.g. from a file) with multiple line breaks
 	 * @return lines as a list of strings
 	 */
 	public static List<String> splitIntoLines( final String text ) {
@@ -1675,21 +1635,18 @@ public class TextHelper {
 		return lines;
 	}
 
-	/******************************************************************
-	 * Substitutes variables in the given text by their values. Values are taken
-	 * from the given properties. The given text remains unmodified. A new text
-	 * will be returned. The text itself cannot specify any variables.
+	/**
+	 * Substitutes variables in the given text by their values. Values are taken from the
+	 * given properties. The given text remains unmodified. A new text will be returned.
+	 * The
+	 * text itself cannot specify any variables.
 	 *
-	 * @param text
-	 *            The text with variables "$(propname)" or "${propname}
-	 * @param props
-	 *            The properties
-	 * @param nocb
-	 *            Do not replace variables in curly braces "${propname}"
+	 * @param text The text with variables "$(propname)" or "${propname}
+	 * @param props The properties
+	 * @param nocb Do not replace variables in curly braces "${propname}"
 	 * @return Returns a new text with replaced variables
-	 * @throws SyntaxException
-	 *             If a variable is not closed or when it is not found in
-	 *             properties
+	 * @throws SyntaxException If a variable is not closed or when it is not found in
+	 * properties
 	 */
 	public static String substituteVariables( String text, Properties props,
 			boolean nocb ) throws SyntaxException {
@@ -1733,20 +1690,18 @@ public class TextHelper {
 		return buf.toString();
 	}
 
-	/******************************************************************
-	 * Returns a new string from which leading and trailing blanks [ \n\r\t] are
-	 * removed. If the given string is {@code null} or empty then {@code null}
-	 * will be returned
+	/**
+	 * Returns a new string from which leading and trailing blanks [ \n\r\t] are removed .
+	 * If the given string is {@code null} or empty then {@code null} will be returned
 	 *
-	 * @param str
-	 *            String to trim
+	 * @param str String to trim
 	 * @return new string without leading and trailing blanks
 	 */
 	public static String trim( String str ) {
 		if ( str == null ) {
 			return null;
 		}
-		if ( str.length() == 0 ) {
+		if ( str.isBlank() ) {
 			return "";
 		}
 		int i = 0, j = 0, len = str.length();

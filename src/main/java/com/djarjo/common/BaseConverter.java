@@ -5,11 +5,14 @@ import com.google.common.flogger.FluentLogger;
 
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.function.Function;
+
+import static java.lang.Math.abs;
 
 /**********************************************************************
  * This class solely consists of static methods which convert a value from one
@@ -133,15 +136,12 @@ public class BaseConverter {
 		} else if ( value instanceof Map ) {
 			return value;
 		} else if ( value instanceof Collection ) {
-			return value;
+			return type.isArray() ? ((Collection<?>) value).toArray() : value;
 		} else if ( Enum.class.isAssignableFrom( type ) ) {
 			return convertToEnum( type, (String) value );
 		} else if ( type.isArray() ) {
 			if ( value.getClass().isArray() ) {
 				return value;
-			}
-			if ( value instanceof List ) {
-				return ((List<?>) value).toArray();
 			}
 			logger.atWarning().log( "Target type is array of type '%s'." +
 					" Cannot convert \"%s\" %s", type, value, value.getClass() );
@@ -389,6 +389,23 @@ public class BaseConverter {
 	 */
 	public static String toString( BigDecimal value ) {
 		return (value == null) ? "" : value.toString();
+	}
+
+	public static TimeZone toTimeZone( Object value ) {
+		if ( value == null ) return null;
+		if ( value instanceof TimeZone tz ) return tz;
+		if ( value instanceof Duration d ) {
+			return toTimeZoneFromMinutes( d.toMinutes() );
+		}
+		if ( value instanceof String s ) return TextHelper.parseTimeZone( s );
+		if ( value instanceof OffsetDateTime o ) return TimeZone.getTimeZone( o.getOffset() );
+		return null;
+	}
+
+	public static TimeZone toTimeZoneFromMinutes( long minutes ) {
+		String s = String.format( "GMT%s%02d:%02d", (minutes < 0 ? "-" : "+"),
+				abs( minutes / 60 ), abs( minutes % 60 ) );
+		return TimeZone.getTimeZone( s );
 	}
 
 	/**

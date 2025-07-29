@@ -76,6 +76,8 @@
                 <version>${org.apache.maven.plugins_maven-compiler-plugin_version}</version>
                 <configuration>
                     <release>${java.version}</release>
+                    <source>18</source>
+                    <target>18</target>
                 </configuration>
             </plugin>
             <plugin>
