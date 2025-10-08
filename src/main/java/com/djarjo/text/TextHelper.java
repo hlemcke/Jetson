@@ -1205,6 +1205,13 @@ public class TextHelper {
 		return parseDateTime( text, PATTERN_ISO_COMPACT );
 	}
 
+	/**
+	 * Parses {@code text} to an {@code OffsetDateTime} by using {@code pattern}
+	 *
+	 * @param text ... to parse
+	 * @param pattern used for parsing
+	 * @return {@code OffsetDateTime} or {@code null}
+	 */
 	public static OffsetDateTime parseDateTime( final String text,
 			final String pattern ) {
 		if ( isEmpty( text ) ) {
@@ -1491,6 +1498,12 @@ public class TextHelper {
 		return parser.parseTime( text );
 	}
 
+	/**
+	 * Parses {@code text} into {@code TimeZone}
+	 *
+	 * @param text ... to parse
+	 * @return {@code TimeZone} or {@code null} if {@code text} was null or empty
+	 */
 	public static TimeZone parseTimeZone( final String text ) {
 		if ( isEmpty( text ) ) return null;
 

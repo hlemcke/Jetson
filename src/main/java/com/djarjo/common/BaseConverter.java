@@ -391,6 +391,12 @@ public class BaseConverter {
 		return (value == null) ? "" : value.toString();
 	}
 
+	/**
+	 * Converts given object (could be {@code null}) to {@code TimeZone}.
+	 *
+	 * @param value to convert
+	 * @return new instance of {@code TimeZone} or {@code null}
+	 */
 	public static TimeZone toTimeZone( Object value ) {
 		if ( value == null ) return null;
 		if ( value instanceof TimeZone tz ) return tz;
@@ -402,6 +408,12 @@ public class BaseConverter {
 		return null;
 	}
 
+	/**
+	 * Converts {@code minutes} to {@code TimeZone}
+	 *
+	 * @param minutes well ... minutes
+	 * @return new instance of {@code TimeZone}
+	 */
 	public static TimeZone toTimeZoneFromMinutes( long minutes ) {
 		String s = String.format( "GMT%s%02d:%02d", (minutes < 0 ? "-" : "+"),
 				abs( minutes / 60 ), abs( minutes % 60 ) );
