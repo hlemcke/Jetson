@@ -11,8 +11,10 @@ public class BaseConverterTest {
 	@Test
 	void convertToTypeBoolean() {
 		//--- given
-		List<Object> inputs = List.of( "false", "true", "bla", 0, 1, 42, 123.456 );
-		List<Boolean> expected = List.of( false, true, false, false, true, true, true );
+		List<Object> inputs = List.of( true, false, "false", "true", "bla", 0, 1, 42,
+				123.456 );
+		List<Boolean> expected = List.of( true, false, false, true, false, false, true, true,
+				true );
 
 		//--- when / then
 		for ( int i = 0; i < inputs.size(); i++ ) {

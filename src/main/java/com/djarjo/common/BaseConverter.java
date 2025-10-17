@@ -195,6 +195,7 @@ public class BaseConverter {
 	 */
 	public static Boolean toBoolean( Object value ) {
 		if ( value == null ) return null;
+		if ( value instanceof Boolean b ) return b;
 		if ( value instanceof String s ) return TextHelper.parseBoolean( s );
 		if ( value instanceof Number n ) return n.doubleValue() != 0.0;
 		logger.atWarning().log( "Cannot convert to Boolean: '%s'", value );
@@ -211,6 +212,7 @@ public class BaseConverter {
 		if ( value == null ) {
 			return null;
 		}
+		if ( value instanceof BigDecimal big ) return big;
 		if ( value instanceof String ) {
 			return TextHelper.parseBigDecimal( (String) value );
 		}
@@ -247,6 +249,7 @@ public class BaseConverter {
 	 */
 	public static Byte toByte( Object value ) {
 		if ( value == null ) return null;
+		if ( value instanceof Byte b ) return b;
 		if ( value instanceof Number n ) return n.byteValue();
 		if ( value instanceof String s ) return TextHelper.parseByte( s );
 		logger.atWarning().log( "Cannot convert to Byte: '%s'", value );
@@ -261,6 +264,7 @@ public class BaseConverter {
 	 */
 	public static Double toDouble( Object value ) {
 		if ( value == null ) return null;
+		if ( value instanceof Double d ) return d;
 		if ( value instanceof Number n ) return n.doubleValue();
 		if ( value instanceof String s ) return TextHelper.parseDouble( s );
 		logger.atWarning().log( "Cannot convert to Double: '%s'", value );
@@ -275,6 +279,7 @@ public class BaseConverter {
 	 */
 	public static Float toFloat( Object value ) {
 		if ( value == null ) return null;
+		if ( value instanceof Float f ) return f;
 		if ( value instanceof Number n ) return n.floatValue();
 		if ( value instanceof String s ) return TextHelper.parseFloat( s );
 		logger.atWarning().log( "Cannot convert to Float: '%s'", value );
@@ -289,6 +294,7 @@ public class BaseConverter {
 	 */
 	public static Integer toInteger( Object value ) {
 		if ( value == null ) return null;
+		if ( value instanceof Integer i ) return i;
 		if ( value instanceof Number n ) return n.intValue();
 		if ( value instanceof String s ) return TextHelper.parseInteger( s );
 		logger.atWarning().log( "Cannot convert to Integer: '%s'", value );
@@ -303,6 +309,7 @@ public class BaseConverter {
 	 */
 	public static LocalDate toLocalDate( Object value ) {
 		if ( value == null ) return null;
+		if ( value instanceof LocalDate l ) return l;
 		if ( value instanceof OffsetDateTime o ) return o.toLocalDate();
 		if ( value instanceof String s ) return TextHelper.parseDate( s );
 		logger.atWarning().log( "Cannot convert to LocalDate: '%s'", value );
@@ -317,6 +324,7 @@ public class BaseConverter {
 	 */
 	public static LocalTime toLocalTime( Object value ) {
 		if ( value == null ) return null;
+		if ( value instanceof LocalTime l ) return l;
 		if ( value instanceof OffsetDateTime o ) return o.toLocalTime();
 		if ( value instanceof String s ) return TextHelper.parseTime( s );
 		logger.atWarning().log( "Cannot convert to LocalTime: '%s'", value );
@@ -331,6 +339,7 @@ public class BaseConverter {
 	 */
 	public static Locale toLocale( Object value ) {
 		if ( value == null ) return null;
+		if ( value instanceof Locale l ) return l;
 		if ( value instanceof String s ) return Locale.forLanguageTag( s );
 		logger.atWarning().log( "Cannot convert to Locale: '%s'", value );
 		return null;
@@ -344,6 +353,7 @@ public class BaseConverter {
 	 */
 	public static Long toLong( Object value ) {
 		if ( value == null ) return null;
+		if ( value instanceof Long l ) return l;
 		if ( value instanceof Number n ) return n.longValue();
 		if ( value instanceof String s ) return TextHelper.parseLong( s );
 		logger.atWarning().log( "Cannot convert to Long: '%s'", value );
@@ -372,6 +382,7 @@ public class BaseConverter {
 	 */
 	public static Short toShort( Object value ) {
 		if ( value == null ) return null;
+		if ( value instanceof Short s ) return s;
 		if ( value instanceof Number n ) return n.shortValue();
 		if ( value instanceof String s ) return TextHelper.parseShort( s );
 		logger.atWarning().log( "Cannot convert to Short: '%s'", value );
