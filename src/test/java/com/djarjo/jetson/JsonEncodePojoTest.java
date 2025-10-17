@@ -6,22 +6,34 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class JsonEncodePojoTest {
 
 	@Test
+	@DisplayName("Pojo with mixed fields and getters")
+	void pojoWithMixedFieldsAndGettersMustNotShowPrivateFields() {
+		//--- given
+		PojoWithMixedFieldsAndGetters pojo = new PojoWithMixedFieldsAndGetters();
+
+		//--- when
+		String json = Jetson.encode( pojo );
+
+		//--- then
+		System.out.println( json );
+		assertFalse( json.isEmpty() );
+	}
+
+	@Test
 	@DisplayName("Pojo with Array, List and Set")
 	void pojoWithCollectionsShouldEncodeCorrectly() {
-//--- given
+		//--- given
 		PojoWithCollections pojoWithCollections = new PojoWithCollections();
 
 		//--- when
 		String json = Jetson.encode( pojoWithCollections );
 
 		//--- then
-		System.out.println( json );
 		assertNotNull( json );
 		assertTrue( json.contains( "[{\"ival\":42," ) );
 		assertTrue( json.contains( "{\"ival\":17," ) );
@@ -57,5 +69,23 @@ public class JsonEncodePojoTest {
 
 		@Json
 		public Set<Pojo> pojoSet = Set.of( new Pojo(), new Pojo( 37, strSet ) );
+	}
+
+	private static class PojoWithMixedFieldsAndGetters {
+		@Json
+		private final String mustNotShowUp1 = "invisible #1";
+		public String mustNotShowUp2 = "invisible #2";
+		@Json
+		public String mustShowUp = "visible field";
+		private String _hidden = "but with value";
+
+		@Json
+		public String getHidden() {
+			return _hidden;
+		}
+
+		public void setHidden( String hidden ) {
+			_hidden = hidden;
+		}
 	}
 }
