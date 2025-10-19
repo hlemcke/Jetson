@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author Hajo Lemcke
  */
 class JsonEncoderTest {
-	static boolean isVerbose = false;
+	static boolean isVerbose = true;
 
 	/**
 	 * Test method for {@link com.djarjo.jetson.JsonEncoder#isEmpty(java.lang.Object)}.

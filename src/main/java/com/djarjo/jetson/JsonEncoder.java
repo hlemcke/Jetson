@@ -5,6 +5,7 @@ package com.djarjo.jetson;
 
 import com.djarjo.common.BaseConverter;
 import com.djarjo.common.BeanHelper;
+import com.djarjo.common.ReflectionHelper;
 import com.djarjo.jetson.converter.JsonConverter;
 import com.djarjo.text.RecursionException;
 import com.google.common.flogger.FluentLogger;
@@ -212,7 +213,8 @@ public class JsonEncoder {
 	private String _encodeArray( Object array ) {
 		Class<?> _elemClazz = array.getClass()
 				.getComponentType();
-		if ( _bytesToBase64 && (_elemClazz.equals( byte.class ) || _elemClazz.equals( Byte.class )) ) {
+		if ( _bytesToBase64 && (_elemClazz.equals( byte.class ) || _elemClazz.equals(
+				Byte.class )) ) {
 			return "\"" + Base64.getUrlEncoder()
 					.withoutPadding()
 					.encodeToString( (byte[]) array ) + "\"";
@@ -314,7 +316,7 @@ public class JsonEncoder {
 				try {
 					method.setAccessible( true );
 					value = method.invoke( pojo, (Object[]) null );
-					name = BeanHelper.getVarnameFromMethodname( method.getName() );
+					name = ReflectionHelper.getVarNameFromMethodName( method.getName() );
 					_encodePojoMember( builder, anno, name, value );
 				} catch ( IllegalArgumentException | InvocationTargetException |
 									IllegalAccessException e ) {
@@ -393,7 +395,8 @@ public class JsonEncoder {
 
 		// --- Encode recursive objects
 		if ( _stack.contains( value ) ) {
-			throw new RecursionException( "Json Encoding Exception." + " Already encoded: " + value + "\n" + _stack );
+			throw new RecursionException(
+					"Json Encoding Exception." + " Already encoded: " + value + "\n" + _stack );
 		}
 		_stack.add( value );
 		String json = null;

@@ -118,22 +118,22 @@ public class BaseConverter {
 		return value;
 	}
 
-	/******************************************************************
+	/**
 	 * Converts {@code value} to given target {@code type} if possible.
 	 *
-	 * @param value
-	 *            value
-	 * @param type
-	 *            target type
+	 * @param value value
+	 * @param type target type
 	 * @return value converted to target type
 	 */
 	public static Object convertToType( Object value, Class<?> type ) {
 		if ( value == null ) { // null has no type
 			return null;
-		} else if ( type.equals( value.getClass() )
+		}
+		if ( type.equals( value.getClass() )
 				|| type.equals( Object.class ) ) {
 			return value;
-		} else if ( value instanceof Map ) {
+		}
+		if ( value instanceof Map ) {
 			return value;
 		} else if ( value instanceof Collection ) {
 			return type.isArray() ? ((Collection<?>) value).toArray() : value;

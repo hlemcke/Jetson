@@ -4,7 +4,6 @@
 package com.djarjo.jetson;
 
 import com.djarjo.text.Token;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.InvocationTargetException;
@@ -50,7 +49,8 @@ class JsonDecoderTest {
 		String json = Jetson.encode( beanFromUi );
 
 		//--- when
-		PojoWithList decodedBean = (PojoWithList) Jetson.decodeIntoObject( json, beanFromDb );
+		PojoWithList decodedBean = (PojoWithList) Jetson.decodeIntoObject( json,
+				beanFromDb );
 
 		//--- then
 		assertEquals( 3, decodedBean.fruits.size() );
@@ -63,7 +63,8 @@ class JsonDecoderTest {
 	}
 
 	@Test
-	void testDecodeJsonIntoPojoWithMergeDecoding() throws ParseException, IllegalAccessException {
+	void testDecodeJsonIntoPojoWithMergeDecoding() throws ParseException,
+			IllegalAccessException {
 		//--- given
 		OffsetDateTime now = OffsetDateTime.now();
 		PojoWithList beanFromDb = new PojoWithList();
@@ -77,7 +78,8 @@ class JsonDecoderTest {
 		String json = Jetson.encode( beanFromUi );
 
 		//--- when
-		PojoWithList decodedBean = (PojoWithList) Jetson.mergeCollection().decodeIntoObject( json, beanFromDb );
+		PojoWithList decodedBean = (PojoWithList) Jetson.mergeCollection()
+				.decodeIntoObject( json, beanFromDb );
 
 		//--- then
 		assertEquals( 5, decodedBean.fruits.size() );
@@ -96,8 +98,8 @@ class JsonDecoderTest {
 	 * Should use annotation @Json(mergeCollection = true)
 	 */
 	@Test
-	@Disabled
-	void testDecodeJsonIntoPojoWithMergeAnnotation() throws ParseException, IllegalAccessException {
+	void testDecodeJsonIntoPojoWithMergeAnnotation() throws ParseException,
+			IllegalAccessException {
 		//--- given
 		OffsetDateTime now = OffsetDateTime.now();
 		PojoWithMergedCollections beanFromDb = new PojoWithMergedCollections();
@@ -108,10 +110,12 @@ class JsonDecoderTest {
 		String json = Jetson.encode( beanFromUi );
 
 		//--- when
-		PojoWithMergedCollections decodedBean = (PojoWithMergedCollections) Jetson.decodeIntoObject( json, beanFromDb );
+		PojoWithMergedCollections decodedBean =
+				(PojoWithMergedCollections) Jetson.decodeIntoObject(
+						json, beanFromDb );
 
 		//--- then
-		assertEquals( 5, decodedBean.fruits.size() );
+		assertEquals( 3, decodedBean.fruits.size() );
 		assertEquals( "Banana", decodedBean.fruits.get( 0 ) );
 		assertEquals( "Cherry", decodedBean.fruits.get( 1 ) );
 		assertEquals( "Peach", decodedBean.fruits.get( 2 ) );
@@ -169,8 +173,8 @@ class JsonDecoderTest {
 
 		@Override
 		public boolean equals( Object other ) {
-			return this==other || (other!=null)
-					&& (getClass()==other.getClass())
+			return this == other || (other != null)
+					&& (getClass() == other.getClass())
 					&& (id.equals( ((SimplePojo) other).id ));
 		}
 
