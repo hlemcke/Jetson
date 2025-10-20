@@ -147,69 +147,12 @@ public class BeanHelper {
 		return str;
 	}
 
-	/******************************************************************
-	 * Finds the method for the given property name following bean standard.
-	 * <p>
-	 * The method must start with one of ["get", "has", "is"] followed by the
-	 * given property name. The first character of the property name is
-	 * converted to upper case before comparison.
-	 * </p>
-	 *
-	 * @param beanClass
-	 *            The class to find the getter method in
-	 * @param propertyName
-	 *            The name of the property
-	 * @return Returns the method or <em>null</em> if not found
-	 */
-	public static Method findGetter( Class<?> beanClass, String propertyName ) {
-		Method[] methods = obtainGetters( beanClass );
-		return findGetter( methods, propertyName );
-	}
 
-	/******************************************************************
-	 * Finds the method for the given property name following bean standard.
-	 * <p>
-	 * The method must start with one of ["get", "has", "is"] followed by the
-	 * given property name. The first character of the property name is
-	 * converted to upper case before comparison.
-	 * </p>
-	 *
-	 * @param methods
-	 *            Methods
-	 * @param propertyName
-	 *            The name of the property
-	 * @return Returns the method or <em>null</em> when not found
-	 */
-	public static Method findGetter( Method[] methods, String propertyName ) {
-		assert methods != null : "No methods given";
-		if ( propertyName == null || propertyName.isEmpty() ) {
-			return null;
-		}
-		String[] prefixes = {"get", "has", "is"};
-		String name = "" + Character.toUpperCase( propertyName.charAt( 0 ) );
-		if ( propertyName.length() > 1 ) {
-			name += propertyName.substring( 1 );
-		}
-		String methodName = null;
-		for ( Method method : methods ) {
-			methodName = method.getName();
-			for ( String prefix : prefixes ) {
-				if ( methodName.startsWith( prefix ) && name
-						.equals( methodName.substring( prefix.length() ) ) ) {
-					return method;
-				}
-			}
-		}
-		return null;
-	}
-
-	/******************************************************************
+	/**
 	 * Finds methods with the given annotation.
 	 *
-	 * @param cls
-	 *            The class in which to find methods
-	 * @param annoClass
-	 *            The annotation which must be present on the method
+	 * @param cls The class in which to find methods
+	 * @param annoClass The annotation which must be present on the method
 	 * @return annotated methods or <em>null</em> if none found
 	 */
 	public static Method[] findMethods( Class<?> cls,
@@ -467,13 +410,8 @@ public class BeanHelper {
 	public static Method[] obtainSetters( Class<?> clazz,
 			boolean withInheritance ) {
 		List<Method> setters = new ArrayList<>();
-		String name = null;
-		Method[] methods = {};
-		if ( withInheritance ) {
-			methods = clazz.getMethods();
-		} else {
-			methods = clazz.getDeclaredMethods();
-		}
+		String name;
+		Method[] methods = withInheritance ? clazz.getMethods() : clazz.getDeclaredMethods();
 		for ( Method method : methods ) {
 			// --- Skip non setters
 			name = method.getName();
@@ -695,25 +633,6 @@ public class BeanHelper {
 	}
 
 	/**
-	 * Sets the value of the member property.
-	 *
-	 * @param bean in which to set property to value
-	 * @param member field or method
-	 * @param value new value for the property
-	 */
-	public static void setValue( Object bean, Member member, Object value ) {
-		try {
-			ReflectionHelper.setValue( bean, member, value );
-		} catch ( IllegalAccessException | IllegalArgumentException |
-							InvocationTargetException e ) {
-			String msg = String.format( "Cannot set property %s in bean %s to value %s",
-					member, bean, value );
-			logger.atWarning().log( msg );
-			throw new RuntimeException( msg, e );
-		}
-	}
-
-	/**
 	 * Sets a property of the given bean.
 	 * <p>
 	 * The property must have a setter method following bean standards like "setAbc( Object
@@ -746,36 +665,49 @@ public class BeanHelper {
 			//--- loop property path (may contain lists)
 			for ( int i = 0; i < props.length; i++ ) {
 				prop = props[i];
-				Field field = currentBean.getClass().getDeclaredField( prop );
-				field.setAccessible( true );
+
+				//--- Setter or fallback to field
+				Member member = ReflectionHelper.findSetter( currentBean.getClass(), prop );
+				if ( member == null ) {
+					member = ReflectionHelper.findField( currentBean.getClass(), prop );
+					if ( member == null ) {
+						String message = String.format( "No field '%s' in bean %s", prop, bean );
+						logger.atFiner().log( message );
+						throw new RuntimeException( new NoSuchFieldException( message ) );
+					}
+					((Field) member).setAccessible( true );
+				}
+
 				//--- Set value into final property from path
 				if ( i == props.length - 1 ) {
-					field.set( currentBean, value );
-				} else {
-					Object currentValue = field.get( currentBean );
-					//--- Current property is null -> create it
-					if ( currentValue == null ) {
-						currentValue = ReflectionHelper.instantiateProperty( currentBean, field );
-					} else if ( isArrayOrList( currentValue ) ) {
-						//--- Obtain item or create it
-						Object listItem = ReflectionHelper.getValueByIndex( currentValue, 0 );
-						//--- list is empty -> create item
-						if ( listItem == null ) {
-							listItem = ReflectionHelper.instantiateGeneric( field );
-							ReflectionHelper.setValueAt( currentValue, 0, listItem );
-							currentValue = listItem;
-						}
-					}
-					currentBean = currentValue;
+					ReflectionHelper.setValue( currentBean, member, value );
+					return true;
 				}
+
+				//--- Obtain current pojo from property path
+				Object currentValue = ReflectionHelper.getValueFromMember( currentBean, member );
+
+				//--- Current property is null -> create it
+				if ( currentValue == null ) {
+					currentValue = ReflectionHelper.instantiateProperty( currentBean, member );
+				} else if ( isArrayOrList( currentValue ) ) {
+					//--- Obtain item or create it
+					Object listItem = ReflectionHelper.getValueByIndex( currentValue, 0 );
+					//--- list is empty -> create item
+					if ( listItem == null ) {
+						listItem = ReflectionHelper.instantiateGeneric( member );
+						ReflectionHelper.setValueAt( currentValue, 0, listItem );
+					}
+					currentValue = listItem;
+				}
+				currentBean = currentValue;
 			}
-		} catch ( NoSuchFieldException e ) {
-			logger.atFiner().log( "No field '%s' in bean %s", prop, bean );
-			throw new RuntimeException( e );
 		} catch ( IllegalAccessException e ) {
 			logger.atFiner().log( "Cannot access '%s' in bean %s", prop, bean );
 			throw new RuntimeException( e );
+		} catch ( InvocationTargetException e ) {
+			throw new RuntimeException( e );
 		}
-		return true;
+		return false;
 	}
 }

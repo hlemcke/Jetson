@@ -82,14 +82,33 @@ public class BeanHelperTest {
 		assertEquals( newKey, mainBean.nestedBeanListEmpty.get( 0 ).key );
 	}
 
+	@Test
+	void setValueUsingSpecialSetter() {
+		//--- given
+		MainBean mainBean = new MainBean();
+		String newCode = "newCode";
+
+		//--- when
+		boolean wasSet = BeanHelper.setValue( mainBean, "codeWithPrefix", newCode );
+
+		//--- then
+		assertTrue( wasSet );
+		assertEquals( "prefix-newCode", mainBean.code );
+	}
+
 	/**
 	 *
 	 */
 	private static class MainBean {
 		private String code = "mainCode";
+		private String prefix = "prefix-";
 		private NestedBean nestedBean = new NestedBean();
 		private List<NestedBean> nestedBeanListEmpty = new ArrayList<>();
 		private List<NestedBean> nestedBeanListNull = null;
+
+		public void setCodeWithPrefix( String value ) {
+			code = prefix + value;
+		}
 	}
 
 	public static class NestedBean {

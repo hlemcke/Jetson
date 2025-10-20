@@ -7,13 +7,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ReflectionHelper {
+	public final static List<String> getterPrefixes = List.of( "get", "has", "is" );
+	public final static List<String> setterPrefixes = List.of( "set", "with" );
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
+
+	/**
+	 *
+	 * @param clazz
+	 * @param name
+	 * @return Field or {@code null}
+	 */
+	public static Field findField( Class<?> clazz, String name ) {
+		Field[] fields = clazz.getDeclaredFields();
+		for ( Field field : fields ) {
+			if ( field.getName().equals( name ) ) {
+				return field;
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * Gets a new instance from the given type.
 	 *
 	 * @param generic any type
-	 * @return new instance
+	 * @return new instance or {@code null}
 	 */
 	public static Object createInstanceFromType( Type generic ) {
 		if ( !(generic instanceof Class<?> cls) ) {
@@ -36,6 +54,59 @@ public class ReflectionHelper {
 			logger.atWarning().log( "Cannot create instance of %s", cls );
 			throw new RuntimeException( e );
 		}
+	}
+
+	/**
+	 * Finds the method for the given property name following bean standard.
+	 * <p>
+	 * The method must start with one of ["get", "has", "is"] followed by the given
+	 * property
+	 * name. The first character of the property name is converted to upper case before
+	 * comparison.
+	 * </p>
+	 *
+	 * @param beanClass The class to find the getter method in
+	 * @param propertyName The name of the property
+	 * @return Returns the method or <em>null</em> if not found
+	 */
+	public static Method findGetter( Class<?> beanClass, String propertyName ) {
+		Method[] methods = beanClass.getMethods();
+		return findGetter( methods, propertyName );
+	}
+
+	/**
+	 * Finds the method for the given property name following bean standard.
+	 * <p>
+	 * The method must start with one of ["get", "has", "is"] followed by the given
+	 * property
+	 * name. The first character of the property name is converted to upper case before
+	 * comparison.
+	 * </p>
+	 *
+	 * @param methods Methods
+	 * @param propertyName The name of the property
+	 * @return Returns the method or <em>null</em> when not found
+	 */
+	public static Method findGetter( Method[] methods, String propertyName ) {
+		assert methods != null : "No methods given";
+		if ( propertyName == null || propertyName.isEmpty() ) {
+			return null;
+		}
+		String name = "" + Character.toUpperCase( propertyName.charAt( 0 ) );
+		if ( propertyName.length() > 1 ) {
+			name += propertyName.substring( 1 );
+		}
+		String methodName = null;
+		for ( Method method : methods ) {
+			methodName = method.getName();
+			for ( String prefix : getterPrefixes ) {
+				if ( methodName.startsWith( prefix ) && name
+						.equals( methodName.substring( prefix.length() ) ) ) {
+					return method;
+				}
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -66,10 +137,14 @@ public class ReflectionHelper {
 	/**
 	 * Obtains the setter method from the given getter method.
 	 *
-	 * @param getter getter method
+	 * @param getter method
 	 * @return setter method or <em>null</em> if there is none
 	 */
 	public static Method findSetter( Method getter ) {
+		if ( isSetter( getter ) ) {
+			return getter;
+		}
+		String methodName = getter.getName();
 		String name = getVarNameFromMethodName( getter.getName() );
 		if ( name != null ) {
 			return findSetter( getter.getDeclaringClass(), name );
@@ -151,6 +226,20 @@ public class ReflectionHelper {
 			return ((0 <= index) && (index < length)) ? Array.get( bean, index ) : null;
 		}
 		return null;
+	}
+
+	public static Object getValueFromMember( Object bean,
+			Member member ) throws IllegalAccessException, InvocationTargetException {
+		if ( member instanceof Field field ) {
+			return field.get( bean );
+		}
+		//--- Use getter
+		Method getter = obtainGetterFromSetter( bean.getClass(), (Method) member );
+		if ( getter == null ) {
+			throw new RuntimeException(
+					String.format( "No getter in %s from %s", bean, member ) );
+		}
+		return getter.invoke( bean, (Object[]) null );
 	}
 
 	/**
@@ -247,6 +336,17 @@ public class ReflectionHelper {
 		return newInstance;
 	}
 
+	public static boolean isSetter( Method method ) {
+		if ( method == null ) return false;
+		String methodName = method.getName();
+		for ( String prefix : setterPrefixes ) {
+			if ( methodName.startsWith( prefix ) && method.getParameterCount() == 1 ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Returns a method name. The returned method name starts with the optional prefix and
 	 * is followed by the propertyName whose first character is converted to uppercase.
@@ -270,6 +370,11 @@ public class ReflectionHelper {
 		return name;
 	}
 
+	public static Method obtainGetterFromSetter( Class<?> clazz, Method setter ) {
+		String baseName = getVarNameFromMethodName( setter.getName() );
+		return findGetter( clazz, baseName );
+	}
+
 	/**
 	 * Sets {@code member} in {@code bean} to {@code value}.
 	 *
@@ -277,10 +382,9 @@ public class ReflectionHelper {
 	 * @param member field or method
 	 * @param value new value
 	 * @throws IllegalAccessException e
-	 * @throws InvocationTargetException e
 	 */
 	public static void setValue( Object bean, Member member,
-			Object value ) throws IllegalAccessException, InvocationTargetException {
+			Object value ) throws IllegalAccessException {
 		if ( member instanceof Field field ) {
 			Class<?> type = field.getType();
 			Object convertedValue = BaseConverter.convertToType( value, type );
@@ -303,7 +407,13 @@ public class ReflectionHelper {
 			}
 			Object convertedValue = BaseConverter.convertToType( value, types[0] );
 			setter.setAccessible( true );
-			setter.invoke( bean, convertedValue );
+			try {
+				setter.invoke( bean, convertedValue );
+			} catch ( InvocationTargetException e ) {
+				throw new IllegalAccessException(
+						String.format( "Cannot set '%s' in bean '%s' with method '%s'",
+								convertedValue, bean, setter ) );
+			}
 		} else {
 			throw new RuntimeException( "Member must be field or method but is " + member );
 		}

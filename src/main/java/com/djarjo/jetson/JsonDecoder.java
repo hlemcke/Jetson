@@ -329,7 +329,7 @@ public class JsonDecoder {
 			} else {
 				value = _decodeValue( null, null, null );
 			}
-			_setValue( value, target, member );
+			_setValue( target, member, value );
 		}
 		return target;
 	}
@@ -564,14 +564,13 @@ public class JsonDecoder {
 	 * will
 	 * be used to decode the Json string into the value for the target.
 	 *
-	 * @param value v
 	 * @param target t
 	 * @param member m
+	 * @param value v
 	 * @throws IllegalAccessException ex
-	 * @throws ParseException ex
 	 */
-	private void _setValue( Object value, Object target,
-			Member member ) throws IllegalAccessException, ParseException {
+	private void _setValue( Object target, Member member,
+			Object value ) throws IllegalAccessException {
 
 		Json anno = (member instanceof Field) ?
 				((Field) member).getAnnotation( Json.class ) :
@@ -584,7 +583,7 @@ public class JsonDecoder {
 			}
 
 			// --- Set value into field or use setter method
-			BeanHelper.setValue( target, member, value );
+			ReflectionHelper.setValue( target, member, value );
 		}
 	}
 
