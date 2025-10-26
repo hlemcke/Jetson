@@ -4,6 +4,8 @@ import com.djarjo.text.TextHelper;
 import com.google.common.flogger.FluentLogger;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -103,19 +105,20 @@ public class BaseConverter {
 	 */
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	public static Enum convertToEnum( Class type, String name ) {
-		int index = name.indexOf( '.' );
-		if ( index > 0 ) {
-			name = name.substring( index + 1 );
-		}
-		Enum value = null;
+		String[] parts = name.split( "\\." );
+		name = parts[parts.length - 1];
 		try {
-			value = Enum.valueOf( type, name );
-		} catch ( IllegalArgumentException ex ) {
-			logger.atWarning()
-					.withCause( ex )
-					.log( "Enumeration %s has no value %s", type, name );
+			Method find = ReflectionHelper.findMethod( type, "find" );
+			if ( find != null ) {
+				return (Enum) find.invoke( null, name );
+			}
+			return Enum.valueOf( type, name );
+		} catch ( IllegalArgumentException | IllegalAccessException |
+							InvocationTargetException ex ) {
+			String message = String.format( "Enumeration %s has no value %s", type, name );
+			logger.atWarning().withCause( ex ).log( message );
 		}
-		return value;
+		return null;
 	}
 
 	/**

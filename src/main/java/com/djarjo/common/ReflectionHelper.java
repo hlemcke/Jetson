@@ -6,6 +6,12 @@ import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Provides low level methods to access beans.
+ * <p>
+ * Whenever a {@code list} is documented then the code also works for {@code arrays}.
+ * </p>
+ */
 public class ReflectionHelper {
 	public final static List<String> getterPrefixes = List.of( "get", "has", "is" );
 	public final static List<String> setterPrefixes = List.of( "set", "with" );
@@ -13,8 +19,8 @@ public class ReflectionHelper {
 
 	/**
 	 *
-	 * @param clazz
-	 * @param name
+	 * @param clazz class
+	 * @param name field name
 	 * @return Field or {@code null}
 	 */
 	public static Field findField( Class<?> clazz, String name ) {
@@ -56,39 +62,19 @@ public class ReflectionHelper {
 		}
 	}
 
-	/**
-	 * Finds the method for the given property name following bean standard.
-	 * <p>
-	 * The method must start with one of ["get", "has", "is"] followed by the given
-	 * property
-	 * name. The first character of the property name is converted to upper case before
-	 * comparison.
-	 * </p>
-	 *
-	 * @param beanClass The class to find the getter method in
-	 * @param propertyName The name of the property
-	 * @return Returns the method or <em>null</em> if not found
-	 */
-	public static Method findGetter( Class<?> beanClass, String propertyName ) {
-		Method[] methods = beanClass.getMethods();
-		return findGetter( methods, propertyName );
+	public static Method findMethod( Class<?> clazz, String name ) {
+		for ( Method method : clazz.getMethods() ) {
+			if ( method.getName().equals( name ) ) {
+				return method;
+			}
+		}
+		return null;
 	}
 
-	/**
-	 * Finds the method for the given property name following bean standard.
-	 * <p>
-	 * The method must start with one of ["get", "has", "is"] followed by the given
-	 * property
-	 * name. The first character of the property name is converted to upper case before
-	 * comparison.
-	 * </p>
-	 *
-	 * @param methods Methods
-	 * @param propertyName The name of the property
-	 * @return Returns the method or <em>null</em> when not found
-	 */
-	public static Method findGetter( Method[] methods, String propertyName ) {
+	public static Method findMethod( Method[] methods, String propertyName,
+			List<String> prefixes ) {
 		assert methods != null : "No methods given";
+		assert !prefixes.isEmpty() : "No prefixes given";
 		if ( propertyName == null || propertyName.isEmpty() ) {
 			return null;
 		}
@@ -96,10 +82,10 @@ public class ReflectionHelper {
 		if ( propertyName.length() > 1 ) {
 			name += propertyName.substring( 1 );
 		}
-		String methodName = null;
+		String methodName;
 		for ( Method method : methods ) {
 			methodName = method.getName();
-			for ( String prefix : getterPrefixes ) {
+			for ( String prefix : prefixes ) {
 				if ( methodName.startsWith( prefix ) && name
 						.equals( methodName.substring( prefix.length() ) ) ) {
 					return method;
@@ -110,71 +96,37 @@ public class ReflectionHelper {
 	}
 
 	/**
-	 * Finds the setter method for the given property name following bean standard.
+	 * Finds the getter method for the given property name following bean standard.
 	 * <p>
-	 * The method must start with "set" followed by the given property name. The first
-	 * character of the property name is converted to upper case before comparison.
+	 * The method must start with one of ["get", "has", "is"] followed by the given
+	 * property
+	 * name and must not have any parameters.
 	 * </p>
 	 *
-	 * @param beanClass The class to find the getter method in
-	 * @param propertyName The name of the property
-	 * @return method or <em>null</em> if not found
+	 * @param beanClass class to find the getter method in
+	 * @param propertyName name of the property
+	 * @return getter method or {@code null}
 	 */
+	public static Method findGetter( Class<?> beanClass, String propertyName ) {
+		Method[] methods = beanClass.getMethods();
+		return findMethod( methods, propertyName, getterPrefixes );
+	}
+
+	/**
+	 * Finds the setter method for the given property name following bean standard.
+	 * <p>
+	 * The method must start with one of ["get", "has", "is"] followed by
+	 * {@code propertyName} and must have exactly one parameter.
+	 * </p>
+	 *
+	 * @param beanClass class to find the setter method in
+	 * @param propertyName The name of the property
+	 * @return setter method or {@code null}
+	 */
+
 	public static Method findSetter( Class<?> beanClass, String propertyName ) {
-		assert beanClass != null : "No class given";
-		String name = makeMethodName( "set", propertyName );
-		if ( name == null ) {
-			return null;
-		}
-		for ( Method method : beanClass.getDeclaredMethods() ) {
-			if ( name.equals( method.getName() ) ) {
-				return method;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Obtains the setter method from the given getter method.
-	 *
-	 * @param getter method
-	 * @return setter method or <em>null</em> if there is none
-	 */
-	public static Method findSetter( Method getter ) {
-		if ( isSetter( getter ) ) {
-			return getter;
-		}
-		String methodName = getter.getName();
-		String name = getVarNameFromMethodName( getter.getName() );
-		if ( name != null ) {
-			return findSetter( getter.getDeclaringClass(), name );
-		}
-		return null;
-	}
-
-	/**
-	 * Finds the setter method for the given property name following bean standard.
-	 * <p>
-	 * The method must start with "set" followed by the given property name. The first
-	 * character of the property name is converted to upper case before comparison.
-	 * </p>
-	 *
-	 * @param methods Methods
-	 * @param propertyName The name of the property
-	 * @return method or <em>null</em> if not found
-	 */
-	public static Method findSetter( Method[] methods, String propertyName ) {
-		assert methods != null : "No methods given";
-		if ( propertyName == null || propertyName.isEmpty() ) {
-			return null;
-		}
-		String name = makeMethodName( "set", propertyName );
-		for ( Method method : methods ) {
-			if ( name.equals( method.getName() ) ) {
-				return method;
-			}
-		}
-		return null;
+		Method[] methods = beanClass.getMethods();
+		return findMethod( methods, propertyName, setterPrefixes );
 	}
 
 	/**
@@ -207,7 +159,7 @@ public class ReflectionHelper {
 			return field.getType();
 		}
 		if ( member instanceof Method method ) {
-			return method.getReturnType();
+			return isSetter( method ) ? method.getParameterTypes()[0] : method.getReturnType();
 		}
 		return member.getClass();
 	}
@@ -234,7 +186,7 @@ public class ReflectionHelper {
 			return field.get( bean );
 		}
 		//--- Use getter
-		Method getter = obtainGetterFromSetter( bean.getClass(), (Method) member );
+		Method getter = obtainGetterFromMethod( bean.getClass(), (Method) member );
 		if ( getter == null ) {
 			throw new RuntimeException(
 					String.format( "No getter in %s from %s", bean, member ) );
@@ -245,13 +197,14 @@ public class ReflectionHelper {
 	/**
 	 * Extracts the name of the variable from the name of the method. The method name must
 	 * start with any one of [{@code get}, {@code has}, {@code is}, {@code set},
-	 * {@code with}] followed by the name of the variable starting with an uppercase char.
+	 * {@code with}] followed by the name of the variable.
 	 *
 	 * @param methodName name of the method
 	 * @return name of the variable or {@code null}
 	 */
 	public static String getVarNameFromMethodName( String methodName ) {
-		String[] prefixes = {"get", "has", "is", "set", "with"};
+		List<String> prefixes = new ArrayList<>( getterPrefixes );
+		prefixes.addAll( setterPrefixes );
 		for ( String prefix : prefixes ) {
 			if ( methodName.startsWith( prefix ) ) {
 				int len = prefix.length();
@@ -336,6 +289,36 @@ public class ReflectionHelper {
 		return newInstance;
 	}
 
+	/**
+	 * Checks if given method is a getter.
+	 * <p>
+	 * A getter has no parameters and must start with {@code get}, {@code has} or
+	 * {@code is}.
+	 * </p>
+	 *
+	 * @param method method
+	 * @return {@code true} if method is a setter
+	 */
+	public static boolean isGetter( Method method ) {
+		if ( method == null ) return false;
+		String methodName = method.getName();
+		for ( String prefix : getterPrefixes ) {
+			if ( methodName.startsWith( prefix ) && method.getParameterCount() == 0 ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Checks if given method is a setter.
+	 * <p>
+	 * A setter has exactly one parameter and must start with {@code set} or {@code with}.
+	 * </p>
+	 *
+	 * @param method method
+	 * @return {@code true} if method is a setter
+	 */
 	public static boolean isSetter( Method method ) {
 		if ( method == null ) return false;
 		String methodName = method.getName();
@@ -370,13 +353,35 @@ public class ReflectionHelper {
 		return name;
 	}
 
-	public static Method obtainGetterFromSetter( Class<?> clazz, Method setter ) {
-		String baseName = getVarNameFromMethodName( setter.getName() );
-		return findGetter( clazz, baseName );
+	public static Method obtainGetterFromMethod( Class<?> clazz, Method method ) {
+		if ( isGetter( method ) ) {
+			return method;
+		}
+		String name = getVarNameFromMethodName( method.getName() );
+		return (name == null) ? null : findGetter( clazz, name );
+	}
+
+	/**
+	 * Obtains the setter from given method.
+	 *
+	 * @param method method
+	 * @return setter method or {@code null}
+	 */
+	public static Method obtainSetterFromMethod( Class<?> clazz, Method method ) {
+		if ( isSetter( method ) ) {
+			return method;
+		}
+		String name = getVarNameFromMethodName( method.getName() );
+		return (name == null) ? null : findSetter( clazz, name );
 	}
 
 	/**
 	 * Sets {@code member} in {@code bean} to {@code value}.
+	 * <p>
+	 * If {@code member} is a list and {@code value} is not then the list will be gotten
+	 * (or
+	 * created) and {@code value} will be added to it.
+	 * </p>
 	 *
 	 * @param bean bean
 	 * @param member field or method
@@ -385,35 +390,20 @@ public class ReflectionHelper {
 	 */
 	public static void setValue( Object bean, Member member,
 			Object value ) throws IllegalAccessException {
+		//--- Handle Field
 		if ( member instanceof Field field ) {
-			Class<?> type = field.getType();
-			Object convertedValue = BaseConverter.convertToType( value, type );
-			field.setAccessible( true );
-			field.set( bean, convertedValue );
+			setValueUsingField( bean, field, value );
 			return;
 		}
+
+		//--- Handle setter method
 		if ( member instanceof Method method ) {
-			Method setter = findSetter( method );
+			Method setter = obtainSetterFromMethod( bean.getClass(), method );
 			if ( setter == null ) {
 				throw new RuntimeException(
 						String.format( "No setter found in bean %s from %s", bean, method ) );
 			}
-			Class<?>[] types = setter.getParameterTypes();
-			if ( types.length != 1 ) {
-				String msg = String.format(
-						"Method must be a standard setter with one parameter but has %d: %s",
-						types.length, method );
-				throw new RuntimeException( msg );
-			}
-			Object convertedValue = BaseConverter.convertToType( value, types[0] );
-			setter.setAccessible( true );
-			try {
-				setter.invoke( bean, convertedValue );
-			} catch ( InvocationTargetException e ) {
-				throw new IllegalAccessException(
-						String.format( "Cannot set '%s' in bean '%s' with method '%s'",
-								convertedValue, bean, setter ) );
-			}
+			setValueUsingSetter( bean, setter, value);
 		} else {
 			throw new RuntimeException( "Member must be field or method but is " + member );
 		}
@@ -433,4 +423,61 @@ public class ReflectionHelper {
 			}
 		}
 	}
+
+	@SuppressWarnings("unchecked")
+	public static void setValueUsingField( Object bean, Field field,
+			Object value ) throws IllegalAccessException {
+		Class<?> type = field.getType();
+
+		//--- Handle still existing array
+		if ( type.isArray() ) {
+			//--- Array must be fetched (or created) and value added to it
+			if ( !value.getClass().isArray() ) {
+				Object array = field.get( bean );
+				if ( array == null ) {
+					array = new Array[1];
+					field.set( bean, value );
+				}
+				Array.set( array, 0, value );
+				return;
+			}
+		}
+
+		//--- Handle List
+		else if ( List.class.isAssignableFrom( type ) ) {
+			//--- List must be fetched (or created) and value added to it
+			if ( !List.class.isAssignableFrom( value.getClass() ) ) {
+				List<Object> list = (List<Object>) field.get( bean );
+				if ( list == null ) {
+					list = new ArrayList<>();
+					field.set( bean, list );
+				}
+				list.add( value );
+				return;
+			}
+		}
+		Object convertedValue = BaseConverter.convertToType( value, type );
+		field.setAccessible( true );
+		field.set( bean, convertedValue );
+	}
+
+	public static void setValueUsingSetter( Object bean, Method setter, Object value) {
+		Class<?>[] types = setter.getParameterTypes();
+		if ( types.length != 1 ) {
+			String msg = String.format(
+					"Method must be a standard setter with one parameter but has %d: %s",
+					types.length, setter );
+			throw new RuntimeException( msg );
+		}
+		//--- Handle bloody array
+		Object convertedValue = BaseConverter.convertToType( value, types[0] );
+		setter.setAccessible( true );
+		try {
+			setter.invoke( bean, convertedValue );
+		} catch ( InvocationTargetException e ) {
+			throw new IllegalAccessException(
+					String.format( "Cannot set '%s' in bean '%s' with method '%s'",
+							convertedValue, bean, setter ) );
+
+		}
 }

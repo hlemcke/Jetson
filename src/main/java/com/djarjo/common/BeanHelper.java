@@ -675,8 +675,8 @@ public class BeanHelper {
 						logger.atFiner().log( message );
 						throw new RuntimeException( new NoSuchFieldException( message ) );
 					}
-					((Field) member).setAccessible( true );
 				}
+				((AccessibleObject) member).setAccessible( true );
 
 				//--- Set value into final property from path
 				if ( i == props.length - 1 ) {

@@ -96,15 +96,47 @@ public class BeanHelperTest {
 		assertEquals( "prefix-newCode", mainBean.code );
 	}
 
+	@Test
+	void setStringsInList() {
+		//--- given
+		MainBean mainBean = new MainBean();
+		String str1 = "First";
+		String str2 = "Second";
+
+		//--- when / then #1
+		boolean wasSet = BeanHelper.setValue( mainBean, "names", str1 );
+		assertTrue( wasSet );
+		assertEquals( str1, mainBean.names.get( 0 ) );
+
+		//--- when / then #1
+		wasSet = BeanHelper.setValue( mainBean, "names", str2 );
+		assertTrue( wasSet );
+		assertEquals( str2, mainBean.names.get( 0 ) );
+
+		//--- when / then #1
+		wasSet = BeanHelper.setValue( mainBean, "names[+]", str1 );
+		assertTrue( wasSet );
+		assertEquals( str1, mainBean.names.get( 0 ) );
+	}
+
 	/**
 	 *
 	 */
 	private static class MainBean {
 		private String code = "mainCode";
+		private List<String> names;
 		private String prefix = "prefix-";
 		private NestedBean nestedBean = new NestedBean();
 		private List<NestedBean> nestedBeanListEmpty = new ArrayList<>();
 		private List<NestedBean> nestedBeanListNull = null;
+
+		public List<String> getNames() {
+			return names;
+		}
+
+		public void setNames( List<String> list ) {
+			names = list;
+		}
 
 		public void setCodeWithPrefix( String value ) {
 			code = prefix + value;

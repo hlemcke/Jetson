@@ -5,10 +5,11 @@
 /**
  * Contains:
  * <ul>
- * <li>a bean helper to obtain and use getters and setters</li>
- * <li>Encoder / decoder for basic Java types</li>
- * <li>Base64 encoder / decoder</li>
+ * <li>BaseConverter for basic Java types</li>
+ * <li>BeanHelper provides high-level methods for accessing fields and methods in a
+ * bean</li>
  * <li>Hex encoder / decoder</li>
+ * <li>ReflectionHelper provides low-level methods to access beans</li>
  * </ul>
  */
 package com.djarjo.common;
