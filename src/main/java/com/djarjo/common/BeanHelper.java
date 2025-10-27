@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -24,6 +25,8 @@ public class BeanHelper {
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 	private static final Comparator<Object> keyComparator =
 			Comparator.comparing( Object::toString );
+	private static final Pattern indexedPropPattern =
+			Pattern.compile( "(.+)\\[(?:[0-9]+|\\+)]" );
 	private static final Comparator<Method> methodNameComparator =
 			Comparator.comparing( Method::getName );
 
@@ -655,16 +658,20 @@ public class BeanHelper {
 	 * @return {@code true} when the field was found and the value could be set
 	 */
 	public static boolean setValue( Object bean, String propertyPath, Object value ) {
-		final Pattern INDEXED_PROP_PATTERN = Pattern.compile( "(.+)\\[(\\d+)]" );
 		if ( bean == null ) return false;
 
 		String[] props = propertyPath.split( "/" );
-		String prop = "";
+		String prop = "", indexText = "";
 		Object currentBean = bean;
 		try {
 			//--- loop property path (may contain lists)
 			for ( int i = 0; i < props.length; i++ ) {
 				prop = props[i];
+				if ( prop.contains( "[" ) ) {
+					Matcher matcher = indexedPropPattern.matcher( prop );
+					prop = matcher.group( 1 );
+					indexText = matcher.group( 2 );
+				}
 
 				//--- Setter or fallback to field
 				Member member = ReflectionHelper.findSetter( currentBean.getClass(), prop );

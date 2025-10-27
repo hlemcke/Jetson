@@ -102,6 +102,7 @@ public class BeanHelperTest {
 		MainBean mainBean = new MainBean();
 		String str1 = "First";
 		String str2 = "Second";
+		String str3 = "Third";
 
 		//--- when / then #1
 		boolean wasSet = BeanHelper.setValue( mainBean, "names", str1 );
@@ -114,9 +115,11 @@ public class BeanHelperTest {
 		assertEquals( str2, mainBean.names.get( 0 ) );
 
 		//--- when / then #1
-		wasSet = BeanHelper.setValue( mainBean, "names[+]", str1 );
+		wasSet = BeanHelper.setValue( mainBean, "names[+]", str3 );
 		assertTrue( wasSet );
-		assertEquals( str1, mainBean.names.get( 0 ) );
+		assertEquals( 2, mainBean.names.size() );
+		assertEquals( str2, mainBean.names.get( 0 ) );
+		assertEquals( str3, mainBean.names.get( 1 ) );
 	}
 
 	/**

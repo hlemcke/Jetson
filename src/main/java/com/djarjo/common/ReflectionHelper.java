@@ -403,7 +403,7 @@ public class ReflectionHelper {
 				throw new RuntimeException(
 						String.format( "No setter found in bean %s from %s", bean, method ) );
 			}
-			setValueUsingSetter( bean, setter, value);
+			setValueUsingSetter( bean, setter, value );
 		} else {
 			throw new RuntimeException( "Member must be field or method but is " + member );
 		}
@@ -461,7 +461,9 @@ public class ReflectionHelper {
 		field.set( bean, convertedValue );
 	}
 
-	public static void setValueUsingSetter( Object bean, Method setter, Object value) {
+	@SuppressWarnings("unchecked")
+	public static void setValueUsingSetter( Object bean, Method setter,
+			Object value ) throws IllegalAccessException {
 		Class<?>[] types = setter.getParameterTypes();
 		if ( types.length != 1 ) {
 			String msg = String.format(
@@ -469,15 +471,48 @@ public class ReflectionHelper {
 					types.length, setter );
 			throw new RuntimeException( msg );
 		}
-		//--- Handle bloody array
-		Object convertedValue = BaseConverter.convertToType( value, types[0] );
-		setter.setAccessible( true );
+		Class<?> type = types[0];
+		Object convertedValue = null;
+
 		try {
+			//--- Handle ancient array
+			if ( type.isArray() ) {
+				//--- Array must be fetched (or created) and value added to it
+				if ( !value.getClass().isArray() ) {
+					Object currentArray = getValueFromMember( bean, setter );
+					if ( currentArray == null ) {
+						currentArray = new Array[1];
+						setter.invoke( bean, currentArray );
+					}
+					Array.set( currentArray, 0, value );
+					return;
+				}
+			}
+
+			//--- Handle list
+			else if ( List.class.isAssignableFrom( type ) ) {
+				//--- List must be fetched (or created) and value added to it
+				if ( !List.class.isAssignableFrom( value.getClass() ) ) {
+					List<Object> list = (List<Object>) getValueFromMember( bean, setter );
+					if ( list == null ) {
+						list = new ArrayList<>();
+						setter.invoke( bean, list );
+						list.add( value );
+					} else {
+						list.set( 0, value );
+					}
+					return;
+				}
+			}
+
+			convertedValue = BaseConverter.convertToType( value, types[0] );
+			setter.setAccessible( true );
 			setter.invoke( bean, convertedValue );
-		} catch ( InvocationTargetException e ) {
+		} catch ( IllegalAccessException | InvocationTargetException e ) {
 			throw new IllegalAccessException(
 					String.format( "Cannot set '%s' in bean '%s' with method '%s'",
 							convertedValue, bean, setter ) );
 
 		}
+	}
 }
