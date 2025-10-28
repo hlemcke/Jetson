@@ -4,6 +4,7 @@ import com.google.common.flogger.FluentLogger;
 
 import java.lang.reflect.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -36,11 +37,11 @@ public class ReflectionHelper {
 	/**
 	 * Gets a new instance from the given type.
 	 *
-	 * @param generic any type
+	 * @param type any type
 	 * @return new instance or {@code null}
 	 */
-	public static Object createInstanceFromType( Type generic ) {
-		if ( !(generic instanceof Class<?> cls) ) {
+	public static Object createInstanceFromType( Type type ) {
+		if ( !(type instanceof Class<?> cls) ) {
 			return null;
 		}
 		// Check for interfaces or abstract classes which cannot be instantiated directly
@@ -165,6 +166,12 @@ public class ReflectionHelper {
 	}
 
 
+	public static Class<?>[] getParameterTypes( Member member ) {
+		return (member instanceof Field field) ?
+				new Class<?>[]{field.getType(), field.getGenericType().getClass()} :
+				((Method) member).getParameterTypes();
+	}
+
 	public static Object getValueByIndex( Object bean, int index ) {
 		if ( bean == null ) return null;
 		Class<?> beanType = bean.getClass();
@@ -248,14 +255,17 @@ public class ReflectionHelper {
 			}
 
 			//--- Standard Pojo
-			return createInstanceFromType( memberType );
-		} catch ( IllegalAccessException | InvocationTargetException e ) {
+			Object pojo = createInstanceFromType( memberType );
+			_writeValueToMember( bean, member, pojo );
+			return pojo;
+		} catch ( IllegalAccessException e ) {
 			logger.atFinest().log( "Cannot access %s in bean %s", member, bean );
 			throw new RuntimeException( e );
 		}
 	}
 
-	public static Object instantiateGeneric( Member member ) {
+	public static Object instantiateGeneric( Object bean,
+			Member member, Object arrayOrList, int index ) throws IllegalAccessException {
 		ParameterizedType generic;
 		if ( member instanceof Field field ) {
 			generic = (ParameterizedType) field.getGenericType();
@@ -266,27 +276,54 @@ public class ReflectionHelper {
 			logger.atFinest().log( msg );
 			throw new RuntimeException( msg );
 		}
-		Type valueType = ReflectionHelper.getActualTypeArgument( generic, 0 );
-		return ReflectionHelper.createInstanceFromType( valueType );
+		Type genericType = ReflectionHelper.getActualTypeArgument( generic, 0 );
+		Object pojo = ReflectionHelper.createInstanceFromType( genericType );
+
+		//--- Append to end of list or array
+		int currentSize = getSize( arrayOrList );
+		if ( (index < 0) || (currentSize <= index) ) {
+			_appendValueToList( bean, member, arrayOrList, pojo );
+		} else {
+			_writeValueToList( arrayOrList, index, pojo );
+		}
+		return pojo;
 	}
 
-	private static Object _instantiateListProperty( Object bean, Member member,
-			Class<?> memberType ) throws IllegalAccessException, InvocationTargetException {
-		Object newInstance = instantiateGeneric( member );
+	public static boolean isList( Class<?> clazz ) {
+		return (clazz == null) ? null :
+				List.class.isAssignableFrom( clazz );
+	}
 
-		//--- Create instance of list or array and add new instance
-		Object list = null;
+	public static boolean isArrayOrList( Class<?> clazz ) {
+		return (clazz != null) && (isList( clazz ) || clazz.isArray());
+	}
+
+	private static int getSize( Object value ) {
+		return (value == null) ? 0 : (List.class.isAssignableFrom( value.getClass() )) ?
+				((List<?>) value).size() : (value.getClass().isArray()) ?
+				Array.getLength( value ) : 0;
+	}
+
+	/**
+	 * Instantiates array (with length 1)  or list and writes it into the bean.
+	 *
+	 * @param bean bean
+	 * @param member field or setter
+	 * @param memberType array or list
+	 * @return array or list
+	 * @throws IllegalAccessException e
+	 */
+	private static Object _instantiateListProperty( Object bean, Member member,
+			Class<?> memberType ) throws IllegalAccessException {
 		if ( memberType.isArray() ) {
 			Class<?> componentType = memberType.getComponentType();
-			list = Array.newInstance( componentType, 1 );
-			Array.set( list, 0, newInstance );
-		} else {
-			List<Object> l = new ArrayList<>();
-			l.add( newInstance );
-			list = l;
+			Object[] array = (Object[]) Array.newInstance( componentType, 1 );
+			_writeValueToMember( bean, member, array );
+			return array;
 		}
-		setValue( bean, member, list );
-		return newInstance;
+		List<Object> l = new ArrayList<>();
+		_writeValueToMember( bean, member, l );
+		return l;
 	}
 
 	/**
@@ -334,19 +371,17 @@ public class ReflectionHelper {
 	 * Returns a method name. The returned method name starts with the optional prefix and
 	 * is followed by the propertyName whose first character is converted to uppercase.
 	 *
-	 * @param prefix The prefix for the method like "get", "has", "is" or "set"
+	 * @param prefix The prefix for the method like "get", "has", "is", "set" or "with".
+	 * Best to use entry from {@link #getterPrefixes} or {@link #setterPrefixes}
 	 * @param propertyName The name of a property
-	 * @return method name or <em>null</em>
+	 * @return method name or {@code null} if {@code propertyName} is empty
 	 */
 	public static String makeMethodName( String prefix, String propertyName ) {
 		if ( propertyName == null || propertyName.isEmpty() ) {
 			return null;
 		}
-		if ( prefix == null ) {
-			prefix = "";
-		}
-		String name =
-				prefix + Character.toUpperCase( propertyName.charAt( 0 ) );
+		prefix = (prefix == null) ? "" : prefix;
+		String name = prefix + Character.toUpperCase( propertyName.charAt( 0 ) );
 		if ( propertyName.length() > 1 ) {
 			name += propertyName.substring( 1 );
 		}
@@ -388,11 +423,11 @@ public class ReflectionHelper {
 	 * @param value new value
 	 * @throws IllegalAccessException e
 	 */
-	public static void setValue( Object bean, Member member,
+	public static void setValue( Object bean, Member member, int index,
 			Object value ) throws IllegalAccessException {
 		//--- Handle Field
 		if ( member instanceof Field field ) {
-			setValueUsingField( bean, field, value );
+			_setValueUsingField( bean, field, index, value );
 			return;
 		}
 
@@ -403,116 +438,140 @@ public class ReflectionHelper {
 				throw new RuntimeException(
 						String.format( "No setter found in bean %s from %s", bean, method ) );
 			}
-			setValueUsingSetter( bean, setter, value );
+			_setValueUsingSetter( bean, setter, index, value );
 		} else {
 			throw new RuntimeException( "Member must be field or method but is " + member );
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	public static void setValueAt( Object listOrArray, int index, Object value ) {
-		Class<?> type = listOrArray.getClass();
-		if ( type.isArray() ) {
-			Array.set( listOrArray, index, value );
-		} else {
-			List<Object> l = (List<Object>) listOrArray;
-			if ( index < l.size() ) {
-				l.set( index, value );
-			} else {
-				l.add( value );
+	/**
+	 * Sets {@code value} into {@code member} in {@code bean}.
+	 * <p>{@code member} type must be list or array</p>
+	 *
+	 * @param bean object
+	 * @param member field or setter
+	 * @param index -1 to append or index 0 .. n
+	 * @param value value to set at index
+	 */
+	private static void _setValueAt( Object bean, Member member, int index,
+			Object value ) throws IllegalAccessException {
+		assert value != null;
+		Class<?>[] types = getParameterTypes( member );
+
+		//--- If value itself is a list then directly write into member
+		if ( isArrayOrList( value.getClass() ) ) {
+			_writeValueToMember( bean, member, value );
+			return;
+		}
+
+		//--- Handle case with index
+		try {
+			Object currentValue = getValueFromMember( bean, member );
+			if ( currentValue == null ) {
+				currentValue = createInstanceFromType( types[0] );
+				_writeValueToMember( bean, member, currentValue );
 			}
+			int currentSize = getSize( currentValue );
+
+			//--- Append to end of list or array
+			if ( (index < 0) || (currentSize <= index) ) {
+				_appendValueToList( bean, member, value, currentValue );
+				return;
+			}
+
+			_writeValueToList( currentValue, index, value );
+		} catch ( InvocationTargetException e ) {
+			throw new IllegalAccessException( e.getMessage() );
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	public static void setValueUsingField( Object bean, Field field,
+	private static void _setValueUsingField( Object bean, Field field, int index,
 			Object value ) throws IllegalAccessException {
-		Class<?> type = field.getType();
-
-		//--- Handle still existing array
-		if ( type.isArray() ) {
-			//--- Array must be fetched (or created) and value added to it
-			if ( !value.getClass().isArray() ) {
-				Object array = field.get( bean );
-				if ( array == null ) {
-					array = new Array[1];
-					field.set( bean, value );
-				}
-				Array.set( array, 0, value );
-				return;
-			}
+		if ( value == null ) {
+			field.set( bean, null );
+			return;
 		}
-
-		//--- Handle List
-		else if ( List.class.isAssignableFrom( type ) ) {
-			//--- List must be fetched (or created) and value added to it
-			if ( !List.class.isAssignableFrom( value.getClass() ) ) {
-				List<Object> list = (List<Object>) field.get( bean );
-				if ( list == null ) {
-					list = new ArrayList<>();
-					field.set( bean, list );
-				}
-				list.add( value );
-				return;
-			}
+		Class<?>[] types = getParameterTypes( field );
+		if ( (List.class.isAssignableFrom( types[0] )) || types[0].isArray() ) {
+			_setValueAt( bean, field, index, value );
+			return;
 		}
-		Object convertedValue = BaseConverter.convertToType( value, type );
+		Object convertedValue = BaseConverter.convertToType( value, types[0] );
 		field.setAccessible( true );
 		field.set( bean, convertedValue );
 	}
 
-	@SuppressWarnings("unchecked")
-	public static void setValueUsingSetter( Object bean, Method setter,
+	private static void _setValueUsingSetter( Object bean, Method setter, int index,
 			Object value ) throws IllegalAccessException {
 		Class<?>[] types = setter.getParameterTypes();
-		if ( types.length != 1 ) {
+		if ( !isSetter( setter ) ) {
 			String msg = String.format(
 					"Method must be a standard setter with one parameter but has %d: %s",
 					types.length, setter );
 			throw new RuntimeException( msg );
 		}
-		Class<?> type = types[0];
-		Object convertedValue = null;
 
 		try {
-			//--- Handle ancient array
-			if ( type.isArray() ) {
-				//--- Array must be fetched (or created) and value added to it
-				if ( !value.getClass().isArray() ) {
-					Object currentArray = getValueFromMember( bean, setter );
-					if ( currentArray == null ) {
-						currentArray = new Array[1];
-						setter.invoke( bean, currentArray );
-					}
-					Array.set( currentArray, 0, value );
-					return;
-				}
+			if ( value == null ) {
+				setter.invoke( bean, (Object) null );
+				return;
+			}
+			if ( (List.class.isAssignableFrom( types[0] )) || types[0].isArray() ) {
+				_setValueAt( bean, setter, index, value );
+				return;
 			}
 
-			//--- Handle list
-			else if ( List.class.isAssignableFrom( type ) ) {
-				//--- List must be fetched (or created) and value added to it
-				if ( !List.class.isAssignableFrom( value.getClass() ) ) {
-					List<Object> list = (List<Object>) getValueFromMember( bean, setter );
-					if ( list == null ) {
-						list = new ArrayList<>();
-						setter.invoke( bean, list );
-						list.add( value );
-					} else {
-						list.set( 0, value );
-					}
-					return;
-				}
-			}
-
-			convertedValue = BaseConverter.convertToType( value, types[0] );
+			Object convertedValue = BaseConverter.convertToType( value, types[0] );
 			setter.setAccessible( true );
 			setter.invoke( bean, convertedValue );
 		} catch ( IllegalAccessException | InvocationTargetException e ) {
 			throw new IllegalAccessException(
 					String.format( "Cannot set '%s' in bean '%s' with method '%s'",
-							convertedValue, bean, setter ) );
+							value, bean, setter ) );
+		}
+	}
 
+	@SuppressWarnings("unchecked")
+	private static void _appendValueToList( Object bean, Member member, Object listOrArray,
+			Object value ) throws IllegalAccessException {
+		if ( isList( listOrArray.getClass() ) ) {
+			List<Object> l = (List<Object>) listOrArray;
+			l.add( value );
+			return;
+		}
+		//--- Increment array
+		Object[] array = (Object[]) listOrArray;
+		int largerSize = array.length;
+		Object[] largerArray = Arrays.copyOf( array, largerSize );
+		largerArray[largerSize - 1] = value;
+
+		//--- replace old array with larger one
+		_writeValueToMember( bean, member, largerArray );
+	}
+
+	@SuppressWarnings("unchecked")
+	private static void _writeValueToList( Object listOrArray, int index, Object value ) {
+		if ( isList( listOrArray.getClass() ) ) {
+			List<Object> l = (List<Object>) listOrArray;
+			l.set( index, value );
+			return;
+		}
+		Object[] array = (Object[]) listOrArray;
+		array[index] = value;
+	}
+
+	private static void _writeValueToMember( Object bean, Member member, Object value )
+			throws IllegalAccessException {
+		if ( member instanceof Field field ) {
+			field.set( bean, value );
+			return;
+		}
+		if ( member instanceof Method setter ) {
+			try {
+				setter.invoke( bean, value );
+			} catch ( InvocationTargetException e ) {
+				throw new IllegalAccessException( e.getMessage() );
+			}
 		}
 	}
 }

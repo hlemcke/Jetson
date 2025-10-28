@@ -583,7 +583,7 @@ public class JsonDecoder {
 			}
 
 			// --- Set value into field or use setter method
-			ReflectionHelper.setValue( target, member, value );
+			ReflectionHelper.setValue( target, member, 0, value );
 		}
 	}
 

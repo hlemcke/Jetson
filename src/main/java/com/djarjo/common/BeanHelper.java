@@ -1,5 +1,6 @@
 package com.djarjo.common;
 
+import com.djarjo.text.TextHelper;
 import com.google.common.flogger.FluentLogger;
 
 import javax.lang.model.element.ElementKind;
@@ -25,8 +26,8 @@ public class BeanHelper {
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 	private static final Comparator<Object> keyComparator =
 			Comparator.comparing( Object::toString );
-	private static final Pattern indexedPropPattern =
-			Pattern.compile( "(.+)\\[(?:[0-9]+|\\+)]" );
+	private static final Pattern indexedPropertyPattern =
+			Pattern.compile( "^(\\w+)\\[([0-9]+|\\+)]$" );
 	private static final Comparator<Method> methodNameComparator =
 			Comparator.comparing( Method::getName );
 
@@ -36,22 +37,17 @@ public class BeanHelper {
 	public BeanHelper() {
 	}
 
-	/******************************************************************
-	 * Obtains all fields from the bean which have a getter method and store
-	 * them in the map. The key is the name of the getter (lower case without
-	 * the leading 'get') and the value is the value returned from the getter
-	 * method.
+	/**
+	 * Obtains all fields from the bean which have a getter method and store them in the
+	 * map. The key is the name of the getter (lower case without the leading 'get') and
+	 * the
+	 * value is the value returned from the getter method.
 	 *
-	 * @param bean
-	 *            Java object to be described
+	 * @param bean Java object to be described
 	 * @return new instance of HashMap
-	 *
-	 * @throws IllegalAccessException
-	 *             if access is prohibited
-	 * @throws IllegalArgumentException
-	 *             if getter name is wrong
-	 * @throws InvocationTargetException
-	 *             if getter must not be invoked
+	 * @throws IllegalAccessException if access is prohibited
+	 * @throws IllegalArgumentException if getter name is wrong
+	 * @throws InvocationTargetException if getter must not be invoked
 	 */
 	public static Map<String, Object> describe( Object bean )
 			throws IllegalAccessException, IllegalArgumentException,
@@ -60,22 +56,16 @@ public class BeanHelper {
 		return describe( bean, getters );
 	}
 
-	/******************************************************************
-	 * Describes the given bean into a map. The desciption contains the
-	 * properties of the bean which can be obtain through the given getter
-	 * methods.
+	/**
+	 * Describes the given bean into a map. The desciption contains the properties of the
+	 * bean which can be obtain through the given getter methods.
 	 *
-	 * @param bean
-	 *            Java object to be described
-	 * @param getters
-	 *            list of getter methods
+	 * @param bean Java object to be described
+	 * @param getters list of getter methods
 	 * @return new instance of HashMap
-	 * @throws IllegalAccessException
-	 *             if access is prohibited
-	 * @throws IllegalArgumentException
-	 *             if getter name is wrong
-	 * @throws InvocationTargetException
-	 *             if getter must not be invoked
+	 * @throws IllegalAccessException if access is prohibited
+	 * @throws IllegalArgumentException if getter name is wrong
+	 * @throws InvocationTargetException if getter must not be invoked
 	 */
 	public static Map<String, Object> describe( Object bean, Method[] getters )
 			throws IllegalAccessException, IllegalArgumentException,
@@ -125,12 +115,10 @@ public class BeanHelper {
 		return map;
 	}
 
-	/******************************************************************
-	 * Extracts the name of the package out of the full name of the Java file or
-	 * class.
+	/**
+	 * Extracts the name of the package out of the full name of the Java file or class.
 	 *
-	 * @param fullName
-	 *            The full name of a class or interface
+	 * @param fullName The full name of a class or interface
 	 * @return package name
 	 */
 	public static String extractPackageFromName( String fullName ) {
@@ -267,12 +255,6 @@ public class BeanHelper {
 		Field internalField = clazz.getDeclaredField( fieldName );
 		internalField.setAccessible( true );
 		internalField.set( bean, value );
-	}
-
-	public static boolean isArrayOrList( Object bean ) {
-		if ( bean == null ) return false;
-		Class<?> type = bean.getClass();
-		return type.isArray() || List.class.isAssignableFrom( type );
 	}
 
 	/**
@@ -496,11 +478,11 @@ public class BeanHelper {
 		}
 
 		// --- Loop through setter methods
-		String key = null;
+		String key;
 		for ( Method setter : setters ) {
 			key = ReflectionHelper.getVarNameFromMethodName( setter.getName() );
 			if ( map.containsKey( key ) ) {
-				ReflectionHelper.setValue( bean, setter, map.get( key ) );
+				ReflectionHelper.setValue( bean, setter, 0, map.get( key ) );
 			}
 		}
 	}
@@ -638,18 +620,30 @@ public class BeanHelper {
 	/**
 	 * Sets a property of the given bean.
 	 * <p>
-	 * The property must have a setter method following bean standards like "setAbc( Object
-	 * value )". The <em>propertyName</em> defines the property like "abc".
+	 * The property must either have a setter method following bean standards or a field
+	 * with this name. The setter must be named like "setAbc( Object value )". The
+	 * <em>propertyName</em> defines the property like "abc".
 	 * </p>
 	 * <h4>Nested Properties</h4>
 	 * <p>
 	 * Beans may be nested. In this case <em>propertyName</em> must be a slash-separated
-	 * list of names like "someList/attr1".
+	 * list of names like "nestedBean/attr1" to set {@code value} into property
+	 * <em>attr1</em> of <em>nestedBean</em>.
 	 * </p>
 	 * <h4>List Properties</h4>
 	 * <p>
-	 * To access an entry of a list property, <em>propertyName</em> must be given as
-	 * "listProp[ 7 ]". This will call "setListProp( 7, value )".
+	 * {@code value} can also be written into a list property. If {@code value} itself is a
+	 * list then it will directly be written into the property.
+	 * </p><p>
+	 * Otherwise {@code value} will be converted into the lists generic type. If the (list)
+	 * property is {@code null} then the list will be created first and written into the
+	 * property. Then {@code value} will be written into the list:
+	 * <ol>
+	 *   <li>If no index is given (like in "someList") then index 0 will be used</li>
+	 *   <li>If index is "+" then {@code value} will be appended to end of list</li>
+	 *   <li>Otherwise {@code value} will be written into the list at <em>index</em>.
+	 *   If <em>index</em> is out of range then {@code value} will be appended</li>
+	 * </ol>
 	 * </p>
 	 *
 	 * @param bean The bean in which to set the property to the given value
@@ -661,16 +655,21 @@ public class BeanHelper {
 		if ( bean == null ) return false;
 
 		String[] props = propertyPath.split( "/" );
-		String prop = "", indexText = "";
+		String prop = "";
+		int index = 0;
 		Object currentBean = bean;
 		try {
 			//--- loop property path (may contain lists)
 			for ( int i = 0; i < props.length; i++ ) {
+				index = 0;
 				prop = props[i];
 				if ( prop.contains( "[" ) ) {
-					Matcher matcher = indexedPropPattern.matcher( prop );
-					prop = matcher.group( 1 );
-					indexText = matcher.group( 2 );
+					Matcher matcher = indexedPropertyPattern.matcher( prop );
+					if ( matcher.matches() ) {
+						prop = matcher.group( 1 );
+						String indexText = matcher.group( 2 );
+						index = "+".equals( indexText ) ? -1 : TextHelper.parseInteger( indexText );
+					}
 				}
 
 				//--- Setter or fallback to field
@@ -685,9 +684,9 @@ public class BeanHelper {
 				}
 				((AccessibleObject) member).setAccessible( true );
 
-				//--- Set value into final property from path
+				//--- Set value into last property from path
 				if ( i == props.length - 1 ) {
-					ReflectionHelper.setValue( currentBean, member, value );
+					ReflectionHelper.setValue( currentBean, member, index, value );
 					return true;
 				}
 
@@ -697,13 +696,15 @@ public class BeanHelper {
 				//--- Current property is null -> create it
 				if ( currentValue == null ) {
 					currentValue = ReflectionHelper.instantiateProperty( currentBean, member );
-				} else if ( isArrayOrList( currentValue ) ) {
+				}
+
+				if ( ReflectionHelper.isArrayOrList( currentValue.getClass() ) ) {
 					//--- Obtain item or create it
-					Object listItem = ReflectionHelper.getValueByIndex( currentValue, 0 );
+					Object listItem = ReflectionHelper.getValueByIndex( currentValue, index );
 					//--- list is empty -> create item
 					if ( listItem == null ) {
-						listItem = ReflectionHelper.instantiateGeneric( member );
-						ReflectionHelper.setValueAt( currentValue, 0, listItem );
+						listItem = ReflectionHelper.instantiateGeneric( bean, member, currentValue,
+								index );
 					}
 					currentValue = listItem;
 				}
