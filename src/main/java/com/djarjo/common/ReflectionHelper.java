@@ -44,6 +44,10 @@ public class ReflectionHelper {
 		if ( !(type instanceof Class<?> cls) ) {
 			return null;
 		}
+		if ( isList( getRawClass( type ) ) ) {
+			return new ArrayList<>();
+		}
+
 		// Check for interfaces or abstract classes which cannot be instantiated directly
 		if ( cls.isInterface() || Modifier.isAbstract(
 				cls.getModifiers() ) ) {
@@ -172,6 +176,17 @@ public class ReflectionHelper {
 				((Method) member).getParameterTypes();
 	}
 
+	public static Class<?> getRawClass( Type type ) {
+		if ( type instanceof Class ) {
+			return (Class<?>) type;
+		} else if ( type instanceof ParameterizedType ) {
+			// Extracts the raw type from a generic type (e.g., List<String> -> List)
+			return (Class<?>) ((ParameterizedType) type).getRawType();
+		}
+		// TODO add checks for GenericArrayType, WildcardType, etc., for completeness
+		return null;
+	}
+
 	public static Object getValueByIndex( Object bean, int index ) {
 		if ( bean == null ) return null;
 		Class<?> beanType = bean.getClass();
@@ -290,8 +305,7 @@ public class ReflectionHelper {
 	}
 
 	public static boolean isList( Class<?> clazz ) {
-		return (clazz == null) ? null :
-				List.class.isAssignableFrom( clazz );
+		return clazz != null && List.class.isAssignableFrom( clazz );
 	}
 
 	public static boolean isArrayOrList( Class<?> clazz ) {
@@ -475,7 +489,7 @@ public class ReflectionHelper {
 
 			//--- Append to end of list or array
 			if ( (index < 0) || (currentSize <= index) ) {
-				_appendValueToList( bean, member, value, currentValue );
+				_appendValueToList( bean, member, currentValue, value );
 				return;
 			}
 
@@ -516,7 +530,7 @@ public class ReflectionHelper {
 				setter.invoke( bean, (Object) null );
 				return;
 			}
-			if ( (List.class.isAssignableFrom( types[0] )) || types[0].isArray() ) {
+			if ( isArrayOrList( types[0] ) ) {
 				_setValueAt( bean, setter, index, value );
 				return;
 			}
