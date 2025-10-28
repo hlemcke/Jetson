@@ -644,7 +644,6 @@ public class BeanHelper {
 	 *   <li>Otherwise {@code value} will be written into the list at <em>index</em>.
 	 *   If <em>index</em> is out of range then {@code value} will be appended</li>
 	 * </ol>
-	 * </p>
 	 *
 	 * @param bean The bean in which to set the property to the given value
 	 * @param propertyPath single property like "attr1" or nested like "someBean/attr2"
