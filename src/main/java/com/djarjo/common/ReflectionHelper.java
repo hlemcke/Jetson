@@ -19,22 +19,6 @@ public class ReflectionHelper {
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 
 	/**
-	 *
-	 * @param clazz class
-	 * @param name field name
-	 * @return Field or {@code null}
-	 */
-	public static Field findField( Class<?> clazz, String name ) {
-		Field[] fields = clazz.getDeclaredFields();
-		for ( Field field : fields ) {
-			if ( field.getName().equals( name ) ) {
-				return field;
-			}
-		}
-		return null;
-	}
-
-	/**
 	 * Gets a new instance from the given type.
 	 *
 	 * @param type any type
@@ -101,6 +85,22 @@ public class ReflectionHelper {
 	}
 
 	/**
+	 *
+	 * @param clazz class
+	 * @param name field name
+	 * @return Field or {@code null}
+	 */
+	public static Field findField( Class<?> clazz, String name ) {
+		Field[] fields = clazz.getDeclaredFields();
+		for ( Field field : fields ) {
+			if ( field.getName().equals( name ) ) {
+				return field;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Finds the getter method for the given property name following bean standard.
 	 * <p>
 	 * The method must start with one of ["get", "has", "is"] followed by the given
@@ -135,26 +135,18 @@ public class ReflectionHelper {
 	}
 
 	/**
-	 * Gets generic type by {@code index}.
+	 * Gets actual type.
 	 *
-	 * @param pType type
-	 * @param index index to generic like 0 for List
-	 * @return generic type
+	 * @param genericType type
+	 * @return type
 	 */
-	public static Type getActualTypeArgument( ParameterizedType pType, int index ) {
-		Type[] actualTypeArguments = pType.getActualTypeArguments();
-		if ( 0 <= index && index < actualTypeArguments.length ) {
-			String typeArgument = actualTypeArguments[index].getTypeName();
-			try {
-				return Thread.currentThread()
-						.getContextClassLoader()
-						.loadClass( typeArgument );
-			} catch ( ClassNotFoundException | IllegalArgumentException |
-								SecurityException e ) {
-				logger.atWarning()
-						.withCause( e )
-						.log( "Cannot obtain generic type %d from '%s'", index, typeArgument );
-			}
+	public static Type getActualTypeArgument( Type genericType, int index ) {
+		if ( genericType instanceof ParameterizedType paramType ) {
+			Type[] actualTypes = paramType.getActualTypeArguments();
+			return ((index < 0) || (index >= actualTypes.length)) ? null : actualTypes[index];
+		}
+		if ( genericType instanceof Class<?> cls && cls.isArray() ) {
+			return cls.getComponentType();
 		}
 		return null;
 	}
@@ -238,6 +230,42 @@ public class ReflectionHelper {
 	}
 
 	/**
+	 * Instantiates the generic class of an array or a list and writes it into
+	 *
+	 * @param bean pojo needed for array resize
+	 * @param member in pojo needed to set resized array
+	 * @param arrayOrList array or list object
+	 * @param index -1 to append
+	 * @return pojo created and set into array or list
+	 * @throws IllegalAccessException e
+	 */
+	public static Object instantiateGeneric( Object bean,
+			Member member, Object arrayOrList, int index ) throws IllegalAccessException {
+		Type genericType;
+		if ( member instanceof Field field ) {
+			genericType = field.getGenericType();
+		} else if ( member instanceof Method method ) {
+			genericType = isGetter( method ) ? method.getGenericReturnType() :
+					method.getGenericParameterTypes()[0];
+		} else {
+			String msg = "Member must be field or method but is " + member;
+			logger.atFinest().log( msg );
+			throw new RuntimeException( msg );
+		}
+		Type actualType = ReflectionHelper.getActualTypeArgument( genericType, 0 );
+		Object pojo = ReflectionHelper.createInstanceFromType( actualType );
+
+		//--- Append to end of list or array
+		int currentSize = _getSize( arrayOrList );
+		if ( (index < 0) || (currentSize <= index) ) {
+			_appendValueToList( bean, member, arrayOrList, pojo );
+		} else {
+			_writeValueToList( arrayOrList, index, pojo );
+		}
+		return pojo;
+	}
+
+	/**
 	 * Instantiates property.
 	 * <p>
 	 * Attention: this method creates a new instance for the member. It should only be
@@ -279,65 +307,12 @@ public class ReflectionHelper {
 		}
 	}
 
-	public static Object instantiateGeneric( Object bean,
-			Member member, Object arrayOrList, int index ) throws IllegalAccessException {
-		ParameterizedType generic;
-		if ( member instanceof Field field ) {
-			generic = (ParameterizedType) field.getGenericType();
-		} else if ( member instanceof Method method ) {
-			generic = (ParameterizedType) method.getGenericReturnType();
-		} else {
-			String msg = "Member must be field or method but is " + member;
-			logger.atFinest().log( msg );
-			throw new RuntimeException( msg );
-		}
-		Type genericType = ReflectionHelper.getActualTypeArgument( generic, 0 );
-		Object pojo = ReflectionHelper.createInstanceFromType( genericType );
-
-		//--- Append to end of list or array
-		int currentSize = getSize( arrayOrList );
-		if ( (index < 0) || (currentSize <= index) ) {
-			_appendValueToList( bean, member, arrayOrList, pojo );
-		} else {
-			_writeValueToList( arrayOrList, index, pojo );
-		}
-		return pojo;
-	}
-
-	public static boolean isList( Class<?> clazz ) {
-		return clazz != null && List.class.isAssignableFrom( clazz );
-	}
-
 	public static boolean isArrayOrList( Class<?> clazz ) {
 		return (clazz != null) && (isList( clazz ) || clazz.isArray());
 	}
 
-	private static int getSize( Object value ) {
-		return (value == null) ? 0 : (List.class.isAssignableFrom( value.getClass() )) ?
-				((List<?>) value).size() : (value.getClass().isArray()) ?
-				Array.getLength( value ) : 0;
-	}
-
-	/**
-	 * Instantiates array (with length 1)  or list and writes it into the bean.
-	 *
-	 * @param bean bean
-	 * @param member field or setter
-	 * @param memberType array or list
-	 * @return array or list
-	 * @throws IllegalAccessException e
-	 */
-	private static Object _instantiateListProperty( Object bean, Member member,
-			Class<?> memberType ) throws IllegalAccessException {
-		if ( memberType.isArray() ) {
-			Class<?> componentType = memberType.getComponentType();
-			Object[] array = (Object[]) Array.newInstance( componentType, 1 );
-			_writeValueToMember( bean, member, array );
-			return array;
-		}
-		List<Object> l = new ArrayList<>();
-		_writeValueToMember( bean, member, l );
-		return l;
+	public static boolean isList( Class<?> clazz ) {
+		return clazz != null && List.class.isAssignableFrom( clazz );
 	}
 
 	/**
@@ -458,6 +433,34 @@ public class ReflectionHelper {
 		}
 	}
 
+	private static int _getSize( Object value ) {
+		return (value == null) ? 0 : isList( value.getClass() )
+				? ((List<?>) value).size() : (value.getClass().isArray())
+				? Array.getLength( value ) : 0;
+	}
+
+	/**
+	 * Instantiates array (with length 1)  or list and writes it into the bean.
+	 *
+	 * @param bean bean
+	 * @param member field or setter
+	 * @param memberType array or list
+	 * @return array or list
+	 * @throws IllegalAccessException e
+	 */
+	private static Object _instantiateListProperty( Object bean, Member member,
+			Class<?> memberType ) throws IllegalAccessException {
+		if ( memberType.isArray() ) {
+			Class<?> componentType = memberType.getComponentType();
+			Object[] array = (Object[]) Array.newInstance( componentType, 1 );
+			_writeValueToMember( bean, member, array );
+			return array;
+		}
+		List<Object> l = new ArrayList<>();
+		_writeValueToMember( bean, member, l );
+		return l;
+	}
+
 	/**
 	 * Sets {@code value} into {@code member} in {@code bean}.
 	 * <p>{@code member} type must be list or array</p>
@@ -485,7 +488,7 @@ public class ReflectionHelper {
 				currentValue = createInstanceFromType( types[0] );
 				_writeValueToMember( bean, member, currentValue );
 			}
-			int currentSize = getSize( currentValue );
+			int currentSize = _getSize( currentValue );
 
 			//--- Append to end of list or array
 			if ( (index < 0) || (currentSize <= index) ) {
