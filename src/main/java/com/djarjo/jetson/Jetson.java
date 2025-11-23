@@ -4,6 +4,7 @@
 package com.djarjo.jetson;
 
 import java.text.ParseException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,8 +35,7 @@ public class Jetson {
 	 * Decodes the given Json string into a basic value, a list or a map.
 	 * <p>
 	 * Finding a "{" will automatically create a new HashMap. Finding a "[" will
-	 * automatically create a new ArrayList. Any other value will just be
-	 * returned.
+	 * automatically create a new ArrayList. Any other value will just be returned.
 	 * </p>
 	 *
 	 * @param jsonString Json string to be decoded
@@ -50,14 +50,12 @@ public class Jetson {
 	}
 
 	/**
-	 * Decodes given {@code jsonString} and writes values into {@code target}
-	 * object.
+	 * Decodes given {@code jsonString} and writes values into {@code target} object.
 	 * <p>
 	 * Fields in target object must be annotated with {@code @Json}.
 	 * </p>
 	 * <p>
-	 * Uses default settings of {@link com.djarjo.jetson.JsonDecoder
-	 * JsonDecoder}.
+	 * Uses default settings of {@link com.djarjo.jetson.JsonDecoder JsonDecoder}.
 	 * </p>
 	 *
 	 * @param jsonString Json string to decode
@@ -75,9 +73,30 @@ public class Jetson {
 	}
 
 	/**
+	 * Decodes given {@code jsonString} into a list
+	 *
+	 * <p>
+	 * Creates a new instance of {@code ArrayList} and writes values into new objects of
+	 * type {@code itemClass}.
+	 * </p>
+	 *
+	 * @param jsonString Json string to decode
+	 * @param itemClass Class of objects in list
+	 * @return list
+	 * @throws IllegalAccessException when writing values into item object is not allowed
+	 * @throws ParseException in case of an error in the Json string
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> List<T> decodeToList( String jsonString,
+			Class<?> itemClass ) throws ParseException, IllegalAccessException {
+		return (List<T>) JsonDecoder.decoder().decodeList( jsonString, itemClass );
+	}
+
+	/**
 	 * Decodes given {@code jsonString} into a map.
 	 * <p>
-	 * Utility method includes casting to map and suppresses compiler warning for unchecked conversion.
+	 * Utility method includes casting to map and suppresses compiler warning for unchecked
+	 * conversion.
 	 * </p>
 	 *
 	 * @param jsonString Json string to decode
@@ -142,8 +161,8 @@ public class Jetson {
 	}
 
 	/**
-	 * Pretty prints the encoded json string by writing each item on a separate
-	 * line and indenting it with the given {@code indent}.
+	 * Pretty prints the encoded json string by writing each item on a separate line and
+	 * indenting it with the given {@code indent}.
 	 * <p>
 	 * A value of {@code null} will encode into a one line string
 	 * </p>

@@ -102,7 +102,7 @@ public class JsonDecoder {
 	 * @throws IllegalAccessException if field in list items not accessible
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> Collection<T> decodeList( String jsonString,
+	public <T> List<T> decodeList( String jsonString,
 			Class<T> itemClass ) throws ParseException, IllegalAccessException {
 		if ( jsonString == null || jsonString.isEmpty() ) {
 			return null;
@@ -178,7 +178,7 @@ public class JsonDecoder {
 	 * @throws ParseException what it says
 	 */
 	@SuppressWarnings({"rawtypes", "unchecked"})
-	private Collection _decodeList( Collection target,
+	private List _decodeList( List target,
 			Type valueType ) throws IllegalAccessException, ParseException {
 		Token token;
 		target = (target == null) ? new ArrayList<>() : target;
@@ -416,7 +416,7 @@ public class JsonDecoder {
 		Token token = _tokenizer.getToken();
 
 		if ( token.symbol == Symbol.LEFT_BRACKET ) { // Json List
-			retval = _decodeList( (Collection<?>) target, valueType );
+			retval = _decodeList( (List<?>) target, valueType );
 		} else if ( token.symbol == Symbol.LEFT_BRACE ) { // --- Json Object
 			retval = _decodeObject( target, keyType, valueType );
 		} else if ( token.symbol == Symbol.WORD ) {
