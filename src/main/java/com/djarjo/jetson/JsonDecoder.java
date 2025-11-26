@@ -115,7 +115,7 @@ public class JsonDecoder {
 			String s = _makeErrorInfo( "Syntax error. '[' expected to parse a list" );
 			throw new ParseException( s, 0 );
 		}
-		return _decodeList( new ArrayList<T>(), itemClass );
+		return (List<T>) _decodeList( new ArrayList<T>(), itemClass );
 	}
 
 	/**
@@ -166,10 +166,10 @@ public class JsonDecoder {
 	}
 
 	/**
-	 * Decodes a Json string starting with "[". Returns the given {@code target} or a new
-	 * ArrayList filled with values from the Json string until "]". Values in the Json
-	 * array
-	 * must be basic types or {@code valueType} must be given.
+	 * Decodes a Json string starting with "[". Returns the given {@code target} or creates
+	 * a new ArrayList filled with values from the Json string until "]". Values in the
+	 * Json
+	 * array must be basic types or {@code valueType} must be given.
 	 *
 	 * @param target The target object for the values in the collection
 	 * @param valueType type of the values (required if not a basic type)
@@ -178,7 +178,7 @@ public class JsonDecoder {
 	 * @throws ParseException what it says
 	 */
 	@SuppressWarnings({"rawtypes", "unchecked"})
-	private List _decodeList( List target,
+	private Collection _decodeList( Collection target,
 			Type valueType ) throws IllegalAccessException, ParseException {
 		Token token;
 		target = (target == null) ? new ArrayList<>() : target;
@@ -416,7 +416,7 @@ public class JsonDecoder {
 		Token token = _tokenizer.getToken();
 
 		if ( token.symbol == Symbol.LEFT_BRACKET ) { // Json List
-			retval = _decodeList( (List<?>) target, valueType );
+			retval = _decodeList( (Collection<?>) target, valueType );
 		} else if ( token.symbol == Symbol.LEFT_BRACE ) { // --- Json Object
 			retval = _decodeObject( target, keyType, valueType );
 		} else if ( token.symbol == Symbol.WORD ) {
