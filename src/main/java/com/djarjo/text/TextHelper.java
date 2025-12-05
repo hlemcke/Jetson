@@ -1260,9 +1260,11 @@ public class TextHelper {
 	}
 
 	/**
-	 * Parses the given text as a hexadecimal string. Skips leading blanks. Reads digits
-	 * for
-	 * the value until the first non-digit.
+	 * Parses {@code text} as a hexadecimal string into a 64bit unsigned long value.
+	 * <p>
+	 * Skips leading blanks and optional "0x". Stops parsing after 16 chars or when
+	 * encountering a non-hex char.
+	 * </p>
 	 *
 	 * @param text Text to be parsed
 	 * @return long value or {@code null} if the text is not hex formatted
@@ -1272,20 +1274,21 @@ public class TextHelper {
 		if ( text == null ) {
 			return null;
 		}
-		String byteString = text.stripLeading()
-				.toLowerCase();
-		if ( !text.startsWith( "0x" ) || text.length() < 3 ) {
-			return null;
+		String byteString = text.stripLeading().toLowerCase();
+		if ( byteString.startsWith( "0x" ) ) {
+			byteString = byteString.substring( 2 );
 		}
+
 		// --- Build value from left to right
-		long hexVal = 0L;
+		long value = 0L;
 		int digitIndex = 0;
-		for ( int idx = 2; idx < byteString.length()
-				&& digitIndex >= 0; idx++ ) {
-			digitIndex = hexChars.indexOf( byteString.charAt( idx ) );
-			hexVal = hexVal * 16 + digitIndex;
+		for ( int i = 0; i < 16 && i < byteString.length(); i++ ) {
+			char c = byteString.charAt( i );
+			int digit = hexChars.indexOf( c );
+			if ( digit < 0 ) break;
+			value = value * 16 + digit;
 		}
-		return hexVal;
+		return value;
 	}
 
 	/**

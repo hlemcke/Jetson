@@ -82,6 +82,7 @@ public class Jetson {
 	 *
 	 * @param jsonString Json string to decode
 	 * @param itemClass Class of objects in list
+	 * @param <T> Type of elements in list
 	 * @return list
 	 * @throws IllegalAccessException when writing values into item object is not allowed
 	 * @throws ParseException in case of an error in the Json string

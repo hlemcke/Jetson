@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class ReflectionHelper {
 	public final static List<String> getterPrefixes = List.of( "get", "has", "is" );
-	public final static List<String> setterPrefixes = List.of( "set", "with" );
+	public final static List<String> setterPrefixes = List.of( "add", "set", "with" );
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 
 	/**
@@ -85,6 +85,7 @@ public class ReflectionHelper {
 	}
 
 	/**
+	 * Finds field by given name in class.
 	 *
 	 * @param clazz class
 	 * @param name field name
@@ -131,6 +132,13 @@ public class ReflectionHelper {
 
 	public static Method findSetter( Class<?> beanClass, String propertyName ) {
 		Method[] methods = beanClass.getMethods();
+		//--- Check if method without setter prefix exists
+		for ( Method method : methods ) {
+			if ( method.getName().equals( propertyName ) ) {
+				return method;
+			}
+		}
+		//--- No method with given name => check all standard setter prefixes
 		return findMethod( methods, propertyName, setterPrefixes );
 	}
 
@@ -138,6 +146,7 @@ public class ReflectionHelper {
 	 * Gets actual type.
 	 *
 	 * @param genericType type
+	 * @param index index into list of generic types (normally 0)
 	 * @return type
 	 */
 	public static Type getActualTypeArgument( Type genericType, int index ) {
@@ -318,18 +327,22 @@ public class ReflectionHelper {
 	/**
 	 * Checks if given method is a getter.
 	 * <p>
-	 * A getter has no parameters and must start with {@code get}, {@code has} or
-	 * {@code is}.
-	 * </p>
+	 * A getter:
+	 * <ul><li>has no parameters</li>
+	 * <li>must not return void</li>
+	 * <li>must start with {@code get}, {@code has} or {@code is}</li></ul>
 	 *
 	 * @param method method
-	 * @return {@code true} if method is a setter
+	 * @return {@code true} if method is a getter
 	 */
 	public static boolean isGetter( Method method ) {
-		if ( method == null ) return false;
+		if ( (method == null) || (method.getParameterCount() != 0)
+				|| (method.getReturnType() == void.class) ) {
+			return false;
+		}
 		String methodName = method.getName();
 		for ( String prefix : getterPrefixes ) {
-			if ( methodName.startsWith( prefix ) && method.getParameterCount() == 0 ) {
+			if ( methodName.startsWith( prefix ) ) {
 				return true;
 			}
 		}
@@ -339,8 +352,9 @@ public class ReflectionHelper {
 	/**
 	 * Checks if given method is a setter.
 	 * <p>
-	 * A setter has exactly one parameter and must start with {@code set} or {@code with}.
-	 * </p>
+	 * A setter:
+	 * <ul><li>has exactly one parameter</li>
+	 * <li>must start with {@code add}, {@code set} or {@code with}</li></ul>
 	 *
 	 * @param method method
 	 * @return {@code true} if method is a setter

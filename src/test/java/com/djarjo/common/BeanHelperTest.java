@@ -122,6 +122,23 @@ public class BeanHelperTest {
 		assertEquals( str3, mainBean.names.get( 1 ) );
 	}
 
+
+	@Test
+	@DisplayName("Invoke method given by its full name to append string")
+	void callAnyMethodGivenByItsFullName() {
+
+		//--- given
+		MainBean mainBean = new MainBean();
+		String value = "Meteorite";
+
+		//--- when
+		boolean wasSet = BeanHelper.setValue( mainBean, "addName", value );
+
+		//--- then
+		assertTrue( wasSet );
+		assertEquals( value, mainBean.names.get( 0 ) );
+	}
+
 	/**
 	 *
 	 */
@@ -132,6 +149,13 @@ public class BeanHelperTest {
 		private NestedBean nestedBean = new NestedBean();
 		private List<NestedBean> nestedBeanListEmpty = new ArrayList<>();
 		private List<NestedBean> nestedBeanListNull = null;
+
+		public void addName( String name ) {
+			if ( names == null ) {
+				names = new ArrayList<>();
+			}
+			names.add( name );
+		}
 
 		public List<String> getNames() {
 			return names;
