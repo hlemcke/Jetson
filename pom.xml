@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jetson</artifactId>
-    <description>Json encoder and decoder with annotations and bean management</description>
+    <description>Json encoder and decoder with a reflection helper for bean management</description>
     <groupId>com.djarjo</groupId>
     <name>Djarjo Jetson</name>
     <organization>
@@ -13,8 +13,8 @@
         <url>www.djarjo.com</url>
     </organization>
     <packaging>jar</packaging>
-    <url>http://maven.djarjo.com/jetson</url>
-    <version>1.1.0</version>
+    <url>https://maven.djarjo.com/jetson</url>
+    <version>2.0.0</version>
 
     <properties>
         <maven.test.skip>true</maven.test.skip>

@@ -177,12 +177,12 @@ public class BeanHelper {
 			String name ) {
 		Object value = null;
 		try {
-			if ( kind == ElementKind.FIELD ) {
+			if ( kind==ElementKind.FIELD ) {
 				Field field = bean.getClass()
 						.getDeclaredField( name );
 				field.setAccessible( true );
 				value = field.get( bean );
-			} else if ( kind == ElementKind.METHOD ) {
+			} else if ( kind==ElementKind.METHOD ) {
 				Method method = bean.getClass()
 						.getDeclaredMethod( name, (Class<?>[]) null );
 				method.setAccessible( true );
@@ -220,7 +220,7 @@ public class BeanHelper {
 			} else if ( element instanceof Method method ) {
 				method.setAccessible( true );
 				int count = method.getParameterCount();
-				if ( count != 0 ) {
+				if ( count!=0 ) {
 					throw new IllegalArgumentException( "Method " + method
 							+ " may not have parameters but has " + count );
 				}
@@ -315,7 +315,7 @@ public class BeanHelper {
 
 		StringBuilder fieldName = new StringBuilder( name );
 		for ( i = 0; i < fieldName.length(); i++ ) {
-			if ( fieldName.charAt( i ) == '_' ) {
+			if ( fieldName.charAt( i )=='_' ) {
 				fieldName.deleteCharAt( i );
 				fieldName.setCharAt( i,
 						Character.toUpperCase( fieldName.charAt( i ) ) );
@@ -344,31 +344,9 @@ public class BeanHelper {
 	 */
 	public static Method[] obtainGetters( Class<?> cls ) {
 		List<Method> getters = new ArrayList<>();
-		String name = null;
 		Method[] methods = cls.getMethods();
 		for ( Method method : methods ) {
-			name = method.getName();
-			// --- Skip static, with parameters, getClass()
-			if ( Modifier.isStatic( method.getModifiers() )
-					|| (method.getParameterCount() != 0)
-					|| "getClass".equals( name ) ) {
-				continue;
-			}
-			if ( name.startsWith( "get" ) || name.startsWith( "has" ) ) {
-				if ( name.length() < 4 ) {
-					continue;
-				}
-				if ( Character.isLowerCase( name.charAt( 3 ) ) ) {
-					continue;
-				}
-				getters.add( method );
-			} else if ( name.startsWith( "is" ) ) {
-				if ( name.length() < 3 ) {
-					continue;
-				}
-				if ( Character.isLowerCase( name.charAt( 2 ) ) ) {
-					continue;
-				}
+			if ( ReflectionHelper.isGetter( method ) ) {
 				getters.add( method );
 			}
 		}
@@ -376,7 +354,7 @@ public class BeanHelper {
 		return getters.toArray( new Method[0] );
 	}
 
-	/******************************************************************
+	/**
 	 * Obtains all setter methods of the given class.
 	 * <p>
 	 * A setter method is defined by:
@@ -386,33 +364,18 @@ public class BeanHelper {
 	 * <li>The method has exactly one single parameter</li>
 	 * </ol>
 	 *
-	 * @param clazz
-	 *            The Java class to obtain the setter methods from
-	 * @param withInheritance
-	 *            {@code true} includes inherited classes
+	 * @param clazz The Java class to obtain the setter methods from
+	 * @param withInheritance {@code true} includes inherited classes
 	 * @return array of setter methods
 	 */
 	public static Method[] obtainSetters( Class<?> clazz,
 			boolean withInheritance ) {
 		List<Method> setters = new ArrayList<>();
-		String name;
 		Method[] methods = withInheritance ? clazz.getMethods() : clazz.getDeclaredMethods();
 		for ( Method method : methods ) {
-			// --- Skip non setters
-			name = method.getName();
-			if ( !name.startsWith( "set" ) ) {
-				continue;
+			if ( ReflectionHelper.isSetter( method ) ) {
+				setters.add( method );
 			}
-			if ( name.length() < 4 ) {
-				continue;
-			}
-			if ( Character.isLowerCase( name.charAt( 3 ) ) ) {
-				continue;
-			}
-			if ( method.getParameterCount() != 1 ) {
-				continue;
-			}
-			setters.add( method );
 		}
 		return setters.toArray( new Method[0] );
 	}
@@ -473,7 +436,7 @@ public class BeanHelper {
 		logger.atFiner().log( bean + ", " + map );
 
 		// --- No setters given => obtain here
-		if ( setters == null ) {
+		if ( setters==null ) {
 			setters = obtainSetters( bean.getClass(), withInherited );
 		}
 
@@ -518,7 +481,7 @@ public class BeanHelper {
 
 	private static String _prettyPrintIndent( Object bean, int maxDepth,
 			boolean withNullValues, int curDepth, Set<Object> path ) {
-		if ( bean == null ) {
+		if ( bean==null ) {
 			return withNullValues ? "null" : null;
 		}
 		if ( bean instanceof Boolean || bean instanceof Byte
@@ -581,7 +544,7 @@ public class BeanHelper {
 			for ( Object key : keys ) {
 				value = _prettyPrintIndent( map.get( key ), maxDepth,
 						withNullValues, curDepth + 1, path );
-				s.append( (withNullValues || value != null)
+				s.append( (withNullValues || value!=null)
 						? String.format( "%s%s: %s,\n", indent, key, value )
 						: "" );
 			}
@@ -598,7 +561,7 @@ public class BeanHelper {
 		for ( Method getter : getters ) {
 			try {
 				value = getter.invoke( bean, (Object[]) null );
-				s.append( (withNullValues || value != null)
+				s.append( (withNullValues || value!=null)
 						? indent + ReflectionHelper.getVarNameFromMethodName( getter.getName() )
 						+ ": "
 						+ _prettyPrintIndent( value, maxDepth,
@@ -651,7 +614,7 @@ public class BeanHelper {
 	 * @return {@code true} when the field was found and the value could be set
 	 */
 	public static boolean setValue( Object bean, String propertyPath, Object value ) {
-		if ( bean == null ) return false;
+		if ( bean==null ) return false;
 
 		String[] props = propertyPath.split( "/" );
 		String prop = "";
@@ -673,9 +636,9 @@ public class BeanHelper {
 
 				//--- Setter or fallback to field
 				Member member = ReflectionHelper.findSetter( currentBean.getClass(), prop );
-				if ( member == null ) {
+				if ( member==null ) {
 					member = ReflectionHelper.findField( currentBean.getClass(), prop );
-					if ( member == null ) {
+					if ( member==null ) {
 						String message = String.format( "No field '%s' in bean %s", prop, bean );
 						logger.atFiner().log( message );
 						throw new RuntimeException( new NoSuchFieldException( message ) );
@@ -684,7 +647,7 @@ public class BeanHelper {
 				((AccessibleObject) member).setAccessible( true );
 
 				//--- Set value into last property from path
-				if ( i == props.length - 1 ) {
+				if ( i==props.length - 1 ) {
 					ReflectionHelper.setValue( currentBean, member, index, value );
 					return true;
 				}
@@ -693,7 +656,7 @@ public class BeanHelper {
 				Object currentValue = ReflectionHelper.getValueFromMember( currentBean, member );
 
 				//--- Current property is null -> create it
-				if ( currentValue == null ) {
+				if ( currentValue==null ) {
 					currentValue = ReflectionHelper.instantiateProperty( currentBean, member );
 				}
 
@@ -701,7 +664,7 @@ public class BeanHelper {
 					//--- Obtain item or create it
 					Object listItem = ReflectionHelper.getValueByIndex( currentValue, index );
 					//--- list is empty -> create item
-					if ( listItem == null ) {
+					if ( listItem==null ) {
 						listItem = ReflectionHelper.instantiateGeneric( bean, member, currentValue,
 								index );
 					}

@@ -3,6 +3,9 @@
  */
 package com.djarjo.jetson;
 
+import com.djarjo.jetson.converter.JsonConverter;
+
+import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
@@ -67,9 +70,8 @@ public class Jetson {
 	 */
 	public static Object decodeIntoObject( String jsonString,
 			Object target ) throws IllegalAccessException, ParseException {
-		JsonDecoder.decoder()
-				.decodeIntoObject( jsonString, target );
-		return target;
+		Object object = JsonDecoder.decoder().decodeIntoObject( jsonString, target );
+		return (object==null) ? target : object;
 	}
 
 	/**
@@ -159,6 +161,21 @@ public class Jetson {
 	public static JsonDecoder mergeCollection() {
 		return JsonDecoder.decoder()
 				.mergeCollections();
+	}
+
+	public static JsonConverter<?> getConverter( Json anno ) {
+		if ( anno==null ) {
+			return null;
+		}
+		Class<? extends JsonConverter> annotatedConverter = anno.converter();
+		try {
+			return (annotatedConverter==JsonConverter.class) ? null :
+					annotatedConverter.getDeclaredConstructor()
+							.newInstance();
+		} catch ( IllegalAccessException | InstantiationException |
+							InvocationTargetException | NoSuchMethodException e ) {
+			throw new JsonParseException( "Converter " + annotatedConverter.getName() + " could not be instantiated" );
+		}
 	}
 
 	/**

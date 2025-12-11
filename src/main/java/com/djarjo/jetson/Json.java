@@ -32,12 +32,18 @@ public @interface Json {
 	String defaultName = "##default";
 
 	/**
+	 * Access type if a class is annotated.
+	 *
+	 * @return type of access: field or property. Defaults to property
+	 */
+	JsonAccessType accessType() default JsonAccessType.PROPERTY;
+
+	/**
 	 * Converter encodes a given value into a Json string and decodes a given
 	 * string into a Java object. Defaults to no converter.
 	 *
 	 * @return converter class
 	 */
-	@SuppressWarnings("rawtypes")
 	Class<? extends JsonConverter> converter() default JsonConverter.class;
 
 	/**

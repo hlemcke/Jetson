@@ -62,9 +62,9 @@ public class ReflectionHelper {
 
 	public static Method findMethod( Method[] methods, String propertyName,
 			List<String> prefixes ) {
-		assert methods != null : "No methods given";
+		assert methods!=null : "No methods given";
 		assert !prefixes.isEmpty() : "No prefixes given";
-		if ( propertyName == null || propertyName.isEmpty() ) {
+		if ( propertyName==null || propertyName.isEmpty() ) {
 			return null;
 		}
 		String name = "" + Character.toUpperCase( propertyName.charAt( 0 ) );
@@ -189,7 +189,7 @@ public class ReflectionHelper {
 	}
 
 	public static Object getValueByIndex( Object bean, int index ) {
-		if ( bean == null ) return null;
+		if ( bean==null ) return null;
 		Class<?> beanType = bean.getClass();
 
 		if ( List.class.isAssignableFrom( beanType ) ) {
@@ -210,7 +210,7 @@ public class ReflectionHelper {
 		}
 		//--- Use getter
 		Method getter = obtainGetterFromMethod( bean.getClass(), (Method) member );
-		if ( getter == null ) {
+		if ( getter==null ) {
 			throw new RuntimeException(
 					String.format( "No getter in %s from %s", bean, member ) );
 		}
@@ -317,11 +317,11 @@ public class ReflectionHelper {
 	}
 
 	public static boolean isArrayOrList( Class<?> clazz ) {
-		return (clazz != null) && (isList( clazz ) || clazz.isArray());
+		return (clazz!=null) && (isList( clazz ) || clazz.isArray());
 	}
 
 	public static boolean isList( Class<?> clazz ) {
-		return clazz != null && List.class.isAssignableFrom( clazz );
+		return clazz!=null && List.class.isAssignableFrom( clazz );
 	}
 
 	/**
@@ -336,14 +336,18 @@ public class ReflectionHelper {
 	 * @return {@code true} if method is a getter
 	 */
 	public static boolean isGetter( Method method ) {
-		if ( (method == null) || (method.getParameterCount() != 0)
-				|| (method.getReturnType() == void.class) ) {
+		if ( (method==null)
+				|| (method.getParameterCount()!=0)
+				|| (method.getReturnType()==void.class)
+				|| "getClass".equals( method.getName() ) ) {
 			return false;
 		}
 		String methodName = method.getName();
 		for ( String prefix : getterPrefixes ) {
 			if ( methodName.startsWith( prefix ) ) {
-				return true;
+				if ( Character.isUpperCase( methodName.charAt( prefix.length() ) ) ) {
+					return true;
+				}
 			}
 		}
 		return false;
@@ -360,10 +364,10 @@ public class ReflectionHelper {
 	 * @return {@code true} if method is a setter
 	 */
 	public static boolean isSetter( Method method ) {
-		if ( method == null ) return false;
+		if ( method==null ) return false;
 		String methodName = method.getName();
 		for ( String prefix : setterPrefixes ) {
-			if ( methodName.startsWith( prefix ) && method.getParameterCount() == 1 ) {
+			if ( methodName.startsWith( prefix ) && method.getParameterCount()==1 ) {
 				return true;
 			}
 		}
@@ -380,10 +384,10 @@ public class ReflectionHelper {
 	 * @return method name or {@code null} if {@code propertyName} is empty
 	 */
 	public static String makeMethodName( String prefix, String propertyName ) {
-		if ( propertyName == null || propertyName.isEmpty() ) {
+		if ( propertyName==null || propertyName.isEmpty() ) {
 			return null;
 		}
-		prefix = (prefix == null) ? "" : prefix;
+		prefix = (prefix==null) ? "" : prefix;
 		String name = prefix + Character.toUpperCase( propertyName.charAt( 0 ) );
 		if ( propertyName.length() > 1 ) {
 			name += propertyName.substring( 1 );
@@ -396,7 +400,7 @@ public class ReflectionHelper {
 			return method;
 		}
 		String name = getVarNameFromMethodName( method.getName() );
-		return (name == null) ? null : findGetter( clazz, name );
+		return (name==null) ? null : findGetter( clazz, name );
 	}
 
 	/**
@@ -410,7 +414,7 @@ public class ReflectionHelper {
 			return method;
 		}
 		String name = getVarNameFromMethodName( method.getName() );
-		return (name == null) ? null : findSetter( clazz, name );
+		return (name==null) ? null : findSetter( clazz, name );
 	}
 
 	/**
@@ -437,7 +441,7 @@ public class ReflectionHelper {
 		//--- Handle setter method
 		if ( member instanceof Method method ) {
 			Method setter = obtainSetterFromMethod( bean.getClass(), method );
-			if ( setter == null ) {
+			if ( setter==null ) {
 				throw new RuntimeException(
 						String.format( "No setter found in bean %s from %s", bean, method ) );
 			}
@@ -448,7 +452,7 @@ public class ReflectionHelper {
 	}
 
 	private static int _getSize( Object value ) {
-		return (value == null) ? 0 : isList( value.getClass() )
+		return (value==null) ? 0 : isList( value.getClass() )
 				? ((List<?>) value).size() : (value.getClass().isArray())
 				? Array.getLength( value ) : 0;
 	}
@@ -486,7 +490,7 @@ public class ReflectionHelper {
 	 */
 	private static void _setValueAt( Object bean, Member member, int index,
 			Object value ) throws IllegalAccessException {
-		assert value != null;
+		assert value!=null;
 		Class<?>[] types = getParameterTypes( member );
 
 		//--- If value itself is a list then directly write into member
@@ -498,7 +502,7 @@ public class ReflectionHelper {
 		//--- Handle case with index
 		try {
 			Object currentValue = getValueFromMember( bean, member );
-			if ( currentValue == null ) {
+			if ( currentValue==null ) {
 				currentValue = createInstanceFromType( types[0] );
 				_writeValueToMember( bean, member, currentValue );
 			}
@@ -518,7 +522,7 @@ public class ReflectionHelper {
 
 	private static void _setValueUsingField( Object bean, Field field, int index,
 			Object value ) throws IllegalAccessException {
-		if ( value == null ) {
+		if ( value==null ) {
 			field.set( bean, null );
 			return;
 		}
@@ -543,7 +547,7 @@ public class ReflectionHelper {
 		}
 
 		try {
-			if ( value == null ) {
+			if ( value==null ) {
 				setter.invoke( bean, (Object) null );
 				return;
 			}
