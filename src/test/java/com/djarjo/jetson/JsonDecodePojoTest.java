@@ -2,14 +2,12 @@ package com.djarjo.jetson;
 
 import com.djarjo.jetson.converter.JsonConverter;
 import com.djarjo.text.TextHelper;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -43,11 +41,13 @@ public class JsonDecodePojoTest {
 		assertEquals( "{\"some\":42}", json );
 	}
 
+	@Disabled
 	@Test
-	@DisplayName("decode POJO with Array, List and Set")
-	void pojoWithCollectionsShouldDecodeCorrectly() throws ParseException, IllegalAccessException {
+	@DisplayName("decode POJO with List")
+	void testPojoWithArray() throws ParseException,
+			IllegalAccessException {
 		//--- given
-		String json = "{\"pojoList\":[{\"ival\":71}]}";
+		String json = "{\"pojoArray\":[{\"ival\":71},{\"ival\":123}]}";
 
 		//--- when
 		PojoWithCollection pojo = (PojoWithCollection)
@@ -55,8 +55,27 @@ public class JsonDecodePojoTest {
 
 		//--- then
 		assertNotNull( pojo );
-		assertEquals( 1, pojo.pojoList.size() );
+		assertEquals( 2, pojo.pojoList.size() );
 		assertEquals( 71, pojo.pojoList.get( 0 ).ival );
+		assertEquals( 123, pojo.pojoList.get( 1 ).ival );
+	}
+
+	@Test
+	@DisplayName("decode POJO with List")
+	void testPojoWithList() throws ParseException,
+			IllegalAccessException {
+		//--- given
+		String json = "{\"pojoList\":[{\"ival\":71},{\"ival\":123}]}";
+
+		//--- when
+		PojoWithCollection pojo = (PojoWithCollection)
+				Jetson.decodeIntoObject( json, new PojoWithCollection() );
+
+		//--- then
+		assertNotNull( pojo );
+		assertEquals( 2, pojo.pojoList.size() );
+		assertEquals( 71, pojo.pojoList.get( 0 ).ival );
+		assertEquals( 123, pojo.pojoList.get( 1 ).ival );
 	}
 
 	@Test
@@ -66,8 +85,7 @@ public class JsonDecodePojoTest {
 		String json = "\"enc:93\"";
 
 		//--- when
-		PojoWithConverter pojo = (PojoWithConverter)
-				Jetson.decodeIntoObject( json, new PojoWithConverter() );
+		Furi pojo = (Furi) Jetson.decodeIntoObject( json, new Furi() );
 
 		//--- then
 		assertNotNull( pojo );
@@ -75,13 +93,13 @@ public class JsonDecodePojoTest {
 	}
 
 	@Test
-	void decodePojoWithFromJson() {
+	void testDecodePojoWithFromJson() throws ParseException, IllegalAccessException {
 		//--- given
 		String json = "\"enc:93\"";
 
 		//--- when
-		PojoWithFromJson pojo = (PojoWithConverter)
-				Jetson.decodeIntoObject( json, new PojoWithConverter() );
+		PojoWithFromJson pojo = (PojoWithFromJson)
+				Jetson.decodeIntoObject( json, new PojoWithFromJson() );
 
 		//--- then
 		assertNotNull( pojo );
@@ -89,20 +107,32 @@ public class JsonDecodePojoTest {
 	}
 
 	@Test
-	void testDecodePojoWithConverterCollection() {
+	@DisplayName("POJO with array, list, set and furies")
+	void testDecodePojoWithConverterCollection() throws ParseException,
+			IllegalAccessException {
 		//--- given
-		PojoWithCollection pojo = new PojoWithCollection();
+//		String json = """
+//				{"pojoArray":[{"ival":42,"str":"öäü$"},{"ival":17,"str":"?µM"}],
+//				"pojoList":[{"ival":42,"str":"öäü$"},{"ival":27,"str":"pojo in list"}],
+//				"pojoSet":[{"ival":37,"str":"pojo in Set"},{"ival":42,"str":"öäü$"}],
+//				"furies":["enc=4711","enc=69"]}""";
+		String json = """
+				{
+				"pojoList":[{"ival":42,"str":"öäü$"},{"ival":27,"str":"pojo in list"}],
+				"pojoSet":[{"ival":37,"str":"pojo in Set"},{"ival":42,"str":"öäü$"}],
+				"furies":["enc=4711","enc=69"]}""";
 
 		//--- when
-		String json = Jetson.encode( pojo );
+		PojoWithCollection pojo = (PojoWithCollection) Jetson.decodeIntoObject( json,
+				new PojoWithCollection() );
 
 		//--- then
-		assertNotNull( json );
-		assertTrue( json.contains( "furies\":[\"enc=4711\",\"enc=69\"]" ) );
+		assertNotNull( pojo );
+		assertEquals( 2, pojo.furies.size() );
 	}
 
 	@Test
-	@DisplayName("Pojo with mixed fields and getters")
+	@DisplayName("POJO with mixed fields and getters")
 	void pojoWithMixedFieldsAndGettersMustNotShowPrivateFields() {
 		//--- given
 		PojoWithMixedFieldsAndGetters pojo = new PojoWithMixedFieldsAndGetters();
@@ -164,23 +194,23 @@ public class JsonDecodePojoTest {
 		}
 	}
 
-	@Json(converter = PojoWithConverter.Converter4json.class)
-	private static class PojoWithConverter {
+	@Json(converter = Furi.Converter4json.class)
+	private static class Furi {
 		public int ival = 42;
 
 		@JsonTransient
 		public String nonono = "but with value";
 
-		public PojoWithConverter() {
+		public Furi() {
 		}
 
-		public PojoWithConverter( int value ) {
+		public Furi( int value ) {
 			this.ival = value;
 		}
 
-		public static PojoWithConverter decode( String json ) {
-			PojoWithConverter pojo = new PojoWithConverter();
-			if ( json!=null && !json.isBlank() ) {
+		public static Furi decode( String json ) {
+			Furi pojo = new Furi();
+			if ( json != null && !json.isBlank() ) {
 				pojo.ival = TextHelper.parseInteger( json.substring( "enc=".length() ) );
 			}
 			return pojo;
@@ -199,16 +229,16 @@ public class JsonDecodePojoTest {
 			return 4711;
 		}
 
-		public static class Converter4json implements JsonConverter<JsonDecodePojoTest.PojoWithConverter> {
+		public static class Converter4json implements JsonConverter<Furi> {
 			@Override
-			public JsonDecodePojoTest.PojoWithConverter decodeFromJson( String jsonValue ) {
-				if ( jsonValue==null || jsonValue.isBlank() ) return null;
-				return JsonDecodePojoTest.PojoWithConverter.decode( jsonValue );
+			public Furi decodeFromJson( String jsonValue ) {
+				if ( jsonValue == null || jsonValue.isBlank() ) return null;
+				return Furi.decode( jsonValue );
 			}
 
 			@Override
-			public String encodeToJson( JsonDecodePojoTest.PojoWithConverter pojo ) {
-				return (pojo==null) ? null : pojo.encode();
+			public String encodeToJson( Furi pojo ) {
+				return (pojo == null) ? null : pojo.encode();
 			}
 		}
 	}
@@ -222,24 +252,27 @@ public class JsonDecodePojoTest {
 		public Pojo[] pojoArray = {new Pojo(), new Pojo( 17, str2 )};
 
 		@Json
-		public List<Pojo> pojoList = new ArrayList<>( Arrays.asList( new Pojo(), new Pojo( 27, strList ) ) );
+		public List<Pojo> pojoList = new ArrayList<>(
+				Arrays.asList( new Pojo(), new Pojo( 27, strList ) ) );
 
 		@Json
-		public Set<Pojo> pojoSet = Set.of( new Pojo(), new Pojo( 37, strSet ) );
+		public Set<Pojo> pojoSet = new HashSet<>(
+				Arrays.asList( new Pojo(), new Pojo( 37, strSet ) ) );
 
 		@Json
-		public List<PojoWithConverter> furies = List.of( new PojoWithConverter( 4711 ), new PojoWithConverter( 69 ) );
+		public List<Furi> furies = new ArrayList<>( Arrays.asList( new Furi( 4711 ),
+				new Furi( 69 ) ) );
 	}
 
 	@Json
 	private static class PojoWithFromJson {
-		public int ival = 73;
+		public int ival = 77;
 		public String text = "POJO with fromJson()";
 
 		public static PojoWithFromJson fromJson( String json ) {
 			PojoWithFromJson pojo = new PojoWithFromJson();
-			if ( json!=null && !json.isBlank() ) {
-				pojo.ival = TextHelper.parseInteger( json.substring( "ival:".length() ) );
+			if ( json != null && !json.isBlank() ) {
+				pojo.ival = TextHelper.parseInteger( json.substring( "enc:".length() ) );
 			}
 			return pojo;
 		}

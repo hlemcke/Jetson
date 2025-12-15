@@ -45,6 +45,17 @@ public class BaseConverter {
 	public BaseConverter() {
 	}
 
+	public static List<?> arrayToList( Object[] array ) {
+		if ( array == null ) {
+			return null;
+		}
+		List<Object> list = new ArrayList<>( array.length );
+		for ( Object o : array ) {
+			list.add( o );
+		}
+		return list;
+	}
+
 	/**
 	 * Converts 8 bytes from {@code bytes} starting at {@code offset} into a long value.
 	 *
