@@ -379,7 +379,7 @@ public class JsonEncoder {
 			Object value ) {
 
 		//--- Check annotation (if present) attributes
-		if ( anno!=null ) {
+		if ( anno!=null && value != null) {
 			if ( !anno.key().equals( Json.defaultName ) ) {
 				name = anno.key();
 			}
