@@ -84,7 +84,7 @@ public class JsonEncodePojoTest {
 	}
 
 	@Test
-	@DisplayName("Pojo with mixed fields and getters")
+	@DisplayName("POJO with mixed fields and getters")
 	void pojoWithMixedFieldsAndGettersMustNotShowPrivateFields() {
 		//--- given
 		PojoWithMixedFieldsAndGetters pojo = new PojoWithMixedFieldsAndGetters();
@@ -93,7 +93,6 @@ public class JsonEncodePojoTest {
 		String json = Jetson.encode( pojo );
 
 		//--- then
-		System.out.println( json );
 		assertFalse( json.isEmpty() );
 	}
 

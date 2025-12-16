@@ -5,8 +5,8 @@ import com.djarjo.jetson.converter.JsonConverter;
 import java.lang.annotation.*;
 
 /**
- * Annotate a property or a getter method will encode its value into a Json
- * string or sets the value from decoding a Json string.
+ * Annotate a property or a getter method will encode its value into a Json string or sets
+ * the value from decoding a Json string.
  * <p>
  * A Json annotation provides the following optional parameters:
  * <ul>
@@ -39,26 +39,27 @@ public @interface Json {
 	JsonAccessType accessType() default JsonAccessType.PROPERTY;
 
 	/**
-	 * Converter encodes a given value into a Json string and decodes a given
-	 * string into a Java object. Defaults to no converter.
+	 * Converter encodes a given value into a JSON string and decodes a given string into a
+	 * Java object. Defaults to no converter.
 	 *
 	 * @return converter class
 	 */
 	Class<? extends JsonConverter> converter() default JsonConverter.class;
 
 	/**
-	 * Controls decoding of a Json string. {@code false} will not write the
-	 * decoded value into the field. Default is {@code true}.
+	 * Controls decoding of JSON string. {@code false} will not write the decoded value
+	 * into
+	 * the member. Default is {@code true}.
 	 *
-	 * @return {@code false} if the field must not be set during decoding
+	 * @return {@code false} if the member should not be set during decoding
 	 */
 	boolean decodable() default true;
 
 	/**
-	 * Controls encoding to a Json string. {@code false} will not write the
-	 * encoded value. Default is {@code true}.
+	 * Controls encoding to JSON string. {@code false} will not write the encoded value.
+	 * Default is {@code true}.
 	 *
-	 * @return {@code false} if the field will not be encoded
+	 * @return {@code false} if the field should not be encoded
 	 */
 	boolean encodable() default true;
 
@@ -80,22 +81,20 @@ public @interface Json {
 	 *   public int getCode() { return code; }
 	 * </pre>
 	 * <p>
-	 * will encode {@code SomeEnum.VAL1} to {@code 17} and
-	 * decode any one of {@code 17} or {@code VAL1} or {@code SomeEnum.VAL1}
-	 * to SomeEnum.VAL1;
-	 * <p>
-	 * DO NOT PUT slash P here! produces a false javadoc error :-(
+	 * will encode {@code SomeEnum.VAL1} to {@code 17} and decode any one of {@code 17} or
+	 * {@code VAL1} or {@code SomeEnum.VAL1} to SomeEnum.VAL1;
 	 *
-	 * @return name of getter method to obtain the enumeration value for
-	 * encoding
+	 * @return name of getter method to obtain the enumeration value for encoding
 	 */
 	String enumAccessor() default defaultName;
 
 	/**
-	 * Controls behaviour when decoding a JSON string into a collection property of an existing object.
+	 * Controls behaviour when decoding a JSON string into a collection property of an
+	 * existing object.
 	 * <p>
-	 * Default {@code false} will completely replace the collection of the object by a new one from JSON string.
-	 * {@code true} will keep existing entries in the collection and merge values from JSON string.
+	 * Default {@code false} will completely replace the collection of the object by a new
+	 * one from JSON string. {@code true} will keep existing entries in the collection and
+	 * merge values from JSON string.
 	 * </p>
 	 *
 	 * @return {@code true} if collection items will be kept
@@ -103,22 +102,22 @@ public @interface Json {
 	boolean mergeCollection() default false;
 
 	/**
-	 * The key used for the value in the Json string. Defaults to the name of
-	 * the field or the name of the getter method without "get".
+	 * The key used for the value in the JSON string. Defaults to the name of the field or
+	 * the name of the getter method without "get".
 	 *
 	 * <p>
 	 * Example for an annotated getter:
 	 *
 	 * <pre>
 	 * &#64;Json( key="PassWord" )
-	 * public String getUserPw() { return "badPw; }
+	 * public String getUserPw() { return "badPw"; }
 	 * </pre>
 	 * <p>
-	 * will write {@code "PassWord":"badPw"} into the Json string during
-	 * encoding instead of {@code "userPw":"badPw"}. Decoding also expects the
-	 * key "PassWord".
+	 * will write {@code "PassWord":"badPw"} into the JSON string during encoding
+	 * instead of
+	 * {@code "userPw":"badPw"}. Decoding also expects the key "PassWord".
 	 *
-	 * @return key for Json value
+	 * @return key for JSON value
 	 */
 	String key() default defaultName;
 }

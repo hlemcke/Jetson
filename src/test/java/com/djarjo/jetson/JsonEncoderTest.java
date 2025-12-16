@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author Hajo Lemcke
  */
 class JsonEncoderTest {
-	static boolean isVerbose = true;
 
 	/**
 	 * Test method for {@link com.djarjo.jetson.JsonEncoder#isEmpty(java.lang.Object)}.
@@ -94,7 +93,6 @@ class JsonEncoderTest {
 		map.put( "keyNow", now );
 		String jsonText = JsonEncoder.encoder()
 				.encode( map );
-		System.out.println( isVerbose ? jsonText : "" );
 		assertTrue( jsonText.contains( "\"key4711\":4711" ) );
 		assertTrue( jsonText.contains( "\"keyNow\":\"" + now + "\"" ) );
 		assertFalse( jsonText.contains( "keyNull" ) );
@@ -102,7 +100,6 @@ class JsonEncoderTest {
 		jsonText = JsonEncoder.encoder()
 				.withNulls()
 				.encode( map );
-		System.out.println( isVerbose ? jsonText : "" );
 		assertTrue( jsonText.contains( "\"key4711\":4711" ) );
 		assertTrue( jsonText.contains( "\"keyNow\":\"" + now + "\"" ) );
 		assertTrue( jsonText.contains( "keyNull" ) );
@@ -114,13 +111,11 @@ class JsonEncoderTest {
 		TestData.PojoBasics basics = new TestData.PojoBasics();
 		String jsonText = JsonEncoder.encoder()
 				.encode( basics );
-		System.out.println( isVerbose ? jsonText : "" );
 		assertEquals( "{\"intVar\":0}", jsonText );
 		// --- Test with initialized object
 		basics.initialize();
 		jsonText = JsonEncoder.encoder()
 				.encode( basics );
-		System.out.println( isVerbose ? jsonText : "" );
 		@SuppressWarnings("unchecked") Map<String, Object> map =
 				(Map<String, Object>) JsonDecoder.decoder()
 						.decode( jsonText );
@@ -140,7 +135,6 @@ class JsonEncoderTest {
 		basics.initialize();
 		String jsonText = JsonEncoder.encoder()
 				.encode( basics );
-		System.out.println( isVerbose ? jsonText : "" );
 		TestData.PojoBasics decoded = new TestData.PojoBasics();
 		JsonDecoder.decoder()
 				.decodeIntoObject( jsonText, decoded );
@@ -160,15 +154,9 @@ class JsonEncoderTest {
 		colls.initialize();
 		String jsonText = JsonEncoder.encoder()
 				.encode( colls );
-		System.out.println( isVerbose ? jsonText : "" );
-		System.out.println( jsonText );
+
 		// --- assertion samples
 		assertTrue( jsonText.contains( "\"floatSet\":[" ) );
 		assertTrue( jsonText.contains( "\"mapKey_1\":\"mapValue_1\"" ) );
-		// --- now pretty printing it
-		jsonText = JsonEncoder.encoder()
-				.prettyPrint( "  " )
-				.encode( colls );
-		System.out.println( "---------\n" + jsonText );
 	}
 }

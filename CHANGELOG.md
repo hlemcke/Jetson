@@ -1,3 +1,7 @@
+## 2.0.1
+
+* Fixed bug when decoding a JSON list into an ancient Java array
+
 ## 2.0.0
 
 * Classes can now be annotated with @Json to encode all members. Class level annotation uses accessType to distinguish

@@ -22,11 +22,12 @@ import java.util.*;
  * Encodes objects into a JSON string.
  * <p>
  * The JSON encoder handles numbers, strings, booleans, null, lists, sets, maps, UUID,
- * {@code java.time} objects directly. Enumerations will be encoded by their {@code toJson()}
- * method. If this does not exist then their {@code toString()} method will be used. Any
- * other object is converted by recursively calling their getter methods which are
- * annotated with {@code @Json}. If no annotated getter is found then {@code toJson()}
- * will be invoked. If this method does not exist then an empty JSON object "{}" will be returned.
+ * {@code java.time} objects directly. Enumerations will be encoded by their
+ * {@code toJson()} method. If this does not exist then their {@code toString()} method
+ * will be used. Any other object is converted by recursively calling their getter methods
+ * which are annotated with {@code @Json}. If no annotated getter is found then
+ * {@code toJson()} will be invoked. If this method does not exist then an empty JSON
+ * object "{}" will be returned.
  *
  * @author Hajo Lemcke
  * @since 2017-01-02
@@ -73,7 +74,7 @@ public class JsonEncoder {
 
 	/**
 	 * Encodes the given Java object into a JSON string.
-	 *   <ul>
+	 * <ul>
 	 * <li>A collection like a list or a set will be encoded into a JSON list
 	 * enclosed in square brackets</li>
 	 * <li>A map will be encoded into a JSON object enclosed in curly braces. {@code null}
@@ -86,11 +87,7 @@ public class JsonEncoder {
 	 *       unless annotated with {@literal @JsonTransient}</li></ol></li>
 	 * <li>A POJO <i>not</i> annotated with {@literal @Json} will be encoded by encoding
 	 *   all members (fields and getters) which are annotated with {@literal @Json}</li>
-	 * 	 </ul>
-	 * <p>
-	 * Any other object will be encoded into a JSON object enclosed in curly braces. The
-	 * encoded JSON string contains all fields (getters) which are annotated with
-	 * {@link com.djarjo.jetson.Json @Json}.
+	 * </ul>
 	 *
 	 * @param object The object to be encoded
 	 * @return encoded object as a JSON string or {@code null} if the parameter is
@@ -127,11 +124,11 @@ public class JsonEncoder {
 	 * @return true if object is effectively empty
 	 */
 	public boolean isEmpty( Object obj ) {
-		if ( obj==null ) {
+		if ( obj == null ) {
 			return true;
 		}
 		if ( obj.getClass().isArray() ) {
-			return Array.getLength( obj )==0;
+			return Array.getLength( obj ) == 0;
 		} else if ( obj instanceof String str ) {
 			if ( str.isBlank() ) return true;
 			return obj.equals( "null" );
@@ -163,7 +160,7 @@ public class JsonEncoder {
 	 */
 	public JsonEncoder toJson5() {
 		_toJson5 = true;
-		if ( _indent==null ) {
+		if ( _indent == null ) {
 			prettyPrint( "  " );
 		}
 		return this;
@@ -195,7 +192,7 @@ public class JsonEncoder {
 	 */
 	public JsonEncoder prettyPrint( String indent ) {
 		for ( int i = 0; i < indent.length(); i++ ) {
-			if ( indent.charAt( i )!=' ' && indent.charAt( i )!='\t' ) {
+			if ( indent.charAt( i ) != ' ' && indent.charAt( i ) != '\t' ) {
 				indent = "  ";
 				break;
 			}
@@ -256,7 +253,7 @@ public class JsonEncoder {
 	 * @param value value of key
 	 */
 	private void _encodeKeyValue( StringBuilder builder, String key, Object value ) {
-		if ( value!=null || _withNulls ) {
+		if ( value != null || _withNulls ) {
 			builder.append( "," );
 			if ( _prettyPrint ) {
 				builder.append( "\n" );
@@ -296,16 +293,16 @@ public class JsonEncoder {
 
 		// --- Check annotation on class level
 		Json anno = clazz.getAnnotation( Json.class );
-		if ( anno!=null ) {
+		if ( anno != null ) {
 			// --- use converter if given
 			JsonConverter converter = Jetson.getConverter( anno );
-			if ( converter!=null ) {
+			if ( converter != null ) {
 				return converter.encodeToJson( pojo );
 			}
 
 			//--- use method "toJson()" if it exists in pojo class
 			Method toJson = ReflectionHelper.findMethod( clazz, METHOD_TO_JSON );
-			if ( toJson!=null ) {
+			if ( toJson != null ) {
 				try {
 					return ReflectionHelper.getValueFromMember( pojo, toJson ).toString();
 				} catch ( IllegalAccessException | InvocationTargetException e ) {
@@ -350,7 +347,9 @@ public class JsonEncoder {
 					_encodePojoMember( builder, anno, name, value );
 				} catch ( IllegalAccessException | IllegalArgumentException |
 									InvocationTargetException e ) {
-					logger.atWarning().withCause( e ).log( "Cannot invoke %s on %s", method, clazz );
+					logger.atWarning()
+							.withCause( e )
+							.log( "Cannot invoke %s on %s", method, clazz );
 				}
 			}
 		}
@@ -360,8 +359,9 @@ public class JsonEncoder {
 	boolean _isToEncode( AccessibleObject member, boolean allMembers,
 			boolean accessMember ) {
 		Json anno = member.getAnnotation( Json.class );
-		return ((anno!=null && anno.encodable())
-				|| (anno==null && allMembers && accessMember && !member.isAnnotationPresent( JsonTransient.class )));
+		return ((anno != null && anno.encodable())
+				|| (anno == null && allMembers && accessMember && !member.isAnnotationPresent(
+				JsonTransient.class )));
 	}
 
 	/**
@@ -371,7 +371,7 @@ public class JsonEncoder {
 	 * <li>check {@code Json.converter()}</li>
 	 * </ol>
 	 *
-	 * @param anno Complete annotation with parameters
+	 * @param anno Complete annotation with attributes
 	 * @param name Name of field
 	 * @param value value to be encoded
 	 */
@@ -379,12 +379,12 @@ public class JsonEncoder {
 			Object value ) {
 
 		//--- Check annotation (if present) attributes
-		if ( anno!=null && value != null) {
+		if ( anno != null && value != null ) {
 			if ( !anno.key().equals( Json.defaultName ) ) {
 				name = anno.key();
 			}
 			JsonConverter converter = Jetson.getConverter( anno );
-			if ( converter!=null ) {
+			if ( converter != null ) {
 				value = converter.encodeToJson( value );
 			}
 		}
@@ -411,12 +411,13 @@ public class JsonEncoder {
 	 * <li>check {@code null} value</li>
 	 * <li>check basic values: bool, all numerical, String, UUID, java.time.* </li>
 	 * <li>check {@code Json.converter()}</li>
-	 * <li>on class annotation use methods {@code toJson} and {@code fromJson} if they exist</li>
-	 * <li>perform recursion on array, collection, map and pojo</li>
+	 * <li>on class annotation use methods {@code toJson} and {@code fromJson} if they
+	 * exist</li>
+	 * <li>perform recursion on array, collection, map and POJO</li>
 	 * </ol>
 	 *
 	 * @param value Java object to be encoded
-	 * @return part for a JSON string
+	 * @return part for the final JSON string
 	 */
 	@SuppressWarnings("unchecked")
 	private String _encodeValue( Object value ) {
@@ -425,11 +426,17 @@ public class JsonEncoder {
 		}
 
 		// --- Encode basic value
-		if ( value instanceof Boolean || value instanceof Byte || value instanceof Double || value instanceof Float || value instanceof Integer || value instanceof Long || value instanceof Short ) {
+		if ( value instanceof Boolean || value instanceof Byte || value instanceof Double
+				|| value instanceof Float || value instanceof Integer || value instanceof Long
+				|| value instanceof Short ) {
 			return value.toString();
 		}
 		// --- Encode derived value
-		if ( value instanceof BigDecimal || value instanceof Character || value instanceof Currency || value instanceof Enum || value instanceof LocalDate || value instanceof Locale || value instanceof OffsetDateTime || value instanceof String || value instanceof UUID || value instanceof URI || value instanceof URL ) {
+		if ( value instanceof BigDecimal || value instanceof Character
+				|| value instanceof Currency || value instanceof Enum
+				|| value instanceof LocalDate || value instanceof Locale
+				|| value instanceof OffsetDateTime || value instanceof String
+				|| value instanceof UUID || value instanceof URI || value instanceof URL ) {
 			return _encodeString( value.toString() );
 		}
 
@@ -459,7 +466,7 @@ public class JsonEncoder {
 			builder.append( "\n" )
 					.append( _indentation[_stack.size() - 1] );
 		}
-		return ((builder.length() > 2) && (builder.charAt( 0 )==',')) ?
+		return ((builder.length() > 2) && (builder.charAt( 0 ) == ',')) ?
 				builder.substring( 1 ) : builder.toString();
 	}
 }

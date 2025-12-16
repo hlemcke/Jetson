@@ -3,7 +3,10 @@
  */
 package com.djarjo.jetson;
 
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -66,51 +69,19 @@ class Jetson5Test {
 		cmd.testJson5Encode();
 	}
 
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@BeforeAll
-	static void setUpBeforeClass() throws Exception {
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@AfterAll
-	static void tearDownAfterClass() throws Exception {
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@BeforeEach
-	void setUp() throws Exception {
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@AfterEach
-	void tearDown() throws Exception {
-	}
-
 	@Order(1)
 	@Test
-	void testJson5Comment() {
-		try {
-			Object object = Jetson.decode( commentJson );
-			assertEquals( HashMap.class, object.getClass() );
-			Map<?, ?> map = (Map<?, ?>) object;
-			assertEquals( ArrayList.class, map.get( "array" )
-					.getClass() );
-			ArrayList<?> array = (ArrayList<?>) map.get( "array" );
-			assertEquals( 3, array.size() );
-			assertEquals( "abc", array.get( 0 ) );
-			assertEquals( "def", array.get( 1 ) );
-			assertEquals( "ghi", array.get( 2 ) );
-		} catch ( IllegalAccessException | ParseException e ) {
-			e.printStackTrace();
-		}
+	void testJson5Comment() throws ParseException, IllegalAccessException {
+		Object object = Jetson.decode( commentJson );
+		assertEquals( HashMap.class, object.getClass() );
+		Map<?, ?> map = (Map<?, ?>) object;
+		assertEquals( ArrayList.class, map.get( "array" )
+				.getClass() );
+		ArrayList<?> array = (ArrayList<?>) map.get( "array" );
+		assertEquals( 3, array.size() );
+		assertEquals( "abc", array.get( 0 ) );
+		assertEquals( "def", array.get( 1 ) );
+		assertEquals( "ghi", array.get( 2 ) );
 	}
 
 	/**
@@ -118,45 +89,35 @@ class Jetson5Test {
 	 */
 	@Order(2)
 	@Test
-	void testDecodeSingleEntityIntoMap() throws IOException {
-		try {
-			Object object = Jetson.decode( singleEntityJson );
-			assertEquals( HashMap.class, object.getClass() );
-			Map<?, ?> map = (Map<?, ?>) object;
-			assertEquals( 8, map.size() );
-			assertTrue( (boolean) map.get( "boolVal" ) );
-		} catch ( IllegalAccessException | ParseException e ) {
-			e.printStackTrace();
-		}
+	void testDecodeSingleEntityIntoMap() throws ParseException, IllegalAccessException {
+		Object object = Jetson.decode( singleEntityJson );
+		assertEquals( HashMap.class, object.getClass() );
+		Map<?, ?> map = (Map<?, ?>) object;
+		assertEquals( 8, map.size() );
+		assertTrue( (boolean) map.get( "boolVal" ) );
 	}
 
 	@Order(4)
 	@Test
-	void testJson5Decode() {
-		try {
-			System.out.println( json5text );
-			Object object = Jetson.decode( json5text );
-			assertEquals( HashMap.class, object.getClass() );
-			Map<?, ?> map = (Map<?, ?>) object;
-			assertEquals( 10, map.size() );
-			assertEquals( "and you can quote me on that", map.get( "unquoted" ) );
-			assertEquals( "I can use \"double quotes\" here", map.get( "singleQuotes" ) );
-			// System.out.println( map.get( "lineBreaks" ) );
-			assertEquals( "Look, Mom! No n's!", map.get( "lineBreaks" ) );
-			// TODO correct assertEquals
-			// assertEquals( 0xdecaf, map.get( "hexadecimal" ) );
-			assertEquals( 0.8675309, map.get( "leadingDecimalPoint" ) );
-			assertEquals( 8675309.0, map.get( "andTrailing" ) );
-			assertEquals( 1L, map.get( "positiveSign" ) );
-			assertEquals( "in objects", map.get( "trailingComma" ) );
-			assertEquals( List.of( "arrays" ), map.get( "andIn" ) );
-			@SuppressWarnings("unchecked") ArrayList<String> arrays =
-					(ArrayList<String>) map.get( "andIn" );
-			assertEquals( "arrays", arrays.get( 0 ) );
-			assertEquals( "with JSON", map.get( "backwardsCompatible" ) );
-		} catch ( IllegalAccessException | ParseException e ) {
-			e.printStackTrace();
-		}
+	void testJson5Decode() throws ParseException, IllegalAccessException {
+		Object object = Jetson.decode( json5text );
+		assertEquals( HashMap.class, object.getClass() );
+		Map<?, ?> map = (Map<?, ?>) object;
+		assertEquals( 10, map.size() );
+		assertEquals( "and you can quote me on that", map.get( "unquoted" ) );
+		assertEquals( "I can use \"double quotes\" here", map.get( "singleQuotes" ) );
+		assertEquals( "Look, Mom! No n's!", map.get( "lineBreaks" ) );
+		// TODO correct assertEquals
+		// assertEquals( 0xdecaf, map.get( "hexadecimal" ) );
+		assertEquals( 0.8675309, map.get( "leadingDecimalPoint" ) );
+		assertEquals( 8675309.0, map.get( "andTrailing" ) );
+		assertEquals( 1L, map.get( "positiveSign" ) );
+		assertEquals( "in objects", map.get( "trailingComma" ) );
+		assertEquals( List.of( "arrays" ), map.get( "andIn" ) );
+		@SuppressWarnings("unchecked") ArrayList<String> list = (ArrayList<String>) map.get(
+				"andIn" );
+		assertEquals( "arrays", list.get( 0 ) );
+		assertEquals( "with JSON", map.get( "backwardsCompatible" ) );
 	}
 
 	@Order(10)

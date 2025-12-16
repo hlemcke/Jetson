@@ -463,7 +463,11 @@ public class JsonDecoder {
 		if ( token.symbol == Symbol.LEFT_BRACKET ) { // JSON List
 			if ( target != null && target.getClass().isArray() ) {
 				List<?> list = BaseConverter.arrayToList( (Object[]) target );
-				retval = _decodeList( list, valueType ).toArray();
+				if ( valueType == null ) {
+					valueType = target.getClass().getComponentType();
+				}
+				retval = _decodeList( list, valueType );
+				retval = BaseConverter.listToArray( list );
 			} else {
 				retval = _decodeList( (Collection<?>) target, valueType );
 			}

@@ -53,9 +53,9 @@ public class JsonDecodePojoTest {
 
 		//--- then
 		assertNotNull( pojo );
-		assertEquals( 2, pojo.pojoList.size() );
-		assertEquals( 71, pojo.pojoList.get( 0 ).ival );
-		assertEquals( 123, pojo.pojoList.get( 1 ).ival );
+		assertEquals( 2, pojo.pojoArray.length );
+		assertEquals( 71, pojo.pojoArray[0].ival );
+		assertEquals( 123, pojo.pojoArray[1].ival );
 	}
 
 	@Test
@@ -139,7 +139,6 @@ public class JsonDecodePojoTest {
 		String json = Jetson.encode( pojo );
 
 		//--- then
-		System.out.println( json );
 		assertFalse( json.isEmpty() );
 	}
 

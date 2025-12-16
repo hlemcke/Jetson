@@ -71,7 +71,7 @@ public class Jetson {
 	public static Object decodeIntoObject( String jsonString,
 			Object target ) throws IllegalAccessException, ParseException {
 		Object object = JsonDecoder.decoder().decodeIntoObject( jsonString, target );
-		return (object==null) ? target : object;
+		return (object == null) ? target : object;
 	}
 
 	/**
@@ -98,7 +98,8 @@ public class Jetson {
 	/**
 	 * Decodes given {@code jsonString} into a map.
 	 * <p>
-	 * Utility method includes casting to map and suppresses compiler warning for unchecked
+	 * Utility method includes casting to map and suppresses compiler warning for
+	 * unchecked
 	 * conversion.
 	 * </p>
 	 *
@@ -153,7 +154,8 @@ public class Jetson {
 	}
 
 	/**
-	 * Decoding a Json string will merge collection items from string into already existing
+	 * Decoding a JSON string will merge collection items from string into already
+	 * existing
 	 * items of a collection.
 	 *
 	 * @return decoder for fluent API
@@ -165,21 +167,24 @@ public class Jetson {
 
 	/**
 	 * gets converter
+	 *
 	 * @param anno a
 	 * @return converter
 	 */
 	public static JsonConverter<?> getConverter( Json anno ) {
-		if ( anno==null ) {
+		if ( anno == null ) {
 			return null;
 		}
 		Class<? extends JsonConverter> annotatedConverter = anno.converter();
 		try {
-			return (annotatedConverter==JsonConverter.class) ? null :
+			return (annotatedConverter == JsonConverter.class) ? null :
 					annotatedConverter.getDeclaredConstructor()
 							.newInstance();
 		} catch ( IllegalAccessException | InstantiationException |
 							InvocationTargetException | NoSuchMethodException e ) {
-			throw new JsonParseException( "Converter " + annotatedConverter.getName() + " could not be instantiated" );
+			throw new JsonParseException(
+					"Converter " + annotatedConverter.getName() + " could not be " +
+							"instantiated" );
 		}
 	}
 
@@ -209,7 +214,8 @@ public class Jetson {
 	}
 
 	/**
-	 * Encodes values from objects having a value of {@code null} instead of skipping them.
+	 * Encodes values from objects having a value of {@code null} instead of skipping
+	 * them.
 	 *
 	 * @return this for fluent API
 	 */
