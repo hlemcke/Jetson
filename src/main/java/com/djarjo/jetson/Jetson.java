@@ -163,6 +163,11 @@ public class Jetson {
 				.mergeCollections();
 	}
 
+	/**
+	 * gets converter
+	 * @param anno a
+	 * @return converter
+	 */
 	public static JsonConverter<?> getConverter( Json anno ) {
 		if ( anno==null ) {
 			return null;

@@ -45,6 +45,11 @@ public class BaseConverter {
 	public BaseConverter() {
 	}
 
+	/**
+	 * Converts array to list
+	 * @param array a
+	 * @return list
+	 */
 	public static List<?> arrayToList( Object[] array ) {
 		if ( array == null ) {
 			return null;

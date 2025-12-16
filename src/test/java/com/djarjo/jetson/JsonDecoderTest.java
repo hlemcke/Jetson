@@ -40,11 +40,13 @@ class JsonDecoderTest {
 	@Test
 	void testDecodeJsonIntoPojoWithList() throws ParseException, IllegalAccessException {
 		//--- given
+		UUID someId = UUID.fromString( "1baf6ea7-6cc1-4816-8804-991faedf1c47" );
 		OffsetDateTime now = OffsetDateTime.now();
 		PojoWithList beanFromDb = new PojoWithList();
 		beanFromDb.whenInserted = now;
 		PojoWithList beanFromUi = new PojoWithList();
 		beanFromUi.fruits = new ArrayList<>( List.of( "Banana", "Cherry", "Peach" ) );
+		beanFromUi.uuidList = List.of(someId);
 		beanFromUi.pojos.remove( 0 );
 		String json = Jetson.encode( beanFromUi );
 
@@ -60,6 +62,32 @@ class JsonDecoderTest {
 		assertEquals( 1, decodedBean.pojos.size() );
 		assertEquals( "second", decodedBean.pojos.get( 0 ).title );
 		assertEquals( now, decodedBean.whenInserted, "Must be kept from DB entity" );
+		assertEquals( someId, decodedBean.uuidList.get( 0 ) );
+	}
+
+	@Test
+	void testDecodeJsonIntoNewPojoWithList() throws ParseException, IllegalAccessException {
+		//--- given
+		UUID someId = UUID.fromString( "1baf6ea7-6cc1-4816-8804-991faedf1c47" );
+		OffsetDateTime now = OffsetDateTime.now();
+		PojoWithList beanFromUi = new PojoWithList();
+		beanFromUi.fruits = new ArrayList<>( List.of( "Banana", "Cherry", "Peach" ) );
+		beanFromUi.uuidList = List.of(someId);
+		beanFromUi.pojos.remove( 0 );
+		String json = Jetson.encode( beanFromUi );
+
+		//--- when
+		PojoWithList decodedBean = (PojoWithList) Jetson.decodeIntoObject( json,
+				new PojoWithList() );
+
+		//--- then
+		assertEquals( 3, decodedBean.fruits.size() );
+		assertEquals( "Banana", decodedBean.fruits.get( 0 ) );
+		assertEquals( "Cherry", decodedBean.fruits.get( 1 ) );
+		assertEquals( "Peach", decodedBean.fruits.get( 2 ) );
+		assertEquals( 1, decodedBean.pojos.size() );
+		assertEquals( "second", decodedBean.pojos.get( 0 ).title );
+		assertEquals( someId, decodedBean.uuidList.get( 0 ) );
 	}
 
 	@Test
@@ -195,6 +223,9 @@ class JsonDecoderTest {
 	private static class PojoWithList {
 		@Json
 		public UUID id = UUID.randomUUID();
+
+		@Json
+		public List<UUID> uuidList = null;
 
 		@Json
 		public List<String> fruits = new ArrayList<>( List.of( "Apple", "Kiwi" ) );

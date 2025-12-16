@@ -70,6 +70,7 @@ public class JsonDecoder {
 	 * Decodes the given JSON string and writes its values into the given target object.
 	 * <p>
 	 * Decoding process:
+	 * </p>
 	 * <ol>
 	 *   <li>If target is {@code null} then a new Map will be created, filled and
 	 *   returned</li>
@@ -83,6 +84,7 @@ public class JsonDecoder {
 	 *   <li>If target class is <b>not</b> annotated with {@literal @Json} then all members
 	 *   (fields and getters) will be used which are annotated with {@literal @Json}</li>
 	 * </ol>
+	 * <p>
 	 * Fields (getters) in target class must be annotated with
 	 * {@link com.djarjo.jetson.Json @Json}.
 	 * </p>

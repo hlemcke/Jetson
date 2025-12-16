@@ -32,6 +32,7 @@ import java.util.*;
  * @since 2017-01-02
  */
 public class JsonEncoder {
+	/** METHOD_TO_JSON */
 	public final static String METHOD_TO_JSON = "toJson";
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 	private final int MAX_INDENT = 10;
@@ -72,7 +73,7 @@ public class JsonEncoder {
 
 	/**
 	 * Encodes the given Java object into a JSON string.
-	 * <p><ul>
+	 *   <ul>
 	 * <li>A collection like a list or a set will be encoded into a JSON list
 	 * enclosed in square brackets</li>
 	 * <li>A map will be encoded into a JSON object enclosed in curly braces. {@code null}
@@ -86,7 +87,6 @@ public class JsonEncoder {
 	 * <li>A POJO <i>not</i> annotated with {@literal @Json} will be encoded by encoding
 	 *   all members (fields and getters) which are annotated with {@literal @Json}</li>
 	 * 	 </ul>
-	 * </p>
 	 * <p>
 	 * Any other object will be encoded into a JSON object enclosed in curly braces. The
 	 * encoded JSON string contains all fields (getters) which are annotated with
