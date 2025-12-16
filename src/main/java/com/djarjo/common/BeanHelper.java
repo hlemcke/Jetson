@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
  * Helper methods for beans.
  *
  * @author Hajo Lemcke
+ * @since 2025-05-17 modified to use ReflectionHelper
  * @since 2021-12-28 method "set" now uses generics from List
  */
 public class BeanHelper {
@@ -177,12 +178,12 @@ public class BeanHelper {
 			String name ) {
 		Object value = null;
 		try {
-			if ( kind==ElementKind.FIELD ) {
+			if ( kind == ElementKind.FIELD ) {
 				Field field = bean.getClass()
 						.getDeclaredField( name );
 				field.setAccessible( true );
 				value = field.get( bean );
-			} else if ( kind==ElementKind.METHOD ) {
+			} else if ( kind == ElementKind.METHOD ) {
 				Method method = bean.getClass()
 						.getDeclaredMethod( name, (Class<?>[]) null );
 				method.setAccessible( true );
@@ -200,15 +201,13 @@ public class BeanHelper {
 		return value;
 	}
 
-	/******************************************************************
-	 * Gets the value from the given element (field or method). A method must
-	 * not have any parameters. Any exception will be logged with level WARNING
-	 * and {@code null} will be returned.
+	/**
+	 * Gets the value from the given member (field or method). A method must not have any
+	 * parameters. Any exception will be logged with level WARNING and {@code null} will be
+	 * returned.
 	 *
-	 * @param bean
-	 *            The bean which contains the element
-	 * @param element
-	 *            The field or method in the bean
+	 * @param bean The bean which contains the element
+	 * @param element The field or method in the bean
 	 * @return Returns the value of the element
 	 */
 	public static Object getValue( Object bean, AnnotatedElement element ) {
@@ -220,7 +219,7 @@ public class BeanHelper {
 			} else if ( element instanceof Method method ) {
 				method.setAccessible( true );
 				int count = method.getParameterCount();
-				if ( count!=0 ) {
+				if ( count != 0 ) {
 					throw new IllegalArgumentException( "Method " + method
 							+ " may not have parameters but has " + count );
 				}
@@ -315,7 +314,7 @@ public class BeanHelper {
 
 		StringBuilder fieldName = new StringBuilder( name );
 		for ( i = 0; i < fieldName.length(); i++ ) {
-			if ( fieldName.charAt( i )=='_' ) {
+			if ( fieldName.charAt( i ) == '_' ) {
 				fieldName.deleteCharAt( i );
 				fieldName.setCharAt( i,
 						Character.toUpperCase( fieldName.charAt( i ) ) );
@@ -408,26 +407,18 @@ public class BeanHelper {
 		populate( bean, setters, map, false );
 	}
 
-	/******************************************************************
-	 * Sets properties of the given bean which have a setter method. The
-	 * property must have the same name as the key of an entry from the map.
+	/**
+	 * Sets properties of the given bean which have a setter method. The property must have
+	 * the same name as the key of an entry from the map.
 	 *
-	 * @param bean
-	 *            fields will be populated from the map by calling its setters
-	 * @param setters
-	 *            Setter methods. Use null to obtain them here
-	 * @param map
-	 *            keys must have bean property names
-	 * @param withInherited
-	 *            {@code true} includes inherited classes
-	 * @throws IllegalArgumentException
-	 *             if value has incorrect type
-	 * @throws IllegalAccessException
-	 *             if access to setter is prohibited
-	 * @throws InvocationTargetException
-	 *             in setter cannot be invoked
-	 * @throws ParseException
-	 *             if a parsing error occurs
+	 * @param bean fields will be populated from the map by calling its setters
+	 * @param setters Setter methods. Use null to obtain them here
+	 * @param map keys must have bean property names
+	 * @param withInherited {@code true} includes inherited classes
+	 * @throws IllegalArgumentException if value has incorrect type
+	 * @throws IllegalAccessException if access to setter is prohibited
+	 * @throws InvocationTargetException in setter cannot be invoked
+	 * @throws ParseException if a parsing error occurs
 	 */
 	public static void populate( Object bean, Method[] setters,
 			Map<String, Object> map, boolean withInherited )
@@ -436,7 +427,7 @@ public class BeanHelper {
 		logger.atFiner().log( bean + ", " + map );
 
 		// --- No setters given => obtain here
-		if ( setters==null ) {
+		if ( setters == null ) {
 			setters = obtainSetters( bean.getClass(), withInherited );
 		}
 
@@ -481,7 +472,7 @@ public class BeanHelper {
 
 	private static String _prettyPrintIndent( Object bean, int maxDepth,
 			boolean withNullValues, int curDepth, Set<Object> path ) {
-		if ( bean==null ) {
+		if ( bean == null ) {
 			return withNullValues ? "null" : null;
 		}
 		if ( bean instanceof Boolean || bean instanceof Byte
@@ -544,7 +535,7 @@ public class BeanHelper {
 			for ( Object key : keys ) {
 				value = _prettyPrintIndent( map.get( key ), maxDepth,
 						withNullValues, curDepth + 1, path );
-				s.append( (withNullValues || value!=null)
+				s.append( (withNullValues || value != null)
 						? String.format( "%s%s: %s,\n", indent, key, value )
 						: "" );
 			}
@@ -561,7 +552,7 @@ public class BeanHelper {
 		for ( Method getter : getters ) {
 			try {
 				value = getter.invoke( bean, (Object[]) null );
-				s.append( (withNullValues || value!=null)
+				s.append( (withNullValues || value != null)
 						? indent + ReflectionHelper.getVarNameFromMethodName( getter.getName() )
 						+ ": "
 						+ _prettyPrintIndent( value, maxDepth,
@@ -614,7 +605,7 @@ public class BeanHelper {
 	 * @return {@code true} when the field was found and the value could be set
 	 */
 	public static boolean setValue( Object bean, String propertyPath, Object value ) {
-		if ( bean==null ) return false;
+		if ( bean == null ) return false;
 
 		String[] props = propertyPath.split( "/" );
 		String prop = "";
@@ -636,9 +627,9 @@ public class BeanHelper {
 
 				//--- Setter or fallback to field
 				Member member = ReflectionHelper.findSetter( currentBean.getClass(), prop );
-				if ( member==null ) {
+				if ( member == null ) {
 					member = ReflectionHelper.findField( currentBean.getClass(), prop );
-					if ( member==null ) {
+					if ( member == null ) {
 						String message = String.format( "No field '%s' in bean %s", prop, bean );
 						logger.atFiner().log( message );
 						throw new RuntimeException( new NoSuchFieldException( message ) );
@@ -647,7 +638,7 @@ public class BeanHelper {
 				((AccessibleObject) member).setAccessible( true );
 
 				//--- Set value into last property from path
-				if ( i==props.length - 1 ) {
+				if ( i == props.length - 1 ) {
 					ReflectionHelper.setValue( currentBean, member, index, value );
 					return true;
 				}
@@ -656,7 +647,7 @@ public class BeanHelper {
 				Object currentValue = ReflectionHelper.getValueFromMember( currentBean, member );
 
 				//--- Current property is null -> create it
-				if ( currentValue==null ) {
+				if ( currentValue == null ) {
 					currentValue = ReflectionHelper.instantiateProperty( currentBean, member );
 				}
 
@@ -664,7 +655,7 @@ public class BeanHelper {
 					//--- Obtain item or create it
 					Object listItem = ReflectionHelper.getValueByIndex( currentValue, index );
 					//--- list is empty -> create item
-					if ( listItem==null ) {
+					if ( listItem == null ) {
 						listItem = ReflectionHelper.instantiateGeneric( bean, member, currentValue,
 								index );
 					}

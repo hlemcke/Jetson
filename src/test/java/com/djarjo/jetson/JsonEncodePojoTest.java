@@ -60,7 +60,7 @@ public class JsonEncodePojoTest {
 	@Test
 	void testPojoWithConverter() {
 		//--- given
-		PojoWithConverter pojo = new PojoWithConverter();
+		Furi pojo = new Furi();
 
 		//--- when
 		String json = Jetson.encode( pojo );
@@ -146,23 +146,23 @@ public class JsonEncodePojoTest {
 		}
 	}
 
-	@Json(converter = PojoWithConverter.Converter4json.class)
-	private static class PojoWithConverter {
+	@Json(converter = Furi.Converter4json.class)
+	private static class Furi {
 		public int ival = 42;
 
 		@JsonTransient
 		public String nonono = "but with value";
 
-		public PojoWithConverter() {
+		public Furi() {
 		}
 
-		public PojoWithConverter( int value ) {
+		public Furi( int value ) {
 			this.ival = value;
 		}
 
-		public static PojoWithConverter decode( String json ) {
-			PojoWithConverter pojo = new PojoWithConverter();
-			if ( json!=null && !json.isBlank() ) {
+		public static Furi decode( String json ) {
+			Furi pojo = new Furi();
+			if ( json != null && !json.isBlank() ) {
 				pojo.ival = TextHelper.parseInteger( json.substring( "enc=".length() ) );
 			}
 			return pojo;
@@ -181,16 +181,16 @@ public class JsonEncodePojoTest {
 			return 4711;
 		}
 
-		public static class Converter4json implements JsonConverter<PojoWithConverter> {
+		public static class Converter4json implements JsonConverter<Furi> {
 			@Override
-			public PojoWithConverter decodeFromJson( String jsonValue ) {
-				if ( jsonValue==null || jsonValue.isBlank() ) return null;
-				return JsonEncodePojoTest.PojoWithConverter.decode( jsonValue );
+			public Furi decodeFromJson( String jsonValue ) {
+				if ( jsonValue == null || jsonValue.isBlank() ) return null;
+				return Furi.decode( jsonValue );
 			}
 
 			@Override
-			public String encodeToJson( PojoWithConverter pojo ) {
-				return (pojo==null) ? null : pojo.encode();
+			public String encodeToJson( Furi pojo ) {
+				return (pojo == null) ? null : pojo.encode();
 			}
 		}
 	}
@@ -210,7 +210,7 @@ public class JsonEncodePojoTest {
 		public Set<Pojo> pojoSet = Set.of( new Pojo(), new Pojo( 37, strSet ) );
 
 		@Json
-		public List<PojoWithConverter> furies = List.of( new PojoWithConverter( 4711 ), new PojoWithConverter( 69 ) );
+		public List<Furi> furies = List.of( new Furi( 4711 ), new Furi( 69 ) );
 	}
 
 	private static class PojoWithMixedFieldsAndGetters {

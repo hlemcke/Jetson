@@ -2,7 +2,6 @@ package com.djarjo.jetson;
 
 import com.djarjo.jetson.converter.JsonConverter;
 import com.djarjo.text.TextHelper;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -41,7 +40,6 @@ public class JsonDecodePojoTest {
 		assertEquals( "{\"some\":42}", json );
 	}
 
-	@Disabled
 	@Test
 	@DisplayName("decode POJO with List")
 	void testPojoWithArray() throws ParseException,

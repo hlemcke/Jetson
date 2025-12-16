@@ -39,9 +39,7 @@ public class BaseConverter {
 	private static final Map<Class<?>, Function<Object, Object>> _converters =
 			new HashMap<>();
 
-	/**
-	 * Useless public constructor implemented for Javadoc only
-	 */
+	/** Useless public constructor implemented for Javadoc only */
 	public BaseConverter() {
 	}
 
@@ -168,6 +166,26 @@ public class BaseConverter {
 		return _getConverters().getOrDefault( type, v -> {
 			throw new IllegalArgumentException( "Unsupported type:" + type );
 		} ).apply( value );
+	}
+
+	/**
+	 * Converts a List into a dynamically-typed array. The array type is derived from the
+	 * class of the first element in the list.
+	 *
+	 * @param list The source list to convert. Can contain any type of element.
+	 * @return An array (T[]) of type T, or null if the list is null or empty.
+	 */
+	public static Object listToArray( List<?> list ) {
+		if ( list == null || list.isEmpty() ) {
+			return null;
+		}
+		Class<?> componentType = list.get( 0 ).getClass();
+		int size = list.size();
+		Object array = Array.newInstance( componentType, size );
+		for ( int i = 0; i < size; i++ ) {
+			Array.set( array, i, list.get( i ) );
+		}
+		return array;
 	}
 
 	/**
