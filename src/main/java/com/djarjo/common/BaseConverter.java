@@ -7,19 +7,16 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
+import java.time.*;
 import java.util.*;
 import java.util.function.Function;
 
 import static java.lang.Math.abs;
 
-/**********************************************************************
- * This class solely consists of static methods which convert a value from one
- * type to another one. If the input type is of type string then the parser
- * methods from {@link com.djarjo.text.TextHelper TextHelper} will be used.
+/**
+ * This class solely consists of static methods which convert a value from one type to
+ * another one. If the input type is of type string then the parser methods from
+ * {@link com.djarjo.text.TextHelper TextHelper} will be used.
  * <p>
  * All methods are reentrant and multi-thread save.
  * </p>
@@ -45,6 +42,7 @@ public class BaseConverter {
 
 	/**
 	 * Converts array to list
+	 *
 	 * @param array a
 	 * @return list
 	 */
@@ -240,10 +238,10 @@ public class BaseConverter {
 	}
 
 	/**
-	 * Converts {@code value} to a BigDecimal
+	 * Converts {@code value} to a {@code BigDecimal}
 	 *
 	 * @param value Byte, Double, Float, Integer, Long, Short or String
-	 * @return new instance of BigDecimal or {@code null}
+	 * @return new instance of {@code BigDecimal} or {@code null} if not convertible
 	 */
 	public static BigDecimal toBigDecimal( Object value ) {
 		if ( value == null ) {
@@ -296,7 +294,7 @@ public class BaseConverter {
 	/**
 	 * Converts {@code value} to a Double.
 	 *
-	 * @param value value to convert
+	 * @param value to be converted
 	 * @return {@code null} if not convertible to a Double
 	 */
 	public static Double toDouble( Object value ) {
@@ -308,10 +306,17 @@ public class BaseConverter {
 		return null;
 	}
 
+	public static Duration toDuration( Object value ) {
+		if ( value == null ) return null;
+		if ( value instanceof Duration d ) return d;
+		if ( value instanceof String s ) return Duration.parse( s );
+		return null;
+	}
+
 	/**
 	 * Converts {@code value} to a Float.
 	 *
-	 * @param value value to convert
+	 * @param value to be converted
 	 * @return {@code null} if not convertible to a Float
 	 */
 	public static Float toFloat( Object value ) {
@@ -324,10 +329,24 @@ public class BaseConverter {
 	}
 
 	/**
-	 * Converts {@code value} to an Integer.
+	 * Converts {@code value} to an {@code Instant}.
 	 *
-	 * @param value value to convert
-	 * @return {@code null} if not convertible to an Integer
+	 * @param value to be converted
+	 * @return new instance of {@code Instant} or {@code null} if not convertible
+	 */
+	public static Instant toInstant( Object value ) {
+		if ( value == null ) return null;
+		if ( value instanceof Instant i ) return i;
+		if ( value instanceof String s ) return Instant.parse( s );
+		logger.atWarning().log( "Cannot convert to Instant: '%s'", value );
+		return null;
+	}
+
+	/**
+	 * Converts {@code value} to an {@code Integer}.
+	 *
+	 * @param value to be converted
+	 * @return new instance of {@code Integer} or {@code null} if not convertible
 	 */
 	public static Integer toInteger( Object value ) {
 		if ( value == null ) return null;
@@ -339,40 +358,40 @@ public class BaseConverter {
 	}
 
 	/**
-	 * Converts {@code value} to LocalDate
+	 * Converts {@code value} to {@code LocalDate}
 	 *
-	 * @param value value to convert
-	 * @return {@code null} if not convertible to LocalDate
+	 * @param value to be converted
+	 * @return new instance of {@code LocalDate} or {@code null} if not convertible
 	 */
 	public static LocalDate toLocalDate( Object value ) {
 		if ( value == null ) return null;
 		if ( value instanceof LocalDate l ) return l;
 		if ( value instanceof OffsetDateTime o ) return o.toLocalDate();
 		if ( value instanceof String s ) return TextHelper.parseDate( s );
-		logger.atWarning().log( "Cannot convert to LocalDate: '%s'", value );
+		logger.atWarning().log( "Cannot convert '%s' to LocalDate", value );
 		return null;
 	}
 
 	/**
-	 * Converts {@code value} to LocalTime
+	 * Converts {@code value} to {@code LocalTime}
 	 *
-	 * @param value value to convert
-	 * @return {@code null} if not convertible to LocalTime
+	 * @param value to be converted
+	 * @return new instance of {@code LocalTime} or {@code null} if not convertible
 	 */
 	public static LocalTime toLocalTime( Object value ) {
 		if ( value == null ) return null;
 		if ( value instanceof LocalTime l ) return l;
 		if ( value instanceof OffsetDateTime o ) return o.toLocalTime();
 		if ( value instanceof String s ) return TextHelper.parseTime( s );
-		logger.atWarning().log( "Cannot convert to LocalTime: '%s'", value );
+		logger.atWarning().log( "Cannot convert '%s' to LocalTime", value );
 		return null;
 	}
 
 	/**
-	 * Converts {@code value} to Locale
+	 * Converts {@code value} to {@code Locale}
 	 *
-	 * @param value value to convert
-	 * @return {@code null} if not convertible to Locale
+	 * @param value to be converted
+	 * @return new instance of {@code Locale} or {@code null} if not convertible
 	 */
 	public static Locale toLocale( Object value ) {
 		if ( value == null ) return null;
@@ -383,10 +402,10 @@ public class BaseConverter {
 	}
 
 	/**
-	 * Converts {@code value} to a Long.
+	 * Converts {@code value} to a {@code Long}.
 	 *
-	 * @param value value to convert
-	 * @return {@code null} if not convertible to Long
+	 * @param value to be converted
+	 * @return new instance of {@code Long} or {@code null} if not convertible
 	 */
 	public static Long toLong( Object value ) {
 		if ( value == null ) return null;
@@ -398,16 +417,30 @@ public class BaseConverter {
 	}
 
 	/**
-	 * Converts {@code value} to a OffsetDateTime object
+	 * Converts {@code value} to a {@code OffsetDateTime} object
 	 *
 	 * @param value to be converted
-	 * @return {@code null} if not convertible to OffsetDateTime
+	 * @return new instance of {@code OffsetDateTime} or {@code null} if not convertible
 	 */
 	public static OffsetDateTime toOffsetDateTime( Object value ) {
 		if ( value == null ) return null;
 		if ( value instanceof OffsetDateTime o ) return o;
 		if ( value instanceof String s ) return TextHelper.parseDateTime( s );
 		logger.atWarning().log( "Cannot convert to OffsetDateTime: '%s'", value );
+		return null;
+	}
+
+	/**
+	 * Converts {@code value} to a {@code Period} object
+	 *
+	 * @param value to be converted
+	 * @return new instance of {@code Period} or {@code null} if not convertible
+	 */
+	public static Period toPeriod( Object value ) {
+		if ( value == null ) return null;
+		if ( value instanceof Period p ) return p;
+		if ( value instanceof String s ) return Period.parse( s );
+		logger.atWarning().log( "Cannot convert to Period: '%s'", value );
 		return null;
 	}
 
@@ -502,16 +535,31 @@ public class BaseConverter {
 		return Base64.getUrlEncoder().withoutPadding().encodeToString( bites );
 	}
 
+	/**
+	 * Converts {@code value} to an {@code ZonedDateTime}.
+	 *
+	 * @param value to be converted
+	 * @return new instance of {@code ZonedDateTime} or {@code null} if not convertible
+	 */
+	public static ZonedDateTime toZonedDateTime( Object value ) {
+		if ( value == null ) return null;
+		if ( value instanceof ZonedDateTime z ) return z;
+		if ( value instanceof String s ) return ZonedDateTime.parse( s );
+		logger.atWarning().log( "Cannot convert to ZonedDateTime: '%s'", value );
+		return null;
+	}
+
 	private static Map<Class<?>, Function<Object, Object>> _getConverters() {
 		if ( _converters.isEmpty() ) {
+			_converters.put( BigDecimal.class, BaseConverter::toBigDecimal );
 			_converters.put( boolean.class, BaseConverter::toBoolean );
 			_converters.put( Boolean.class, BaseConverter::toBoolean );
-			_converters.put( BigDecimal.class, BaseConverter::toBigDecimal );
 			_converters.put( byte.class, BaseConverter::toByte );
 			_converters.put( Byte.class, BaseConverter::toByte );
 			_converters.put( Currency.class, v -> Currency.getInstance( v.toString() ) );
 			_converters.put( double.class, BaseConverter::toDouble );
 			_converters.put( Double.class, BaseConverter::toDouble );
+			_converters.put( Duration.class, BaseConverter::toDuration );
 			_converters.put( float.class, BaseConverter::toFloat );
 			_converters.put( Float.class, BaseConverter::toFloat );
 			_converters.put( int.class, BaseConverter::toInteger );
@@ -519,10 +567,14 @@ public class BaseConverter {
 			_converters.put( long.class, BaseConverter::toLong );
 			_converters.put( Long.class, BaseConverter::toLong );
 			_converters.put( LocalDate.class, BaseConverter::toLocalDate );
+			_converters.put( LocalTime.class, BaseConverter::toLocalTime );
 			_converters.put( Locale.class, v -> toLocale( v.toString() ) );
-			_converters.put( OffsetDateTime.class, v -> OffsetDateTime.parse( v.toString() ) );
+			_converters.put( OffsetDateTime.class, BaseConverter::toOffsetDateTime );
+			_converters.put( Period.class, BaseConverter::toPeriod );
 			_converters.put( String.class, v -> v );
+			_converters.put( TimeZone.class, BaseConverter::toTimeZone );
 			_converters.put( UUID.class, BaseConverter::toUuid );
+			_converters.put( ZonedDateTime.class, BaseConverter::toZonedDateTime );
 		}
 		return _converters;
 	}

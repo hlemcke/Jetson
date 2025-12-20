@@ -14,8 +14,7 @@ import java.lang.reflect.*;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URL;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
+import java.time.*;
 import java.util.*;
 
 /**
@@ -426,24 +425,28 @@ public class JsonEncoder {
 		}
 
 		// --- Encode basic value
-		if ( value instanceof Boolean || value instanceof Byte || value instanceof Double
-				|| value instanceof Float || value instanceof Integer || value instanceof Long
-				|| value instanceof Short ) {
+		if ( (value instanceof Boolean) || (value instanceof Byte) || (value instanceof Double)
+				|| (value instanceof Float) || (value instanceof Integer) || (value instanceof Long)
+				|| (value instanceof Short) ) {
 			return value.toString();
 		}
 		// --- Encode derived value
-		if ( value instanceof BigDecimal || value instanceof Character
-				|| value instanceof Currency || value instanceof Enum
-				|| value instanceof LocalDate || value instanceof Locale
-				|| value instanceof OffsetDateTime || value instanceof String
-				|| value instanceof UUID || value instanceof URI || value instanceof URL ) {
+		if ( (value instanceof BigDecimal) || (value instanceof Character)
+				|| (value instanceof Currency) || (value instanceof Duration)
+				|| (value instanceof Enum) || (value instanceof Instant)
+				|| (value instanceof LocalDate) || (value instanceof LocalTime)
+				|| (value instanceof LocalDateTime) || (value instanceof Locale)
+				|| (value instanceof OffsetDateTime) || (value instanceof Period)
+				|| (value instanceof String) || (value instanceof UUID)
+				|| (value instanceof URI) || (value instanceof URL)
+				|| (value instanceof ZonedDateTime) ) {
 			return _encodeString( value.toString() );
 		}
 
 		// --- Encode recursive objects
 		if ( _stack.contains( value ) ) {
 			throw new RecursionException(
-					"Json Encoding Exception." + " Already encoded: " + value + "\n" + _stack );
+					"JSON Encoding Exception. Already encoded: " + value + "\n" + _stack );
 		}
 		_stack.add( value );
 		String json;

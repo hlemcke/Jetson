@@ -2,7 +2,7 @@
 
 JSON codec with annotations and converters. Includes tokenizer with parser and basic converters.
 
-Jetson encodes and decodes not only basic values, arrays, lists, maps but also any Java class.
+Jetson encodes and decodes all basic values, arrays, lists, maps and also any Java class.
 
 ## Usage
 
@@ -10,9 +10,9 @@ Main usage is to encode a Java class into a valid JSON string
 and decode a JSON string back into a Java class.
 
 To reduce boilerplate code _Jetson_ uses annotations
-which can be applied on fields or getters.
+which can be applied on class, fields or getters.
 
-On encoding to JSON additional features can be applied:
+For encoding to JSON additional features can be applied:
 
 * .bytesToList() → encodes `byte[]` to a JSON list instead of a string in Base64 format
 * .prettyPrint() → encodes to a pretty printed JSON string with indented entries
@@ -55,14 +55,14 @@ Pojo
   name = "def"
 ```
 
-## Json annotation with attributes
+## JSON Annotation with Attributes
 
-The annotation `@Json` can be applied to members (fields and getter methods) accepting these attributes:
+The annotation `@Json` accepts these attributes:
 
 * converter → expects a class implementing `JsonConverter`. Encoding and decoding will use the converter.
-* decodable → Default true. `false` will not decode this field from json string
-* encodable → Default true. `false` will not encode this field into json string
-* key → replaces field name with this key like `@Json( key = "another" )` will produce `"another":...` during encoding.
+* decodable → Default true. `false` will not decode this field from JSON string
+* encodable → Default true. `false` will not encode this field into JSON string
+* key → replaces field name by this key like `@Json( key = "another" )` will produce `"another":...` during encoding.
   Decoding also awaits key "another"
 * mergeCollection →
 

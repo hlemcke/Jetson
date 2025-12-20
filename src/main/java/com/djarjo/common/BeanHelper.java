@@ -9,9 +9,7 @@ import java.lang.reflect.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
+import java.time.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,6 +22,21 @@ import java.util.regex.Pattern;
  * @since 2021-12-28 method "set" now uses generics from List
  */
 public class BeanHelper {
+	public static final Set<Class<?>> BASIC_TYPES = new HashSet<>( Arrays.asList(
+			Boolean.class,
+			Character.class,
+			Currency.class,
+			Duration.class,         // e.g., "PT1H30M" (Time-based: 1 hour 30 mins)
+			Instant.class,          // e.g. "2025-12-20T10:15:30Z"
+			LocalDate.class,
+			LocalTime.class,
+			LocalDateTime.class,
+			Locale.class,
+			OffsetDateTime.class,
+			Period.class,           // e.g., "P2Y3M" (Date-based: 2 years 3 months)
+			String.class,
+			UUID.class,
+			ZonedDateTime.class ) );
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 	private static final Comparator<Object> keyComparator =
 			Comparator.comparing( Object::toString );
@@ -58,8 +71,8 @@ public class BeanHelper {
 	}
 
 	/**
-	 * Describes the given bean into a map. The desciption contains the properties of the
-	 * bean which can be obtain through the given getter methods.
+	 * Describes the given bean into a map. The description contains the properties of the
+	 * bean which can be obtained through the given getter methods.
 	 *
 	 * @param bean Java object to be described
 	 * @param getters list of getter methods
@@ -138,7 +151,6 @@ public class BeanHelper {
 		}
 		return str;
 	}
-
 
 	/**
 	 * Finds methods with the given annotation.
@@ -254,6 +266,18 @@ public class BeanHelper {
 		Field internalField = clazz.getDeclaredField( fieldName );
 		internalField.setAccessible( true );
 		internalField.set( bean, value );
+	}
+
+	/**
+	 * Determines if an object should be treated as a single "basic" value rather than a
+	 * complex object that needs recursion.
+	 */
+	public static boolean isBasicType( Object value ) {
+		if ( value == null ) return true;
+		Class<?> clazz = value.getClass();
+		if ( BASIC_TYPES.contains( clazz ) ) return true;
+		if ( value instanceof Number ) return true;
+		return clazz.isEnum();
 	}
 
 	/**

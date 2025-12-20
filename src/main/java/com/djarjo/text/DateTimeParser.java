@@ -38,15 +38,15 @@ public class DateTimeParser {
 	public DateTimeParser() {
 	}
 
-	/******************************************************************
-	 * Expands a given year with 2 digits into a full four digit year. If the
-	 * given value is smaller than the current year - 2000 +
+	/**
+	 * Expands a given year with 2 digits into a full four digit year. If the given
+	 * value is
+	 * smaller than the current year - 2000 +
 	 * <em>getYearsIntoFuture()</em> then add 2000. If it is smaller than 100
-	 * then add 1900. If it is smaller than 1000 then add 1900. Else just return
-	 * the given value. 0 or a negative value returns the current year.
+	 * then add 1900. If it is smaller than 1000 then add 1900. Else just return the given
+	 * value. 0 or a negative value returns the current year.
 	 *
-	 * @param yearWith2Digits
-	 *            two digit year
+	 * @param yearWith2Digits two digit year
 	 * @return 4 digit year
 	 */
 	public static int expandYear( int yearWith2Digits ) {
@@ -82,8 +82,7 @@ public class DateTimeParser {
 	}
 
 	/**
-	 * Returns a new instance of {@code OffsetDateTime} in which date parts are
-	 * replaced by
+	 * Returns a new instance of {@code OffsetDateTime} in which date parts are replaced by
 	 * values from [{@code date}.
 	 *
 	 * @param current date time value
@@ -99,8 +98,7 @@ public class DateTimeParser {
 	}
 
 	/**
-	 * Returns a new instance of {@code OffsetDateTime} in which time parts are
-	 * replaced by
+	 * Returns a new instance of {@code OffsetDateTime} in which time parts are replaced by
 	 * values from [{@code time}.
 	 *
 	 * @param current date time value
@@ -115,22 +113,20 @@ public class DateTimeParser {
 		return current;
 	}
 
-	/******************************************************************
+	/**
 	 * Parses the given string and returns a LocalDate.
 	 * <p>
-	 * The <em>pattern</em> is an optional string which only states the order of
-	 * fields within a date. If given it must contain the letters <b>y</b> for
-	 * year, <b>M</b> for month and <b>d</b> for day in month. The order of this
-	 * three letters defines the order of values in the parsed string.
+	 * The <em>pattern</em> is an optional string which only states the order of fields
+	 * within a date. If given it must contain the letters <b>y</b> for year, <b>M</b> for
+	 * month and <b>d</b> for day in month. The order of this three letters defines the
+	 * order of values in the parsed string.
 	 * </p>
 	 *
-	 * @param text
-	 *            The text with a date
-	 * @param pattern
-	 *            The pattern for the date or {@code null}
+	 * @param text The text with a date
+	 * @param pattern The pattern for the date or {@code null}
 	 * @return new {@code LocalDate} object
 	 */
-	public LocalDate parseDate( final String text, final String pattern ) {
+	public LocalDate _parseDate( final String text, final String pattern ) {
 		LocalDate current = LocalDate.now();
 
 		// --- Split string into tokens
@@ -147,20 +143,20 @@ public class DateTimeParser {
 				&& (tokens.get( 0 ).type == TokenType.NUMBER)
 				&& (tokens.get( 1 ).text.equalsIgnoreCase( "t" ))
 				&& (tokens.get( 2 ).type == TokenType.NUMBER) ) {
-			current = parseDate( current, tokens.get( 0 ), pattern );
+			current = _parseDate( current, tokens.get( 0 ), pattern );
 		}
 
 		// --- Single number => interpret as a date
 		else if ( (tokens.size() == 1)
 				&& (tokens.get( 0 ).type == TokenType.NUMBER) ) {
-			current = parseDate( current, tokens.get( 0 ), pattern );
+			current = _parseDate( current, tokens.get( 0 ), pattern );
 		}
 
 		// --- Standard analyzation
 		else {
 			for ( Token token : tokens ) {
 				if ( token.type == TokenType.DATE )
-					current = parseDate( current, token, pattern );
+					current = _parseDate( current, token, pattern );
 				else if ( token.type == TokenType.TEXT )
 					current = parseText( token.text ).toLocalDate();
 			}
@@ -168,20 +164,17 @@ public class DateTimeParser {
 		return current;
 	}
 
-	/******************************************************************
-	 * Parses the given string and returns a new instance of
-	 * {@code OffsetDateTime}.
+	/**
+	 * Parses the given string and returns a new instance of {@code OffsetDateTime}.
 	 * <p>
-	 * The {@code pattern} is an optional string which only states the order of
-	 * fields within a date. If given it must contain the letters <b>y</b> for
-	 * year, <b>M</b> for month and <b>d</b> for day in month. The order of this
-	 * three letters defines the order of values in the parsed string.
+	 * The {@code pattern} is an optional string which only states the order of fields
+	 * within a date. If given it must contain the letters <b>y</b> for year, <b>M</b> for
+	 * month and <b>d</b> for day in month. The order of this three letters defines the
+	 * order of values in the parsed string.
 	 * </p>
 	 *
-	 * @param text
-	 *            The text with a date and time
-	 * @param pattern
-	 *            The pattern for the date or {@code null}
+	 * @param text The text with a date and time
+	 * @param pattern The pattern for the date or {@code null}
 	 * @return a new OffsetDateTime object
 	 */
 	public OffsetDateTime parseDateTime( final String text,
@@ -204,7 +197,7 @@ public class DateTimeParser {
 				&& (tokens.get( 0 ).type == TokenType.DATE)
 				&& (tokens.get( 1 ).text.equalsIgnoreCase( "t" ))
 				&& (tokens.get( 2 ).type == TokenType.TIME) ) {
-			date = parseDate( tokens.get( 0 ).text, pattern );
+			date = _parseDate( tokens.get( 0 ).text, pattern );
 			LocalTime time = parseTime( tokens.get( 2 ).text );
 			current = withDate( current, date ).withHour( time.getHour() )
 					.withMinute( time.getMinute() )
@@ -218,7 +211,7 @@ public class DateTimeParser {
 		// --- Single number => interpret as a date
 		else if ( (tokens.size() == 1)
 				&& (tokens.get( 0 ).type == TokenType.NUMBER) ) {
-			date = parseDate( tokens.get( 0 ).text, pattern );
+			date = _parseDate( tokens.get( 0 ).text, pattern );
 			current = withDate( current, date );
 		}
 
@@ -227,7 +220,7 @@ public class DateTimeParser {
 			for ( Token token : tokens ) {
 				if ( token.type == TokenType.DATE )
 					current = withDate( current,
-							parseDate( token.text, pattern ) );
+							_parseDate( token.text, pattern ) );
 				else if ( token.type == TokenType.TEXT )
 					current = parseText( token.text );
 				else if ( token.type == TokenType.TIME )
@@ -237,15 +230,15 @@ public class DateTimeParser {
 		return current;
 	}
 
-	/******************************************************************
+	/**
 	 * Date token contains 1 to 3 numbers. Multiple numbers are separated by
 	 * {@link #SEPARATOR}
 	 *
-	 * @param token
-	 * @param pattern
+	 * @param token current token from Tokenizer
+	 * @param pattern pattern to use for parsing
 	 * @return the given date with new values
 	 */
-	private LocalDate parseDate( LocalDate current, Token token,
+	private LocalDate _parseDate( LocalDate current, Token token,
 			String pattern ) {
 
 		// --- Split text into numbers
@@ -253,29 +246,23 @@ public class DateTimeParser {
 		int[] values = new int[3];
 		int count;
 		for ( count = 0; count < numbers.length; count++ ) {
-			values[count] = Integer.valueOf( numbers[count] );
+			values[count] = Integer.parseInt( numbers[count] );
 		}
 
 		// --- Single value
 		if ( count == 1 ) {
 			// --- 8 digits => 4-2-2
 			if ( token.text.length() == 8 ) {
-				values[0] =
-						TextHelper.parseInteger( token.text.substring( 0, 4 ) );
-				values[1] =
-						TextHelper.parseInteger( token.text.substring( 4, 6 ) );
-				values[2] =
-						TextHelper.parseInteger( token.text.substring( 6, 8 ) );
+				values[0] = TextHelper.parseInt( token.text.substring( 0, 4 ) );
+				values[1] = TextHelper.parseInt( token.text.substring( 4, 6 ) );
+				values[2] = TextHelper.parseInt( token.text.substring( 6, 8 ) );
 				count = 3;
 			} else {
-				values[0] =
-						TextHelper.parseInteger( token.text.substring( 0, 2 ) );
+				values[0] = TextHelper.parseInt( token.text.substring( 0, 2 ) );
 				if ( token.text.length() >= 4 )
-					values[count++] = TextHelper
-							.parseInteger( token.text.substring( 2, 4 ) );
+					values[count++] = TextHelper.parseInt( token.text.substring( 2, 4 ) );
 				if ( token.text.length() >= 6 )
-					values[count++] = TextHelper
-							.parseInteger( token.text.substring( 4, 6 ) );
+					values[count++] = TextHelper.parseInt( token.text.substring( 4, 6 ) );
 			}
 		}
 
@@ -394,15 +381,14 @@ public class DateTimeParser {
 	}
 
 	/**
-	 * Time token contains 2, 3 or 4 numbers separated by ":" in the order hours,
-	 * minutes,
+	 * Time token contains 2, 3 or 4 numbers separated by ":" in the order hours, minutes,
 	 * seconds, milliseconds
 	 *
 	 * @param text time string to parse
 	 * @return new instance of {@code LocalTime}
 	 */
 	public LocalTime parseTime( String text ) {
-		String[] numbers = text.split( ":" );
+		String[] numbers = text.split( "\\." );
 		int hour = 0, minute = 0, second = 0, fraction = 0;
 
 		// --- Check for ISO compacted time like 174326
@@ -428,12 +414,11 @@ public class DateTimeParser {
 		return LocalTime.of( hour, minute, second, fraction );
 	}
 
-	/******************************************************************
+	/**
 	 * Splits the given string into tokens and returns them as a list.
 	 *
-	 * @param text
-	 *            The string to be interpreted
-	 * @return Returns a list of tokens
+	 * @param text The string to be interpreted
+	 * @return list of tokens
 	 */
 	private List<Token> parseTokenize( String text ) {
 		List<Token> tokens = new ArrayList<>();
@@ -526,13 +511,12 @@ public class DateTimeParser {
 	}
 
 	/**
-	 * Checks the current token. If the type is different then create a new token with
-	 * the
+	 * Checks the current token. If the type is different then create a new token with the
 	 * given type, add it to the list and return it.
 	 *
-	 * @param tokens
-	 * @param activeToken
-	 * @param type
+	 * @param tokens result from parsing
+	 * @param activeToken current token
+	 * @param type type
 	 * @return activeToken if it has the same type or a new Token
 	 */
 	private Token parseTokenizeCheck( List<Token> tokens, Token activeToken,
@@ -590,10 +574,10 @@ public class DateTimeParser {
 		TIMEZONE
 	}
 
-	/******************************************************************
+	/**
 	 * Token as a section of a parsed string.
 	 */
-	private class Token {
+	private static class Token {
 		TokenType type = null;
 		int value = 0;
 		String text = "";
@@ -612,5 +596,4 @@ public class DateTimeParser {
 			return s + " '" + text + "')";
 		}
 	}
-
 }

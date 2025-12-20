@@ -1,15 +1,38 @@
 package com.djarjo.common;
 
+import com.djarjo.jetson.JsonEncoder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.math.BigDecimal;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class BeanHelperTest {
+
+	@Test
+	@DisplayName("Distinguish all basic types from collections or POJOs")
+	void distinguishBasicValues() {
+		//--- given
+		Map<Object, Boolean> map = new HashMap<>();
+		map.put( false, true );
+		map.put( true, true );
+		map.put( new BigDecimal( 1_000_000_000 ), true );
+		map.put( new BigDecimal( "1234.6789" ), true );
+		map.put( Currency.getInstance( "EUR" ), true );
+		map.put( (byte) 72, true );
+		map.put( new JsonEncoder(), false );
+		map.put( new ArrayList<Long>(), false );
+
+		//--- when / then
+		for ( Map.Entry<Object, Boolean> entry : map.entrySet() ) {
+			assertEquals( entry.getValue(), BeanHelper.isBasicType( entry.getKey() ),
+					"key=" + entry.getKey() + ", type=" + entry.getKey().getClass()
+							.getSimpleName() );
+		}
+	}
 
 	@Test
 	@DisplayName("Ensure that only arrays and lists return true")
@@ -143,12 +166,12 @@ public class BeanHelperTest {
 	 *
 	 */
 	private static class MainBean {
+		private final String prefix = "prefix-";
+		private final List<NestedBean> nestedBeanListEmpty = new ArrayList<>();
+		private final List<NestedBean> nestedBeanListNull = null;
 		private String code = "mainCode";
 		private List<String> names;
-		private String prefix = "prefix-";
 		private NestedBean nestedBean = new NestedBean();
-		private List<NestedBean> nestedBeanListEmpty = new ArrayList<>();
-		private List<NestedBean> nestedBeanListNull = null;
 
 		public void addName( String name ) {
 			if ( names == null ) {
@@ -172,6 +195,6 @@ public class BeanHelperTest {
 
 	public static class NestedBean {
 		public static String keyValue = "nestedKey";
-		private String key = keyValue;
+		private final String key = keyValue;
 	}
 }

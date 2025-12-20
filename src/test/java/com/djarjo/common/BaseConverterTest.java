@@ -1,7 +1,11 @@
 package com.djarjo.common;
 
+import com.djarjo.text.TextHelper;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -9,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class BaseConverterTest {
 	@Test
-	void convertToTypeBoolean() {
+	void convertToBoolean() {
 		//--- given
 		List<Object> inputs = List.of( true, false, "false", "true", "bla", 0, 1, 42,
 				123.456 );
@@ -24,7 +28,36 @@ public class BaseConverterTest {
 	}
 
 	@Test
-	void convertToTypeLong() {
+	void convertToLocalDateTime() {
+		//--- given
+		List<String> inputs = List.of( "2025-12-24T09:10:11" );
+		List<LocalDateTime> expected = List.of( LocalDateTime.of( 2025, 12, 24, 9, 10,
+				11 ) );
+
+		//--- when / then
+		for ( int i = 0; i < inputs.size(); i++ ) {
+			OffsetDateTime result = TextHelper.parseDateTime( inputs.get( i ) );
+			LocalDateTime localDateTime = result.toLocalDateTime();
+			assertEquals( expected.get( i ), localDateTime );
+		}
+	}
+
+	@Test
+	void convertToDuration() {
+		//--- given
+		List<String> inputs = List.of( "PT0S", "PT27H", "P123DT17H59M2S" );
+		List<Duration> expected = List.of( Duration.ZERO, Duration.ofHours( 27 ),
+				Duration.ofSeconds( 10_691_942 ) );
+
+		//--- when / then
+		for ( int i = 0; i < inputs.size(); i++ ) {
+			Duration duration = BaseConverter.toDuration( inputs.get( i ) );
+			assertEquals( expected.get( i ), duration );
+		}
+	}
+
+	@Test
+	void convertToLong() {
 		//--- given
 		List<Object> inputs = List.of( "0", "42", 0, 1, 42, "123456" );
 		List<Long> expected = List.of( 0L, 42L, 0L, 1L, 42L, 123456L );

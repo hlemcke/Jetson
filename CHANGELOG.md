@@ -1,3 +1,7 @@
+## 2.0.2
+
+* Added missing `java.time` classes to automatic encoding / decoding
+
 ## 2.0.1
 
 * Fixed bug when decoding a JSON list into an ancient Java array

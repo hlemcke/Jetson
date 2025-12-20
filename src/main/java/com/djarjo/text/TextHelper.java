@@ -47,10 +47,11 @@ public class TextHelper {
 	 * Allowed characters for {@link #generatePassword(int)}
 	 */
 	public final static String Chars4Password =
-			"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789*$-+?_&=!%{}()[]/";
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789*$-+?_&=!%{}" +
+					"()[]/";
 
 	/**
-	 * Replaces tabs with space and condenses multiple spaces into one single space.<br />
+	 * Replaces tabs with space and condenses multiple spaces into one single space .<br />
 	 * Value for parameter 'option' in {@link #condense(String, int)}.<br /> Multiple
 	 * options can be added.
 	 */
@@ -841,7 +842,7 @@ public class TextHelper {
 	 * Returns a new string of contiguous characters out of the given string starting at
 	 * position <code>offset</code>.
 	 * <p>
-	 * The sequence of contiguous characters starts with the first non-blank character. It
+	 * The sequence of contiguous characters starts with the first non-blank character . It
 	 * ends when any character is found which is neither a letter, a digit nor an
 	 * underscore.
 	 * </p>
@@ -1190,7 +1191,7 @@ public class TextHelper {
 			final String pattern ) {
 		if ( isEmpty( text ) ) return null;
 		DateTimeParser parser = new DateTimeParser();
-		return parser.parseDate( text, pattern );
+		return parser._parseDate( text, pattern );
 	}
 
 	/**
@@ -1291,6 +1292,11 @@ public class TextHelper {
 		return value;
 	}
 
+	public static int parseInt( final String text ) {
+		Integer i = parseInteger( text );
+		return (i == null) ? 0 : i;
+	}
+
 	/**
 	 * Parses the given text as a signed integer value (32 bit). Skips leading blanks.
 	 * Reads
@@ -1301,10 +1307,7 @@ public class TextHelper {
 	 */
 	public static Integer parseInteger( final String text ) {
 		Long lval = parseLong( text );
-		if ( lval == null ) {
-			return null;
-		}
-		return lval.intValue();
+		return (lval == null) ? null : lval.intValue();
 	}
 
 	/**
@@ -1352,13 +1355,11 @@ public class TextHelper {
 		return sign * result;
 	}
 
-	/******************************************************************
+	/**
 	 * Parses the given text as a number.
 	 *
-	 * @param text
-	 *            The text to be parsed
-	 * @return Returns the number as "[-]integer[.fraction]" or <em>null</em> if
-	 *         the text is not a number at all
+	 * @param text The text to be parsed
+	 * @return number as "[-]integer[.fraction]" or {@code null}
 	 */
 	public static String parseNumber( final String text ) {
 		if ( text == null || text.isEmpty() ) {

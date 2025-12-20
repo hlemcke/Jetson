@@ -6,8 +6,8 @@ package com.djarjo.text;
 import com.google.common.flogger.FluentLogger;
 
 /**
- * Provides methods to parse some standard objects. Current token of tokenizer
- * must be the initial symbol of the object to parse.
+ * Provides methods to parse some standard objects. Current token of tokenizer must be the
+ * initial symbol of the object to parse.
  *
  * @author Hajo Lemcke
  * @since 2021-12-08 Initial version
@@ -19,15 +19,13 @@ public class Parser {
 	 * Tokenizer used by this parser
 	 */
 	protected Tokenizer tokenizer;
-	private boolean _throwExceptionOnError;
+	private final boolean _throwExceptionOnError;
 
 	/**
 	 * Sole constructor requires an initialized tokenizer
 	 *
-	 * @param tokenizer
-	 *            tokenizer to use
-	 * @param throwExceptionOnError
-	 *            {@code true} will throw exceptions
+	 * @param tokenizer tokenizer to use
+	 * @param throwExceptionOnError {@code true} will throw exceptions
 	 */
 	public Parser( Tokenizer tokenizer, boolean throwExceptionOnError ) {
 		this.tokenizer = tokenizer;
@@ -37,13 +35,10 @@ public class Parser {
 	/**
 	 * Assert symbol for current token.
 	 *
-	 * @param symbol
-	 *            expected symbol
-	 * @param message
-	 *            error message if not
+	 * @param symbol expected symbol
+	 * @param message error message if not
 	 * @return true if symbol is same as current token
-	 * @throws ParserException
-	 *             if throwExceptionOnError is true
+	 * @throws ParserException if throwExceptionOnError is true
 	 */
 	public boolean assertSymbol( Symbol symbol, String message ) {
 		if ( symbol == tokenizer.getToken().symbol ) {
@@ -74,7 +69,6 @@ public class Parser {
 	 *             | "[" ipv6 "]"
 	 * </pre>
 	 *
-	 * @param tokenizer
 	 * @return Email in string format or {@code null} if not an email
 	 */
 	String parseEmail() {
@@ -88,8 +82,7 @@ public class Parser {
 	 * uri =
 	 * </pre>
 	 *
-	 * @param tokenizer
-	 * @return
+	 * @return URI or {@code null}
 	 */
 	String parseUri() {
 		Token token = tokenizer.getToken();
