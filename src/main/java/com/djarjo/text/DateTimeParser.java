@@ -204,7 +204,7 @@ public class DateTimeParser {
 					.withSecond( time.getSecond() ).withNano( time.getNano() );
 			if ( tokens.size() > 3 ) {
 				current = current.withOffsetSameLocal(
-						ZoneOffset.ofHours( tokens.get( 3 ).value ) );
+						ZoneOffset.ofHours( tokens.get( 3 ).value / 100 ) );
 			}
 		}
 
@@ -425,7 +425,7 @@ public class DateTimeParser {
 		Token tokenNone = new Token( TokenType.NONE );
 		Token activeToken = tokenNone;
 
-		// --- Scan input string and split into token
+		// --- Scan input string and split into tokens
 		for ( int i = 0; i < text.length(); i++ ) {
 			char c = text.charAt( i );
 

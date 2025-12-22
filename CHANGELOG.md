@@ -1,3 +1,7 @@
+## 2.1.0
+
+* Jetson now directly encodes and decodes enumerations without requiring a converter
+
 ## 2.0.2
 
 * Added missing `java.time` classes to automatic encoding / decoding

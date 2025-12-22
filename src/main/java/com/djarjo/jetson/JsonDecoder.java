@@ -612,7 +612,7 @@ public class JsonDecoder {
 				.getFields() ) {
 			Json anno = field.getAnnotation( Json.class );
 			if ( anno != null ) {
-				String name = anno.key();
+				String name = anno.name();
 				if ( name.equals( Json.defaultName ) ) {
 					name = field.getName();
 				}
@@ -625,7 +625,7 @@ public class JsonDecoder {
 				.getMethods() ) {
 			Json anno = method.getAnnotation( Json.class );
 			if ( anno != null ) {
-				String name = anno.key();
+				String name = anno.name();
 				if ( name.equals( Json.defaultName ) ) {
 					name = ReflectionHelper.getVarNameFromMethodName( method.getName() );
 				}
@@ -636,7 +636,7 @@ public class JsonDecoder {
 	}
 
 	/**
-	 * Parses the Json string within a map or an object. Returns {@code null} when finding
+	 * Parses the JSON string within a map or an object. Returns {@code null} when finding
 	 * the closing "}". Skips ",". Parses {@code name} (which will be returned). Skips ":".
 	 * Parses "value" without evaluating it.
 	 *
@@ -688,6 +688,7 @@ public class JsonDecoder {
 	 * @param value v
 	 * @throws IllegalAccessException ex
 	 */
+	@SuppressWarnings("unchecked")
 	private void _setValue( Object target, Member member,
 			Object value ) throws IllegalAccessException {
 
@@ -699,6 +700,12 @@ public class JsonDecoder {
 			// --- Use "converter" if present
 			if ( anno.converter() != JsonConverter.class ) {
 				value = _useConverterToDecode( anno, value );
+			}
+			String accessor = anno.enumAccessor();
+			if ( !accessor.equals( Json.defaultName ) ) {
+				Class<? extends Enum> enumClass = (Class<? extends Enum>)
+						ReflectionHelper.getParameterTypes( member )[0];
+				value = TextHelper.findEnum( value, enumClass, null, accessor );
 			}
 
 			// --- Set value into field or use setter method

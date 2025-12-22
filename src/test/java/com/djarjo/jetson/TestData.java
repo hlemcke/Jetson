@@ -2,17 +2,7 @@ package com.djarjo.jetson;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
-import com.djarjo.jetson.converter.JsonConverter;
-import com.djarjo.text.TextHelper;
+import java.util.*;
 
 /**
  * Contains public inner classes used by test methods
@@ -21,6 +11,28 @@ import com.djarjo.text.TextHelper;
  * @since 2020-08-16
  */
 public class TestData {
+
+	/** -------------- Test enum --------------------------- */
+	public enum PlainEnum {
+		PLAIN_A,
+		PLAIN_B
+	}
+
+	/** -------------- Test enum with integer code --------- */
+	public enum EnumWithCode {
+		ENUM_123( 123 ),
+		ENUM_456( 456 );
+
+		int code;
+
+		EnumWithCode( int code ) {
+			this.code = code;
+		}
+
+		int getCode() {
+			return code;
+		}
+	}
 
 	/** -------------- Pojo with basic values --------------- */
 	public static class PojoBasics {
@@ -39,7 +51,7 @@ public class TestData {
 		public BigDecimal decimalVar = null;
 		@Json
 		public Double doubleVar = null;
-		@Json(key = "PI")
+		@Json(name = "PI")
 		public Double doublePi = null;
 		@Json
 		public int intVar = 0;
@@ -68,13 +80,13 @@ public class TestData {
 	/** -------------- Pojo with collections --------------- */
 	public static class PojoCollections {
 		@Json
-		public String[] nameArray = { "Bad", "syntax", "design" };
-		private Set<Float> floatSet = new HashSet<>();
+		public String[] nameArray = {"Bad", "syntax", "design"};
 		@Json
 		public List<String> nameList =
 				Arrays.asList( "remove", "arrays", "from", "Java!" );
 		@Json
 		public Map<String, Object> map = new HashMap<>();
+		private Set<Float> floatSet = new HashSet<>();
 
 		@Json
 		public Set<Float> getFloatSet() {
@@ -96,10 +108,10 @@ public class TestData {
 	/** -------------- Root class for testing --------------- */
 	public static class PojoRoot {
 
-		@Json(converter = EnumWithCodeConverter4json.class)
+		@Json(enumAccessor = "code")
 		public EnumWithCode enumVal = EnumWithCode.ENUM_123;
 
-		@Json(key = "anotherKey")
+		@Json(name = "anotherKey")
 		public String key = "value for key";
 
 		private Boolean boolValue = null;
@@ -111,60 +123,6 @@ public class TestData {
 
 		public void setBoolValue( Boolean newVal ) {
 			boolValue = newVal;
-		}
-	}
-
-	/** -------------- Test enum --------------------------- */
-	public static enum PlainEnum {
-		PLAIN_A,
-		PLAIN_B;
-	}
-
-	/** -------------- Test enum with integer code --------- */
-	public static enum EnumWithCode {
-		ENUM_123(123),
-		ENUM_456(456);
-
-		int code;
-
-		EnumWithCode( int code ) {
-			this.code = code;
-		}
-
-		int getCode() {
-			return code;
-		}
-
-		static EnumWithCode findByCode( Integer code ) {
-			if ( code != null ) {
-				for ( EnumWithCode eval : EnumWithCode.values() ) {
-					if ( eval.code == code ) {
-						return eval;
-					}
-				}
-			}
-			return null;
-		}
-	}
-
-	/** -------------- Converter for EnumWithCode --------- */
-	public static class EnumWithCodeConverter4json
-			implements JsonConverter<EnumWithCode> {
-
-		@Override
-		public String encodeToJson( EnumWithCode attribute ) {
-			return (attribute == null) ? null : "" + attribute.getCode();
-		}
-
-		@Override
-		public EnumWithCode decodeFromJson( String jsonValue ) {
-			Integer intVal = TextHelper.parseInteger( jsonValue );
-			for ( EnumWithCode eval : EnumWithCode.values() ) {
-				if ( eval.code == intVal ) {
-					return eval;
-				}
-			}
-			return null;
 		}
 	}
 }

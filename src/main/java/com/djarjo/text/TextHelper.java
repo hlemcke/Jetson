@@ -1,7 +1,11 @@
 package com.djarjo.text;
 
 import com.djarjo.common.BaseConverter;
+import com.google.common.flogger.FluentLogger;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
@@ -22,7 +26,6 @@ import java.util.*;
  * @see com.djarjo.text.Tokenizer
  */
 public class TextHelper {
-
 	/**
 	 * The maximum Levenshtein distance by which two words are identical. The value
 	 * {@value}
@@ -31,50 +34,42 @@ public class TextHelper {
 	 * @see #isSameByLevenshtein(String, String)
 	 */
 	public final static int MAX_LEVENSTHEIN_DISTANCE = 2;
-
 	/**
 	 * Pattern to parse or print a OffsetDateTime in ISO compact format.
 	 */
 	public final static String PATTERN_ISO_COMPACT = "yyyyMMdd_hhmmss";
-
 	/**
 	 * Allowed characters for {@link #generateCode(int)}
 	 */
 	public final static String Chars4Code =
 			"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz-_=!";
-
 	/**
 	 * Allowed characters for {@link #generatePassword(int)}
 	 */
 	public final static String Chars4Password =
 			"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789*$-+?_&=!%{}" +
 					"()[]/";
-
 	/**
 	 * Replaces tabs with space and condenses multiple spaces into one single space .<br />
 	 * Value for parameter 'option' in {@link #condense(String, int)}.<br /> Multiple
 	 * options can be added.
 	 */
 	public final static int CONDENSE_BLANKS = 1;
-
 	/**
 	 * Removes all tabs, spaces, CRs and LFs.<br /> Value for parameter 'option' in
 	 * {@link #condense(String, int)}.<br /> Multiple options can be added.
 	 */
 	public final static int REMOVE_BLANKS = 2;
-
 	/**
 	 * Removes carriage returns (useless Microsoft line break)<br /> Value for parameter
 	 * 'option' in {@link #condense(String, int)}.<br /> Multiple options can be added.
 	 */
 	public final static int REMOVE_CARRIAGE_RETURNS = 4;
-
 	/**
 	 * Removes empty lines.<br /> Value for parameter 'option' in
 	 * {@link #condense(String, int)}.<br /> Multiple options can be added.
 	 */
 	public final static int REMOVE_EMPTYLINES = 8;
-
 	/**
 	 * Removes end of line comments starting with "//..." until end of line <br /> Value
 	 * for
@@ -82,50 +77,42 @@ public class TextHelper {
 	 * added.
 	 */
 	public final static int REMOVE_COMMENT_EOL = 16;
-
 	/**
 	 * Removes annotation "@Generated(...)"<br /> Value for parameter 'option' in
 	 * {@link #condense(String, int)}.<br /> Multiple options can be added.
 	 */
 	public final static int REMOVE_GENERATED = 32;
-
 	/**
 	 * Removes linefeed characters (\n)<br /> Value for parameter 'option' in
 	 * {@link #condense(String, int)}.<br /> Multiple options can be added.
 	 */
 	public final static int REMOVE_LINEFEEDS = 64;
-
 	/**
 	 * Removes long comments "&#x2f;&#x2a; ... &#x2a;&#x2f;"<br /> Value for parameter
 	 * 'option' in {@link #condense(String, int)}.<br /> Multiple options can be added.
 	 */
 	public final static int REMOVE_COMMENT_LONG = 128;
-
 	/**
 	 * Removes remark lines starting with "# " or "-- "until end of line<br /> Value for
 	 * parameter 'option' in {@link #condense(String, int)}.<br /> Multiple options can be
 	 * added.
 	 */
 	public final static int REMOVE_COMMENT_LINES = 256;
-
 	/**
 	 * Removes XML comments "&lt;!-- ... --&gt;"<br /> Value for parameter 'option' in
 	 * {@link #condense(String, int)}.<br /> Multiple options can be added.
 	 */
 	public final static int REMOVE_COMMENT_XML = 512;
-
 	/**
 	 * Removes tabulator characters<br /> Value for parameter 'option' in
 	 * {@link #condense(String, int)}.<br /> Multiple options can be added.
 	 */
 	public final static int REMOVE_TABS = 1024;
-
 	/**
 	 * Removes spaces and tabs at start and end of each line<br /> Value for parameter
 	 * 'option' in {@link #condense(String, int)}.<br /> Multiple options can be added.
 	 */
 	public final static int TRIM_LINES = 2048;
-
 	/**
 	 * Collapses the text by reducing all occurrences of white space (tab, blank, cr,
 	 * lf) to
@@ -133,19 +120,18 @@ public class TextHelper {
 	 * {@link #condense(String, int)}.<br /> Multiple options can be added.
 	 */
 	public final static int COLLAPSE = 4096;
-
 	/**
 	 * Removes all comments<br /> Value for parameter 'option' in
 	 * {@link #condense(String, int)}. Values can be added.
 	 */
 	public final static int REMOVE_COMMENTS = REMOVE_COMMENT_EOL
 			+ REMOVE_COMMENT_LONG + REMOVE_COMMENT_LINES + REMOVE_COMMENT_XML;
-
 	/**
 	 * Removes all comments, blanks and empty lines.<br /> Value for parameter 'option' in
 	 * {@link #condense(String, int)}
 	 */
 	public final static int REMOVE_ALL = 8191;
+	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 
 	/**
 	 * Useless public constructor implemented for Javadoc only
@@ -722,6 +708,75 @@ public class TextHelper {
 		}
 
 		return buf.toString();
+	}
+
+	/**
+	 * Finds enumeration item by {@code text}.
+	 *
+	 * @param input text to search for
+	 * @param enumClass class of enum
+	 * @param defaultEnum optional value to return if not found
+	 * @param accessor optional name of field or getter
+	 * @param <E> type of enum
+	 * @return enum item or {@code null} if not found and no {@code defaultEnum} given
+	 */
+	public static <E extends Enum<E>> E findEnum( Object input,
+			Class<E> enumClass, E defaultEnum, String accessor ) {
+		if ( input == null ) {
+			return defaultEnum;
+		}
+		String search = null;
+		if ( input instanceof String s ) {
+			int idx = s.lastIndexOf( '.' );
+			search = (idx > 0) ? s.substring( 0, idx ) : s;
+			search = search.toUpperCase().trim().replaceAll( "-", "_" );
+		}
+
+		//--- determine accessor
+		Field field = null;
+		Method method = null;
+		if ( accessor != null ) {
+			try {
+				field = enumClass.getDeclaredField( accessor );
+				field.setAccessible( true );
+				input = BaseConverter.convertToType( input, field.getType() );
+			} catch ( NoSuchFieldException ignored ) {
+				//--- No field => lookup getter method
+				try {
+					method = enumClass.getMethod( accessor, (Class<?>[]) null );
+					method.setAccessible( true );
+					input = BaseConverter.convertToType( input, method.getReturnType() );
+				} catch ( NoSuchMethodException e ) {
+					logger.atFine().log( "Enum %s has no accessor: ", enumClass, accessor );
+					return defaultEnum;
+				}
+			}
+		}
+
+		// --- find
+		try {
+			for ( E enumValue : enumClass.getEnumConstants() ) {
+				String enumName = enumValue.name();
+				if ( enumName.equals( search ) || enumName.equals( input ) ) {
+					return enumValue;
+				}
+				if ( field != null ) {
+					Object fieldValue = field.get( enumValue );
+					if ( fieldValue.equals( input ) || fieldValue.equals( search ) ) {
+						return enumValue;
+					}
+				} else if ( method != null ) {
+					Object methodValue = method.invoke( enumValue, (Object[]) null );
+					if ( methodValue.equals( input ) || methodValue.equals( search ) ) {
+						return enumValue;
+					}
+				}
+			}
+		} catch ( IllegalAccessException | IllegalArgumentException
+							| InvocationTargetException | SecurityException e ) {
+			logger.atWarning().log( "Enum %s access error on %s", enumClass, accessor );
+		}
+		return defaultEnum;
 	}
 
 	/**

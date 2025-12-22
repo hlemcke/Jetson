@@ -62,8 +62,9 @@ The annotation `@Json` accepts these attributes:
 * converter → expects a class implementing `JsonConverter`. Encoding and decoding will use the converter.
 * decodable → Default true. `false` will not decode this field from JSON string
 * encodable → Default true. `false` will not encode this field into JSON string
-* key → replaces field name by this key like `@Json( key = "another" )` will produce `"another":...` during encoding.
-  Decoding also awaits key "another"
+* enumAccessor → uses value from accessor (see below)
+* name → replaces field name like `@Json( name = "another" )` will produce `"another":...` during encoding.
+  Decoding also awaits "another"
 * mergeCollection →
 
 Annotation `@Json` can also be applied on class level. All attributes are still valid.
@@ -77,3 +78,28 @@ attributes in a class:
 * all from java.time
 * byte[] gets encoded into Base64 and decoded from a Base64 string
 * Java classes: BigDecimal, Currency, Locale, URI, URL, UUID
+
+### Encoding Enumerations
+
+To encode an enumeration attribute in a class, just annotate the field or getter with `@Json`.
+
+If the enum contains some code which should be used for the JSON value like this:
+
+```
+enum UserLanguage {
+  FRENCH ( "fr" ),
+  GERMAN ( "de" ),
+  ENGLISH ( "en" );
+  public final code;
+  UserLanguage( String code ) { this.code = code; } } 
+```
+
+Then just annotate the class attribute with `enumAccessor`:
+
+```
+class MyClass {
+  @Json( enumAccessor = "code" )
+  UserLanguage lang = UserLanguage.ENGLISH;
+```
+
+will encode to `{"lang":"en"}` and decode back to the enum.

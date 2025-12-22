@@ -13,10 +13,10 @@ import java.lang.annotation.*;
  * <li>{@link #converter()} - JsonConverter defaults to no converter</li>
  * <li>{@link #decodable()} - boolean defaults to true</li>
  * <li>{@link #encodable()} - boolean defaults to true</li>
- * <li>{@link #key()} - String defaults to property name</li>
+ * <li>{@link #name()} - String defaults to property name</li>
  * </ul>
  * Setting both {@link #decodable()} and {@link #encodable()} to false is
- * exactly the same as not annotating the field at all.
+ * exactly the same as not annotating the field or getter at all.
  *
  * @author Hajo Lemcke
  * @version 2014-12-06 Initial version
@@ -39,7 +39,8 @@ public @interface Json {
 	JsonAccessType accessType() default JsonAccessType.PROPERTY;
 
 	/**
-	 * Converter encodes a given value into a JSON string and decodes a given string into a
+	 * Converter encodes a given value into a JSON string and decodes a given string
+	 * into a
 	 * Java object. Defaults to no converter.
 	 *
 	 * @return converter class
@@ -81,7 +82,8 @@ public @interface Json {
 	 *   public int getCode() { return code; }
 	 * </pre>
 	 * <p>
-	 * will encode {@code SomeEnum.VAL1} to {@code 17} and decode any one of {@code 17} or
+	 * will encode {@code SomeEnum.VAL1} to {@code 17} and decode any one of {@code 17
+	 * } or
 	 * {@code VAL1} or {@code SomeEnum.VAL1} to SomeEnum.VAL1;
 	 *
 	 * @return name of getter method to obtain the enumeration value for encoding
@@ -92,8 +94,10 @@ public @interface Json {
 	 * Controls behaviour when decoding a JSON string into a collection property of an
 	 * existing object.
 	 * <p>
-	 * Default {@code false} will completely replace the collection of the object by a new
-	 * one from JSON string. {@code true} will keep existing entries in the collection and
+	 * Default {@code false} will completely replace the collection of the object by a
+	 * new
+	 * one from JSON string. {@code true} will keep existing entries in the collection
+	 * and
 	 * merge values from JSON string.
 	 * </p>
 	 *
@@ -102,22 +106,23 @@ public @interface Json {
 	boolean mergeCollection() default false;
 
 	/**
-	 * The key used for the value in the JSON string. Defaults to the name of the field or
+	 * The key used for the value in the JSON string. Defaults to the name of the
+	 * field or
 	 * the name of the getter method without "get".
 	 *
 	 * <p>
 	 * Example for an annotated getter:
 	 *
 	 * <pre>
-	 * &#64;Json( key="PassWord" )
+	 * &#64;Json( name="PassWord" )
 	 * public String getUserPw() { return "badPw"; }
 	 * </pre>
 	 * <p>
 	 * will write {@code "PassWord":"badPw"} into the JSON string during encoding
 	 * instead of
-	 * {@code "userPw":"badPw"}. Decoding also expects the key "PassWord".
+	 * {@code "userPw":"badPw"}. Decoding also expects the name "PassWord".
 	 *
-	 * @return key for JSON value
+	 * @return name for JSON value
 	 */
-	String key() default defaultName;
+	String name() default defaultName;
 }

@@ -76,7 +76,8 @@ public class JsonEncoder {
 	 * <ul>
 	 * <li>A collection like a list or a set will be encoded into a JSON list
 	 * enclosed in square brackets</li>
-	 * <li>A map will be encoded into a JSON object enclosed in curly braces. {@code null}
+	 * <li>A map will be encoded into a JSON object enclosed in curly braces. {@code
+	 * null}
 	 * values will not be added to the map unless the encoder is invoked with
 	 * {@code withNulls()}</li>
 	 * <li>A POJO annotated with {@literal @Json} will be encoded as follows
@@ -306,7 +307,8 @@ public class JsonEncoder {
 					return ReflectionHelper.getValueFromMember( pojo, toJson ).toString();
 				} catch ( IllegalAccessException | InvocationTargetException e ) {
 					logger.atWarning().withCause( e )
-							.log( "Cannot get value from 'toJson' in %s", clazz.getName() );
+							.log( "Cannot get value from 'toJson' in %s",
+									clazz.getName() );
 					return null;
 				}
 			}
@@ -355,14 +357,6 @@ public class JsonEncoder {
 		return "{" + _stripLeadingComma( builder ) + "}";
 	}
 
-	boolean _isToEncode( AccessibleObject member, boolean allMembers,
-			boolean accessMember ) {
-		Json anno = member.getAnnotation( Json.class );
-		return ((anno != null && anno.encodable())
-				|| (anno == null && allMembers && accessMember && !member.isAnnotationPresent(
-				JsonTransient.class )));
-	}
-
 	/**
 	 * Encodes the value of a member (from object field or method) into a JSON string.
 	 * <ol>
@@ -377,14 +371,16 @@ public class JsonEncoder {
 	private void _encodePojoMember( StringBuilder builder, Json anno, String name,
 			Object value ) {
 
-		//--- Check annotation (if present) attributes
+		//--- Check annotation attributes (if present)
 		if ( anno != null && value != null ) {
-			if ( !anno.key().equals( Json.defaultName ) ) {
-				name = anno.key();
+			if ( !anno.name().equals( Json.defaultName ) ) {
+				name = anno.name();
 			}
 			JsonConverter converter = Jetson.getConverter( anno );
 			if ( converter != null ) {
 				value = converter.encodeToJson( value );
+			} else if ( value instanceof Enum<?> e ) {
+				value = _useEnumAccessor( anno, e );
 			}
 		}
 		_encodeKeyValue( builder, name, _encodeValue( value ) );
@@ -464,6 +460,14 @@ public class JsonEncoder {
 		return json;
 	}
 
+	boolean _isToEncode( AccessibleObject member, boolean allMembers,
+			boolean accessMember ) {
+		Json anno = member.getAnnotation( Json.class );
+		return ((anno != null && anno.encodable())
+				|| (anno == null && allMembers && accessMember && !member.isAnnotationPresent(
+				JsonTransient.class )));
+	}
+
 	private String _stripLeadingComma( StringBuilder builder ) {
 		if ( _prettyPrint ) {
 			builder.append( "\n" )
@@ -471,5 +475,27 @@ public class JsonEncoder {
 		}
 		return ((builder.length() > 2) && (builder.charAt( 0 ) == ',')) ?
 				builder.substring( 1 ) : builder.toString();
+	}
+
+	private Object _useEnumAccessor( Json anno, Enum<?> value ) {
+		String accessor = anno.enumAccessor();
+		if ( accessor.equals( Json.defaultName ) ) return value;
+		Class<? extends Enum> enumClass = value.getClass();
+		try {
+			Field field = enumClass.getDeclaredField( accessor );
+			field.setAccessible( true );
+			return field.get( value );
+		} catch ( IllegalAccessException | NoSuchFieldException ignored ) {
+			//--- No field => lookup getter method
+			try {
+				Method method = enumClass.getMethod( accessor, (Class<?>[]) null );
+				method.setAccessible( true );
+				return method.invoke( value, (Object[]) null );
+			} catch ( NoSuchMethodException | IllegalAccessException |
+								InvocationTargetException e ) {
+				logger.atFine().log( "Enum %s has no accessor: ", enumClass, accessor );
+			}
+		}
+		return value;
 	}
 }

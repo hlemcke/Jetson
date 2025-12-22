@@ -66,7 +66,7 @@ public class Jetson {
 	 * @return target updated with values from jsonString
 	 * @throws IllegalAccessException if a decoded value cannot be set into the target
 	 * object
-	 * @throws ParseException in case of an error in the Json string
+	 * @throws ParseException in case of an error in the JSON string
 	 */
 	public static Object decodeIntoObject( String jsonString,
 			Object target ) throws IllegalAccessException, ParseException {
@@ -98,8 +98,7 @@ public class Jetson {
 	/**
 	 * Decodes given {@code jsonString} into a map.
 	 * <p>
-	 * Utility method includes casting to map and suppresses compiler warning for
-	 * unchecked
+	 * Utility method includes casting to map and suppresses compiler warning for unchecked
 	 * conversion.
 	 * </p>
 	 *
@@ -154,8 +153,7 @@ public class Jetson {
 	}
 
 	/**
-	 * Decoding a JSON string will merge collection items from string into already
-	 * existing
+	 * Decoding a JSON string will merge collection items from string into already existing
 	 * items of a collection.
 	 *
 	 * @return decoder for fluent API
@@ -214,8 +212,7 @@ public class Jetson {
 	}
 
 	/**
-	 * Encodes values from objects having a value of {@code null} instead of skipping
-	 * them.
+	 * Encodes values from objects having a value of {@code null} instead of skipping them.
 	 *
 	 * @return this for fluent API
 	 */
