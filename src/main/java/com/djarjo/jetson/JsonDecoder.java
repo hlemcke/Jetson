@@ -700,12 +700,13 @@ public class JsonDecoder {
 			// --- Use "converter" if present
 			if ( anno.converter() != JsonConverter.class ) {
 				value = _useConverterToDecode( anno, value );
-			}
-			String accessor = anno.enumAccessor();
-			if ( !accessor.equals( Json.defaultName ) ) {
-				Class<? extends Enum> enumClass = (Class<? extends Enum>)
-						ReflectionHelper.getParameterTypes( member )[0];
-				value = TextHelper.findEnum( value, enumClass, null, accessor );
+			} else if ( ReflectionHelper.isEnum( member ) ) {
+				String accessor = anno.enumAccessor();
+				if ( !accessor.equals( Json.defaultName ) ) {
+					Class<? extends Enum> enumClass = (Class<? extends Enum>)
+							ReflectionHelper.getParameterTypes( member )[0];
+					value = TextHelper.findEnum( value, enumClass, null, accessor );
+				}
 			}
 
 			// --- Set value into field or use setter method

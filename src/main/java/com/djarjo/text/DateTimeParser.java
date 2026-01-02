@@ -126,7 +126,7 @@ public class DateTimeParser {
 	 * @param pattern The pattern for the date or {@code null}
 	 * @return new {@code LocalDate} object
 	 */
-	public LocalDate _parseDate( final String text, final String pattern ) {
+	public LocalDate parseDate( final String text, final String pattern ) {
 		LocalDate current = LocalDate.now();
 
 		// --- Split string into tokens
@@ -197,7 +197,7 @@ public class DateTimeParser {
 				&& (tokens.get( 0 ).type == TokenType.DATE)
 				&& (tokens.get( 1 ).text.equalsIgnoreCase( "t" ))
 				&& (tokens.get( 2 ).type == TokenType.TIME) ) {
-			date = _parseDate( tokens.get( 0 ).text, pattern );
+			date = parseDate( tokens.get( 0 ).text, pattern );
 			LocalTime time = parseTime( tokens.get( 2 ).text );
 			current = withDate( current, date ).withHour( time.getHour() )
 					.withMinute( time.getMinute() )
@@ -211,7 +211,7 @@ public class DateTimeParser {
 		// --- Single number => interpret as a date
 		else if ( (tokens.size() == 1)
 				&& (tokens.get( 0 ).type == TokenType.NUMBER) ) {
-			date = _parseDate( tokens.get( 0 ).text, pattern );
+			date = parseDate( tokens.get( 0 ).text, pattern );
 			current = withDate( current, date );
 		}
 
@@ -220,7 +220,7 @@ public class DateTimeParser {
 			for ( Token token : tokens ) {
 				if ( token.type == TokenType.DATE )
 					current = withDate( current,
-							_parseDate( token.text, pattern ) );
+							parseDate( token.text, pattern ) );
 				else if ( token.type == TokenType.TEXT )
 					current = parseText( token.text );
 				else if ( token.type == TokenType.TIME )

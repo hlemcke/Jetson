@@ -1,3 +1,8 @@
+## 2.1.1
+
+* Fixed bug to automatically decode a Base64 string into `byte[]`
+* Re-inserted Base64 which automatically decodes a string either being in URL-safe or standard format
+
 ## 2.1.0
 
 * Jetson now directly encodes and decodes enumerations without requiring a converter

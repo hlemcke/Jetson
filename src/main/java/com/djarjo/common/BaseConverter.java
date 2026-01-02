@@ -532,7 +532,7 @@ public class BaseConverter {
 		byte[] bites = new byte[Long.BYTES * 2];
 		System.arraycopy( bitesHigh, 0, bites, 0, Long.BYTES );
 		System.arraycopy( bitesLow, 0, bites, Long.BYTES, Long.BYTES );
-		return Base64.getUrlEncoder().withoutPadding().encodeToString( bites );
+		return Base64.encoder().encode( bites );
 	}
 
 	/**
