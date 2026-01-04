@@ -189,6 +189,11 @@ public class ReflectionHelper {
 		return null;
 	}
 
+	public static Class<?> getType( Member member ) {
+		return (member == null) ? null :
+				(member instanceof Field f) ? f.getType() : ((Method) member).getReturnType();
+	}
+
 	public static Object getValueByIndex( Object bean, int index ) {
 		if ( bean == null ) return null;
 		Class<?> beanType = bean.getClass();
@@ -224,7 +229,7 @@ public class ReflectionHelper {
 	 * {@code with}] followed by the name of the variable.
 	 *
 	 * @param methodName name of the method
-	 * @return name of the variable or {@code null}
+	 * @return name of the variable o r {@code null}
 	 */
 	public static String getVarNameFromMethodName( String methodName ) {
 		List<String> prefixes = new ArrayList<>( getterPrefixes );

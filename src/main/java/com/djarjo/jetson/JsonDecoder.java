@@ -704,7 +704,7 @@ public class JsonDecoder {
 				String accessor = anno.enumAccessor();
 				if ( !accessor.equals( Json.defaultName ) ) {
 					Class<? extends Enum> enumClass = (Class<? extends Enum>)
-							ReflectionHelper.getParameterTypes( member )[0];
+							ReflectionHelper.getType( member );
 					value = TextHelper.findEnum( value, enumClass, null, accessor );
 				}
 			}
