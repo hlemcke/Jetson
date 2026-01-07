@@ -15,9 +15,17 @@ import java.util.List;
  * </p>
  */
 public class ReflectionHelper {
+	/** Prefixes for getter methods */
 	public final static List<String> getterPrefixes = List.of( "get", "has", "is" );
+
+	/** Prefixes for setter methods */
 	public final static List<String> setterPrefixes = List.of( "add", "set", "with" );
+
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
+
+	/** Exists only to comply with Javadoc */
+	public ReflectionHelper() {
+	}
 
 	/**
 	 * Gets a new instance from the given type.
@@ -52,6 +60,13 @@ public class ReflectionHelper {
 		}
 	}
 
+	/**
+	 * Finds method in class.
+	 *
+	 * @param clazz class which should contain method
+	 * @param name name of method
+	 * @return method or null
+	 */
 	public static Method findMethod( Class<?> clazz, String name ) {
 		for ( Method method : clazz.getMethods() ) {
 			if ( method.getName().equals( name ) ) {
@@ -61,6 +76,14 @@ public class ReflectionHelper {
 		return null;
 	}
 
+	/**
+	 * Finds method by name in given methods.
+	 *
+	 * @param methods methods from class
+	 * @param propertyName name of property
+	 * @param prefixes list of allowed prefixes
+	 * @return method or null
+	 */
 	public static Method findMethod( Method[] methods, String propertyName,
 			List<String> prefixes ) {
 		assert methods != null : "No methods given";
@@ -130,7 +153,6 @@ public class ReflectionHelper {
 	 * @param propertyName The name of the property
 	 * @return setter method or {@code null}
 	 */
-
 	public static Method findSetter( Class<?> beanClass, String propertyName ) {
 		Method[] methods = beanClass.getMethods();
 		//--- Check if method without setter prefix exists
@@ -161,6 +183,12 @@ public class ReflectionHelper {
 		return null;
 	}
 
+	/**
+	 * Gets type of member
+	 *
+	 * @param member field or getter
+	 * @return type
+	 */
 	public static Class<?> getMemberType( Member member ) {
 		if ( member instanceof Field field ) {
 			return field.getType();
@@ -172,12 +200,24 @@ public class ReflectionHelper {
 	}
 
 
+	/**
+	 * Gets all parameters types of member
+	 *
+	 * @param member field or getter
+	 * @return types of parameters
+	 */
 	public static Class<?>[] getParameterTypes( Member member ) {
 		return (member instanceof Field field) ?
 				new Class<?>[]{field.getType(), field.getGenericType().getClass()} :
 				((Method) member).getParameterTypes();
 	}
 
+	/**
+	 * Gets raw class of type
+	 *
+	 * @param type type
+	 * @return raw class
+	 */
 	public static Class<?> getRawClass( Type type ) {
 		if ( type instanceof Class ) {
 			return (Class<?>) type;
@@ -189,11 +229,24 @@ public class ReflectionHelper {
 		return null;
 	}
 
+	/**
+	 * Gets type
+	 *
+	 * @param member field or getter
+	 * @return type
+	 */
 	public static Class<?> getType( Member member ) {
 		return (member == null) ? null :
 				(member instanceof Field f) ? f.getType() : ((Method) member).getReturnType();
 	}
 
+	/**
+	 * Gets value
+	 *
+	 * @param bean list or array
+	 * @param index index
+	 * @return value at index
+	 */
 	public static Object getValueByIndex( Object bean, int index ) {
 		if ( bean == null ) return null;
 		Class<?> beanType = bean.getClass();
@@ -209,6 +262,15 @@ public class ReflectionHelper {
 		return null;
 	}
 
+	/**
+	 * Gets value from member
+	 *
+	 * @param bean object
+	 * @param member field or getter
+	 * @return value (can be null)
+	 * @throws IllegalAccessException if access not allowed
+	 * @throws InvocationTargetException if member cannot be invoked
+	 */
 	public static Object getValueFromMember( Object bean,
 			Member member ) throws IllegalAccessException, InvocationTargetException {
 		if ( member instanceof Field field ) {
@@ -322,6 +384,12 @@ public class ReflectionHelper {
 		}
 	}
 
+	/**
+	 * Checks if class is array or list
+	 *
+	 * @param clazz class
+	 * @return true if array or list
+	 */
 	public static boolean isArrayOrList( Class<?> clazz ) {
 		return (clazz != null) && (isList( clazz ) || clazz.isArray());
 	}
@@ -354,6 +422,12 @@ public class ReflectionHelper {
 		return false;
 	}
 
+	/**
+	 * Checks if class is a list
+	 *
+	 * @param clazz class
+	 * @return true if list
+	 */
 	public static boolean isList( Class<?> clazz ) {
 		return clazz != null && List.class.isAssignableFrom( clazz );
 	}
@@ -429,6 +503,13 @@ public class ReflectionHelper {
 		return name;
 	}
 
+	/**
+	 * Obtains getter even if setter is given
+	 *
+	 * @param clazz class
+	 * @param method getter or setter
+	 * @return getter or null
+	 */
 	public static Method obtainGetterFromMethod( Class<?> clazz, Method method ) {
 		if ( isGetter( method ) ) {
 			return method;
@@ -440,6 +521,7 @@ public class ReflectionHelper {
 	/**
 	 * Obtains the setter from given method.
 	 *
+	 * @param clazz class containing method
 	 * @param method method
 	 * @return setter method or {@code null}
 	 */
@@ -461,6 +543,7 @@ public class ReflectionHelper {
 	 *
 	 * @param bean bean
 	 * @param member field or method
+	 * @param index index if member is a list or an array
 	 * @param value new value
 	 * @throws IllegalAccessException e
 	 */

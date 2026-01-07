@@ -38,6 +38,10 @@ public class Base64 {
 			'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3',
 			'4', '5', '6', '7', '8', '9', '-', '_'};
 
+	/** Exists only to comply Javadoc */
+	public Base64() {
+	}
+
 	/**
 	 * Instantiates a new decoder (fluent API).
 	 *

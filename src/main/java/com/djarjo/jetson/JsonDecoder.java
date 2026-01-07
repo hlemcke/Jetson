@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.logging.Level;
 
 /**
- * Decodes a Json string into a target object.
+ * Decodes a JSON string into a target object.
  *
  * @author Hajo Lemcke
  * @see <a href="http://www.json.org/">Json</a>
@@ -24,6 +24,9 @@ import java.util.logging.Level;
  * @since 2020-05-19 decode enumeration value auto-strips leading class name if present
  */
 public class JsonDecoder {
+	/**
+	 * Name of optional method in class
+	 */
 	public final static String METHOD_FROM_JSON = "fromJson";
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 
@@ -49,13 +52,13 @@ public class JsonDecoder {
 	}
 
 	/**
-	 * Decodes the given Json string. Finding a "{" will automatically create a new
+	 * Decodes the given JSON string. Finding a "{" will automatically create a new
 	 * HashMap.
 	 * Finding a "[" will automatically create a new ArrayList. Any other value will
 	 * just be
 	 * returned.
 	 *
-	 * @param jsonString Json string to be decoded
+	 * @param jsonString JSON string to be decoded
 	 * @return a new list or a new map
 	 * @throws IllegalAccessException if a decoded value cannot be set into the target
 	 * object
@@ -150,7 +153,7 @@ public class JsonDecoder {
 	}
 
 	/**
-	 * Merges items from Json string into an existing collection instead of replacing the
+	 * Merges items from JSON string into an existing collection instead of replacing the
 	 * collection.
 	 *
 	 * @return this for fluent API
@@ -183,9 +186,9 @@ public class JsonDecoder {
 	}
 
 	/**
-	 * Decodes a Json string starting with "[". Returns the given {@code target} or creates
-	 * a new ArrayList filled with values from the Json string until "]". Values in the
-	 * Json
+	 * Decodes a JSON string starting with "[". Returns the given {@code target} or creates
+	 * a new ArrayList filled with values from the JSON string until "]". Values in the
+	 * JSON
 	 * array must be basic types or {@code valueType} must be given.
 	 *
 	 * @param target The target object for the values in the collection
@@ -208,7 +211,7 @@ public class JsonDecoder {
 				token = _tokenizer.nextToken();
 			}
 			if ( token.symbol == Symbol.RIGHT_BRACKET ) {
-				break; // --- Safely skip , in front of }
+				break; // --- Safely skip comma if in front of curly brace
 			}
 			if ( token.symbol == Symbol.EOF ) {
 				String s = _makeErrorInfo( "Syntax error. Value or ']' expected" );
@@ -216,7 +219,7 @@ public class JsonDecoder {
 			}
 			//--- extract json list element (if map) for optional second parse
 			int startIndex = (token.symbol == Symbol.LEFT_BRACE) ? token.position : -1;
-			//--- Value from Json string
+			//--- Value from JSON string
 			Object value = _decodeValue( null, null, valueType );
 			if ( valueType != null ) {
 				value = BaseConverter.convertToType( value, (Class<?>) valueType );
@@ -238,7 +241,7 @@ public class JsonDecoder {
 					}
 				}
 			}
-			//--- Append value to new list ensures order from json string
+			//--- Append value to new list ensures order from JSON string
 			if ( !_mergeCollections || !isMerged ) {
 				listFromJson.add( value );
 			}
@@ -252,7 +255,7 @@ public class JsonDecoder {
 	}
 
 	/**
-	 * Decodes the Json string for a map. String has started with "{". Map elements are
+	 * Decodes the JSON string for a map. String has started with "{". Map elements are
 	 * encoded {@code name ":" value}. Elements are separated by a comma. Values can be of
 	 * basic type, LocalDate, OffsetDateTime, UUID or enumeration.
 	 *
@@ -267,7 +270,7 @@ public class JsonDecoder {
 			Map<Object, Object> target,
 			Type keyType, Type valueType ) throws ParseException,
 			IllegalAccessException {
-		Object key = null, value = null;
+		Object key, value;
 		if ( target == null ) {
 			target = new HashMap<>();
 		}
@@ -584,7 +587,7 @@ public class JsonDecoder {
 
 	/**
 	 * Creates a new string starting with the given text. Followed by information about the
-	 * position of the error in the Json string and its first 100 chars.
+	 * position of the error in the JSON string and its first 100 chars.
 	 *
 	 * @param prefix leading string
 	 * @return error info
@@ -601,7 +604,7 @@ public class JsonDecoder {
 	 * {@link com.djarjo.jetson.Json @Json}.
 	 *
 	 * @param target The target object
-	 * @return Map with Json names and members (fields and getters) as targets for Json
+	 * @return Map with JSON names and members (fields and getters) as targets for JSON
 	 * values
 	 */
 	private Map<String, Member> _obtainMembers( Object target ) {
@@ -640,7 +643,7 @@ public class JsonDecoder {
 	 * the closing "}". Skips ",". Parses {@code name} (which will be returned). Skips ":".
 	 * Parses "value" without evaluating it.
 	 *
-	 * @return name or {@code null} if Json element is "}"
+	 * @return name or {@code null} if JSON element is "}"
 	 */
 	private String _obtainNameFromJson() {
 		Token token = _tokenizer.nextToken();
@@ -655,7 +658,7 @@ public class JsonDecoder {
 			token = _tokenizer.nextToken();
 		}
 		if ( token.symbol == Symbol.RIGHT_BRACE ) {
-			return null; // --- Safely skip , in front of }
+			return null; // --- Safely skip comma in front of curly brace
 		}
 
 		// --- "name" expected
@@ -678,10 +681,10 @@ public class JsonDecoder {
 	}
 
 	/**
-	 * Sets the given value into the {@code member} of object {@code target}. If the Json
+	 * Sets the given value into the {@code member} of object {@code target}. If the JSON
 	 * annotation at {@code member} contains {@code converter=SomeClass} this converter
 	 * will
-	 * be used to decode the Json string into the value for the target.
+	 * be used to decode the JSON string into the value for the target.
 	 *
 	 * @param target t
 	 * @param member m
@@ -715,7 +718,7 @@ public class JsonDecoder {
 	}
 
 	/**
-	 * Advance tokenizer to end of json collection: "]"
+	 * Advance tokenizer to end of JSON collection: "]"
 	 */
 	private void _skipCollection() {
 		_tokenizer.clipUntilSymbol( Symbol.RIGHT_BRACKET );
@@ -729,7 +732,7 @@ public class JsonDecoder {
 	}
 
 	/**
-	 * Skips the current Json value without using it
+	 * Skips the current JSON value without using it
 	 */
 	private void _skipValue() {
 		Token token = _tokenizer.getToken();

@@ -306,6 +306,12 @@ public class BaseConverter {
 		return null;
 	}
 
+	/**
+	 * Converts value to Duration
+	 *
+	 * @param value Duration or String or null
+	 * @return Duration or null
+	 */
 	public static Duration toDuration( Object value ) {
 		if ( value == null ) return null;
 		if ( value instanceof Duration d ) return d;

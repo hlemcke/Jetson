@@ -22,6 +22,9 @@ import java.util.regex.Pattern;
  * @since 2021-12-28 method "set" now uses generics from List
  */
 public class BeanHelper {
+	/**
+	 * Basic types automatically converted
+	 */
 	public static final Set<Class<?>> BASIC_TYPES = new HashSet<>( Arrays.asList(
 			Boolean.class,
 			Character.class,
@@ -271,6 +274,9 @@ public class BeanHelper {
 	/**
 	 * Determines if an object should be treated as a single "basic" value rather than a
 	 * complex object that needs recursion.
+	 *
+	 * @param value any value
+	 * @return true if it's a basic Java type
 	 */
 	public static boolean isBasicType( Object value ) {
 		if ( value == null ) return true;

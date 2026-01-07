@@ -1,18 +1,18 @@
 package com.djarjo.jetson.converter;
 
-import java.text.ParseException;
-import java.util.Collection;
-import java.util.Collections;
-
 import com.djarjo.jetson.JsonDecoder;
 import com.djarjo.jetson.JsonEncoder;
 import com.google.common.flogger.FluentLogger;
 
-/**********************************************************************
- * Converter for Json to convert a collection (map or list) into a Json string
- * and vice versa.
+import java.text.ParseException;
+import java.util.Collection;
+import java.util.Collections;
+
+/**
+ * Converter for JSON to convert a collection (map or list) into a JSON string and vice
+ * versa.
  * <p>
- * Recursively invokes just another Json converter.
+ * Recursively invokes just another JSON converter.
  */
 @SuppressWarnings("javadoc")
 public class CollectionConverter4json implements JsonConverter<Collection<?>> {
@@ -28,7 +28,6 @@ public class CollectionConverter4json implements JsonConverter<Collection<?>> {
 	public String encodeToJson( Collection<?> jsonObject ) {
 		return (jsonObject == null) ? null
 				: JsonEncoder.encoder().encode( jsonObject );
-
 	}
 
 	@Override
@@ -40,7 +39,7 @@ public class CollectionConverter4json implements JsonConverter<Collection<?>> {
 						.decode( jsonValue );
 				collection = Collections.unmodifiableCollection( collection );
 			}
-		} catch (IllegalAccessException | ParseException e) {
+		} catch ( IllegalAccessException | ParseException e ) {
 			logger.atSevere()
 					.log( "Exception %s while decoding '%s'", e.getMessage(),
 							jsonValue );
