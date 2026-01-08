@@ -90,60 +90,40 @@ public class Base64 {
 		/**
 		 * Decodes given string which must be base64 encoded.
 		 *
-		 * @param base64String string in base64 format
+		 * @param base64Text string in base64 format
 		 * @return byte array of decoded text
 		 */
-		public byte[] decode( String base64String ) {
-			byte[] base64Data = base64String.getBytes();
-			return decode( base64Data );
-		}
-
-		/**
-		 * Decodes given byte array
-		 *
-		 * @param base64Data bytes of a base 64 string
-		 * @return decoded byte array
-		 */
-		public byte[] decode( byte[] base64Data ) {
-			// --- Prepare input
+		public byte[] decode( String base64Text ) {
+			if ( base64Text == null || base64Text.isBlank() ) return new byte[0];
+			byte[] base64Data = base64Text.getBytes();
 			int inputLength = base64Data.length;
 
 			// --- Prepare output
-			byte decoded = 0;
-			int decodedLength = (inputLength * 3 + 3) / 4;
+			int decodedLength = inputLength * 6 / 8;
+			if ( base64Text.endsWith( "==" ) ) decodedLength -= 2;
+			else if ( base64Text.endsWith( "=" ) ) decodedLength -= 1;
 			byte[] decodedBytes = new byte[decodedLength];
 
 			// --- Loop through encoded Base64
 			int i = 0, j = 0;
-			while ( i < inputLength ) {
+			while ( i < inputLength && j < decodedLength ) {
+				// 1. Read 4 Base64 chars (24 bits total)
+				int b0 = Math.max( 0, indexOf( base64Data[i++] ) );
+				int b1 = (i < inputLength) ? Math.max( 0, indexOf( base64Data[i++] ) ) : 0;
+				int b2 = (i < inputLength) ? Math.max( 0, indexOf( base64Data[i++] ) ) : 0;
+				int b3 = (i < inputLength) ? Math.max( 0, indexOf( base64Data[i++] ) ) : 0;
 
-				// --- Base64 char 0
-				if ( (decoded = indexOf( base64Data[i++] )) < 0 )
-					break;
-				decodedBytes[j] = (byte) (decoded << 2);
-				if ( i >= inputLength )
-					break;
+				// Combine into a single 24-bit integer block
+				int combined = (b0 << 18) | (b1 << 12) | (b2 << 6) | b3;
 
-				// --- Base64 char 1
-				if ( (decoded = indexOf( base64Data[i++] )) < 0 )
-					break;
-				decodedBytes[j++] |= ((byte) (decoded >>> 4));
-				decodedBytes[j] = (byte) (decoded << 4);
-				if ( i >= inputLength )
-					break;
-
-				// --- Base64 char 2
-				if ( (decoded = indexOf( base64Data[i++] )) < 0 )
-					break;
-				decodedBytes[j++] |= ((byte) (decoded >>> 2));
-				decodedBytes[j] = (byte) ((decoded & 0x0003) << 6);
-				if ( i >= inputLength )
-					break;
-
-				// --- Base64 char 3
-				if ( (decoded = indexOf( base64Data[i++] )) < 0 )
-					break;
-				decodedBytes[j++] |= ((byte) (decoded & 0x003F));
+				// 2. Extract 3 bytes from the block, checking bounds for each
+				decodedBytes[j++] = (byte) ((combined >> 16) & 0xFF);
+				if ( j < decodedLength ) {
+					decodedBytes[j++] = (byte) ((combined >> 8) & 0xFF);
+				}
+				if ( j < decodedLength ) {
+					decodedBytes[j++] = (byte) (combined & 0xFF);
+				}
 			}
 			return decodedBytes;
 		}
@@ -155,7 +135,7 @@ public class Base64 {
 		 * @return the index [0..63] for any valid char, -2 for the padding char '=', -1 if
 		 * not a valid Base64 char
 		 */
-		private byte indexOf( byte c ) {
+		private int indexOf( byte c ) {
 			if ( c == paddingChar )
 				return -2;
 			if ( (c == '+') || (c == '-') ) {
@@ -165,18 +145,14 @@ public class Base64 {
 				return 63;
 			}
 			if ( 'A' <= c && c <= 'Z' ) {
-				return (byte) (c - 'A');
+				return c - 'A';
 			}
 			if ( 'a' <= c && c <= 'z' ) {
-				return (byte) (c - 'a' + 26);
+				return c - 'a' + 26;
 			}
 			if ( '0' <= c && c <= '9' ) {
-				return (byte) (c - '0' + 52);
+				return c - '0' + 52;
 			}
-			// for ( int i = BASE64_BYTES_WEB_SAFE.length - 1; i >= 0; i-- ) {
-			// if ( c == BASE64_BYTES_WEB_SAFE[i] )
-			// return (byte) i;
-			// }
 			return -1;
 		}
 	}

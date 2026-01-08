@@ -5,7 +5,6 @@ import com.google.common.flogger.FluentLogger;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
 
 /**
@@ -649,7 +648,7 @@ public class ReflectionHelper {
 
 		//--- If field is 'byte[]' and value is String then decode from Base64 to bytes
 		if ( (value instanceof String) && (types[0] == byte[].class) ) {
-			Object convertedValue = Base64.getDecoder().decode( (String) value );
+			Object convertedValue = Base64.decoder().decode( (String) value );
 			field.setAccessible( true );
 			field.set( bean, convertedValue );
 			return;
@@ -682,7 +681,7 @@ public class ReflectionHelper {
 
 			//--- If field is 'byte[]' and value is String then decode from Base64 to bytes
 			if ( (value instanceof String) && (types[0] == byte[].class) ) {
-				value = Base64.getDecoder().decode( (String) value );
+				value = Base64.decoder().decode( (String) value );
 			} else if ( isArrayOrList( types[0] ) ) {
 				_setValueAt( bean, setter, index, value );
 				return;

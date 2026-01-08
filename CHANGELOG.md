@@ -1,3 +1,7 @@
+## 2.1.3
+
+* Fixed bug to correctly compute length of byte[] when decoding a Base64 string
+
 ## 2.1.2
 
 * Added findFields in BeanHelper
