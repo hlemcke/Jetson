@@ -1,3 +1,8 @@
+## 2.1.2
+
+* Added findFields in BeanHelper
+* Modified method parameters and return values from arrays to lists
+
 ## 2.1.1
 
 * Fixed bug to automatically decode a Base64 string into `byte[]`

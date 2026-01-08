@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
  * Helper methods for beans.
  *
  * @author Hajo Lemcke
+ * @since 2026-01-08 added findFields
  * @since 2025-05-17 modified to use ReflectionHelper
  * @since 2021-12-28 method "set" now uses generics from List
  */
@@ -69,7 +70,7 @@ public class BeanHelper {
 	public static Map<String, Object> describe( Object bean )
 			throws IllegalAccessException, IllegalArgumentException,
 			InvocationTargetException {
-		Method[] getters = obtainGetters( bean.getClass() );
+		List<Method> getters = obtainGetters( bean.getClass() );
 		return describe( bean, getters );
 	}
 
@@ -84,7 +85,7 @@ public class BeanHelper {
 	 * @throws IllegalArgumentException if getter name is wrong
 	 * @throws InvocationTargetException if getter must not be invoked
 	 */
-	public static Map<String, Object> describe( Object bean, Method[] getters )
+	public static Map<String, Object> describe( Object bean, List<Method> getters )
 			throws IllegalAccessException, IllegalArgumentException,
 			InvocationTargetException {
 
@@ -156,13 +157,32 @@ public class BeanHelper {
 	}
 
 	/**
+	 * Finds fields with the given annotation.
+	 *
+	 * @param cls The class in which to find fields
+	 * @param annoClass The annotation which must be present on the field
+	 * @return annotated fields or <em>null</em> if none found
+	 */
+	public static List<Field> findFields( Class<?> cls,
+			Class<? extends Annotation> annoClass ) {
+		List<Field> annotatedFields = new ArrayList<>();
+		Field[] fields = cls.getDeclaredFields();
+		for ( Field field : fields ) {
+			if ( field.isAnnotationPresent( annoClass ) ) {
+				annotatedFields.add( field );
+			}
+		}
+		return annotatedFields;
+	}
+
+	/**
 	 * Finds methods with the given annotation.
 	 *
 	 * @param cls The class in which to find methods
 	 * @param annoClass The annotation which must be present on the method
 	 * @return annotated methods or <em>null</em> if none found
 	 */
-	public static Method[] findMethods( Class<?> cls,
+	public static List<Method> findMethods( Class<?> cls,
 			Class<? extends Annotation> annoClass ) {
 		List<Method> annotatedMethods = new ArrayList<>();
 		Method[] methods = cls.getMethods();
@@ -171,12 +191,7 @@ public class BeanHelper {
 				annotatedMethods.add( method );
 			}
 		}
-		Method[] array = null;
-		if ( !annotatedMethods.isEmpty() ) {
-			array = new Method[annotatedMethods.size()];
-			array = annotatedMethods.toArray( array );
-		}
-		return array;
+		return annotatedMethods;
 	}
 
 	/**
@@ -369,9 +384,9 @@ public class BeanHelper {
 	 * </p>
 	 *
 	 * @param cls The Java class to obtain the getter methods from
-	 * @return array of getter methods
+	 * @return List of getter methods (could be empty)
 	 */
-	public static Method[] obtainGetters( Class<?> cls ) {
+	public static List<Method> obtainGetters( Class<?> cls ) {
 		List<Method> getters = new ArrayList<>();
 		Method[] methods = cls.getMethods();
 		for ( Method method : methods ) {
@@ -380,7 +395,7 @@ public class BeanHelper {
 			}
 		}
 		getters.sort( methodNameComparator );
-		return getters.toArray( new Method[0] );
+		return getters;
 	}
 
 	/**
@@ -395,9 +410,9 @@ public class BeanHelper {
 	 *
 	 * @param clazz The Java class to obtain the setter methods from
 	 * @param withInheritance {@code true} includes inherited classes
-	 * @return array of setter methods
+	 * @return list of setter methods
 	 */
-	public static Method[] obtainSetters( Class<?> clazz,
+	public static List<Method> obtainSetters( Class<?> clazz,
 			boolean withInheritance ) {
 		List<Method> setters = new ArrayList<>();
 		Method[] methods = withInheritance ? clazz.getMethods() : clazz.getDeclaredMethods();
@@ -406,16 +421,16 @@ public class BeanHelper {
 				setters.add( method );
 			}
 		}
-		return setters.toArray( new Method[0] );
+		return setters;
 	}
 
 	/**
 	 * Obtains all setter methods of the given class.
 	 *
 	 * @param clazz The Java class to obtain the setter methods from
-	 * @return array of setter methods
+	 * @return list of setter methods
 	 */
-	public static Method[] obtainSetters( Class<?> clazz ) {
+	public static List<Method> obtainSetters( Class<?> clazz ) {
 		return obtainSetters( clazz, false );
 	}
 
@@ -430,7 +445,7 @@ public class BeanHelper {
 	 * @throws InvocationTargetException if getter must not be invoked
 	 * @throws ParseException if map has wrong structure
 	 */
-	public static void populate( Object bean, Method[] setters,
+	public static void populate( Object bean, List<Method> setters,
 			Map<String, Object> map )
 			throws IllegalAccessException, IllegalArgumentException,
 			InvocationTargetException, ParseException {
@@ -443,14 +458,14 @@ public class BeanHelper {
 	 *
 	 * @param bean fields will be populated from the map by calling its setters
 	 * @param setters Setter methods. Use null to obtain them here
-	 * @param map keys must have bean property names
+	 * @param map keys must have property names
 	 * @param withInherited {@code true} includes inherited classes
 	 * @throws IllegalArgumentException if value has incorrect type
 	 * @throws IllegalAccessException if access to setter is prohibited
 	 * @throws InvocationTargetException in setter cannot be invoked
 	 * @throws ParseException if a parsing error occurs
 	 */
-	public static void populate( Object bean, Method[] setters,
+	public static void populate( Object bean, List<Method> setters,
 			Map<String, Object> map, boolean withInherited )
 			throws IllegalAccessException, IllegalArgumentException,
 			InvocationTargetException, ParseException {
@@ -578,7 +593,7 @@ public class BeanHelper {
 			return "\"" + bean + "\"";
 		}
 		path.add( bean );
-		Method[] getters = BeanHelper.obtainGetters( bean.getClass() );
+		List<Method> getters = BeanHelper.obtainGetters( bean.getClass() );
 		for ( Method getter : getters ) {
 			try {
 				value = getter.invoke( bean, (Object[]) null );

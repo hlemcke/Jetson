@@ -1,8 +1,15 @@
 # Jetson
 
-JSON codec with annotations and converters. Includes tokenizer with parser and basic converters.
+JSON codec with annotations and many integrated converters.
+Jetson encodes and decodes all basic values, arrays, lists, maps and other classes.
 
-Jetson encodes and decodes all basic values, arrays, lists, maps and also any Java class.
+The decoder automatically decodes both JSON and JSON5.
+
+This package also includes:
+
+* `BeanHelper`
+* `ReflectionHelper`
+* `Tokenizer`
 
 ## Usage
 
@@ -37,7 +44,7 @@ class Pojo {
 }
 ```
 
-Using `String jsonText = Jetson.encode( new Pojo())` produces the following Json text.
+Using `String jsonText = Jetson.encode( new Pojo())` produces the following JSON text.
 
 ```
 {"code":4711,"name":"abc"}

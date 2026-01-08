@@ -1,11 +1,16 @@
 package com.djarjo.jetson;
 
 /**
- * JsonAccessType
+ * Specifies access to fields or getters (property) if the class itself is annotated with
+ * {@literal @Json}.
+ * <p>
+ * Defaults to {#PROPERTY} if not specified
+ * </p>
  */
 public enum JsonAccessType {
-	/** field */
+	/** Uses only fields for encoding to JSON */
 	FIELD,
-	/** property */
+
+	/** Uses only properties (getters) for encoding to JSON (default) */
 	PROPERTY
 }

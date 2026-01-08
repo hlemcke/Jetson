@@ -51,8 +51,7 @@ public class TextHelper {
 					"&=!%{}" +
 					"()[]/";
 	/**
-	 * Replaces tabs with space and condenses multiple spaces into one single space
-	 * .<br />
+	 * Replaces tabs with space and condenses multiple spaces into one single space .<br />
 	 * Value for parameter 'option' in {@link #condense(String, int)}.<br /> Multiple
 	 * options can be added.
 	 */
@@ -75,8 +74,7 @@ public class TextHelper {
 	/**
 	 * Removes end of line comments starting with "//..." until end of line <br /> Value
 	 * for
-	 * parameter 'option' in {@link #condense(String, int)}.<br /> Multiple options
-	 * can be
+	 * parameter 'option' in {@link #condense(String, int)}.<br /> Multiple options can be
 	 * added.
 	 */
 	public final static int REMOVE_COMMENT_EOL = 16;
@@ -97,8 +95,7 @@ public class TextHelper {
 	public final static int REMOVE_COMMENT_LONG = 128;
 	/**
 	 * Removes remark lines starting with "# " or "-- "until end of line<br /> Value for
-	 * parameter 'option' in {@link #condense(String, int)}.<br /> Multiple options
-	 * can be
+	 * parameter 'option' in {@link #condense(String, int)}.<br /> Multiple options can be
 	 * added.
 	 */
 	public final static int REMOVE_COMMENT_LINES = 256;
@@ -131,8 +128,7 @@ public class TextHelper {
 	public final static int REMOVE_COMMENTS = REMOVE_COMMENT_EOL
 			+ REMOVE_COMMENT_LONG + REMOVE_COMMENT_LINES + REMOVE_COMMENT_XML;
 	/**
-	 * Removes all comments, blanks and empty lines.<br /> Value for parameter
-	 * 'option' in
+	 * Removes all comments, blanks and empty lines.<br /> Value for parameter 'option' in
 	 * {@link #condense(String, int)}
 	 */
 	public final static int REMOVE_ALL = 8191;
@@ -216,8 +212,7 @@ public class TextHelper {
 	 * space and multiple spaces with a single one. Spaces at start and end are removed.
 	 *
 	 * @param str well ... the string
-	 * @return Returns condensed string or {@code null} if the given string is {@code
-	 * null}
+	 * @return Returns condensed string or {@code null} if the given string is {@code null}
 	 */
 	public static String cleanupString( String str ) {
 		if ( str == null ) {
@@ -235,8 +230,7 @@ public class TextHelper {
 	 * space and multiple spaces with a single one. Spaces at start and end are removed.
 	 *
 	 * @param buf buffer to be cleaned
-	 * @return Returns condensed string or {@code null} if the given string is {@code
-	 * null}
+	 * @return Returns condensed string or {@code null} if the given string is {@code null}
 	 */
 	public static String cleanupString( StringBuilder buf ) {
 		if ( buf == null ) {
@@ -482,8 +476,7 @@ public class TextHelper {
 	}
 
 	/**
-	 * Condenses the given text according to the given options. A line with a backslash
-	 * '\'
+	 * Condenses the given text according to the given options. A line with a backslash '\'
 	 * at its end will be continued in the next line. {@code options} is the sum of:
 	 * <table>
 	 * <caption>Options</caption>
@@ -906,14 +899,12 @@ public class TextHelper {
 	 * Returns a new string of contiguous characters out of the given string starting at
 	 * position <code>offset</code>.
 	 * <p>
-	 * The sequence of contiguous characters starts with the first non-blank character
-	 * . It
+	 * The sequence of contiguous characters starts with the first non-blank character . It
 	 * ends when any character is found which is neither a letter, a digit nor an
 	 * underscore.
 	 * </p>
 	 * <p>
-	 * If special characters should be included in the string (like a dot '.' in a
-	 * package
+	 * If special characters should be included in the string (like a dot '.' in a package
 	 * name) these have to be given in the parameter
 	 * <code>includes</code>.
 	 * </p>
@@ -1060,8 +1051,7 @@ public class TextHelper {
 	}
 
 	/**
-	 * Gets the word from the given string starting at the given offset. A word
-	 * consists of
+	 * Gets the word from the given string starting at the given offset. A word consists of
 	 * letters. It finishes when anything comes in the text which is not a letter.
 	 *
 	 * @param str The text from which to extract the word
@@ -1110,8 +1100,7 @@ public class TextHelper {
 	}
 
 	/**
-	 * Checks the given string if it means <em>false</em>. This is the case when the
-	 * string
+	 * Checks the given string if it means <em>false</em>. This is the case when the string
 	 * is "false", "no" or "0". Everything else returns
 	 * <em>false</em>. Matching is not case sensitive.
 	 *
@@ -1126,16 +1115,14 @@ public class TextHelper {
 	}
 
 	/**
-	 * Computes the <em>Levenshtein</em> distance between the two words. If the
-	 * distance is
+	 * Computes the <em>Levenshtein</em> distance between the two words. If the distance is
 	 * smaller than 20% (rounded up) of the length of the first word, then {@code true}
 	 * will
 	 * be returned.
 	 *
 	 * @param word1 The first word
 	 * @param word2 The second word
-	 * @return Returns {@code false} if more than 20% of the characters must be
-	 * changed to
+	 * @return Returns {@code false} if more than 20% of the characters must be changed to
 	 * get the second word
 	 */
 	public static boolean isSameByLevenshtein( String word1, String word2 ) {
@@ -1160,8 +1147,7 @@ public class TextHelper {
 	}
 
 	/**
-	 * Makes a string from the given object. If the object is a collection (array or
-	 * list)
+	 * Makes a string from the given object. If the object is a collection (array or list)
 	 * its values will be returned separated by commas.
 	 *
 	 * @param object some object
@@ -1363,6 +1349,12 @@ public class TextHelper {
 		return value;
 	}
 
+	/**
+	 * Parses text into an int
+	 *
+	 * @param text text
+	 * @return int or 0
+	 */
 	public static int parseInt( final String text ) {
 		Integer i = parseInteger( text );
 		return (i == null) ? 0 : i;
@@ -1382,8 +1374,7 @@ public class TextHelper {
 	}
 
 	/**
-	 * Parses the given text as a signed long integer value (64 bit). Skips leading
-	 * blanks.
+	 * Parses the given text as a signed long integer value (64 bit). Skips leading blanks.
 	 * Reads digits for the value until the first non-digit.
 	 *
 	 * @param text Text to be parsed.
@@ -1551,8 +1542,7 @@ public class TextHelper {
 	}
 
 	/**
-	 * Parses the given text as a signed short value (16 bit). Skips leading blanks.
-	 * Reads
+	 * Parses the given text as a signed short value (16 bit). Skips leading blanks. Reads
 	 * digits for the value until the first non-digit.
 	 *
 	 * @param text Text to be parsed.
@@ -1781,8 +1771,7 @@ public class TextHelper {
 	}
 
 	/**
-	 * Returns a new string from which leading and trailing blanks [ \n\r\t] are
-	 * removed .
+	 * Returns a new string from which leading and trailing blanks [ \n\r\t] are removed .
 	 * If the given string is {@code null} or empty then {@code null} will be returned
 	 *
 	 * @param str String to trim

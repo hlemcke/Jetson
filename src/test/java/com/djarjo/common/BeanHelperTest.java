@@ -1,9 +1,12 @@
 package com.djarjo.common;
 
+import com.djarjo.jetson.Json;
 import com.djarjo.jetson.JsonEncoder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -32,6 +35,26 @@ public class BeanHelperTest {
 					"key=" + entry.getKey() + ", type=" + entry.getKey().getClass()
 							.getSimpleName() );
 		}
+	}
+
+	@Test
+	void findAnnotatedFields() {
+		//--- when
+		List<Field> fields = BeanHelper.findFields( MainBean.class, Json.class );
+
+		//--- then
+		assertEquals( 1, fields.size() );
+		assertEquals( "prefix", fields.get( 0 ).getName() );
+	}
+
+	@Test
+	void findAnnotatedMethods() {
+		//--- when
+		List<Method> methods = BeanHelper.findMethods( MainBean.class, Json.class );
+
+		//--- then
+		assertEquals( 1, methods.size() );
+		assertEquals( "getNames", methods.get( 0 ).getName() );
 	}
 
 	@Test
@@ -166,9 +189,11 @@ public class BeanHelperTest {
 	 *
 	 */
 	private static class MainBean {
+		@Json
 		private final String prefix = "prefix-";
 		private final List<NestedBean> nestedBeanListEmpty = new ArrayList<>();
 		private final List<NestedBean> nestedBeanListNull = null;
+
 		private String code = "mainCode";
 		private List<String> names;
 		private NestedBean nestedBean = new NestedBean();
@@ -180,6 +205,7 @@ public class BeanHelperTest {
 			names.add( name );
 		}
 
+		@Json
 		public List<String> getNames() {
 			return names;
 		}

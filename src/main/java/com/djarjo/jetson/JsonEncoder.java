@@ -337,7 +337,7 @@ public class JsonEncoder {
 		}
 
 		// --- Encode methods
-		Method[] methods = BeanHelper.obtainGetters( pojo.getClass() );
+		List<Method> methods = BeanHelper.obtainGetters( pojo.getClass() );
 		for ( Method method : methods ) {
 			if ( _isToEncode( method, allMembers, !accessFields ) ) {
 				try {
