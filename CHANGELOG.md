@@ -1,3 +1,7 @@
+## 2.1.4
+
+* Added `MemberAccessor` to bundle field or getter/setter-pair
+
 ## 2.1.3
 
 * Fixed bug to correctly compute length of byte[] when decoding a Base64 string

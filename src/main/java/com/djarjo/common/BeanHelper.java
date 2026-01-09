@@ -3,7 +3,6 @@ package com.djarjo.common;
 import com.djarjo.text.TextHelper;
 import com.google.common.flogger.FluentLogger;
 
-import javax.lang.model.element.ElementKind;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.math.BigDecimal;
@@ -157,7 +156,73 @@ public class BeanHelper {
 	}
 
 	/**
+	 * Finds accessor by given name.
+	 *
+	 * @param cls Class containing field or method
+	 * @param name exact name of field or method
+	 * @return accessor or {@code null}
+	 */
+	public static MemberAccessor findAccessorByName( Class<?> cls, String name ) {
+		Method[] methods = cls.getMethods();
+		for ( Method method : methods ) {
+			if ( method.getName().equals( name ) ) {
+				Method setter = ReflectionHelper.obtainSetterFromMethod( cls, method );
+				return new MemberAccessor( null, method, setter );
+			}
+		}
+
+		//--- add all fields. needs to travel up all superclasses
+		Class<?> currentClass = cls;
+		while ( currentClass != null ) {
+			Field[] fields = cls.getDeclaredFields();
+			for ( Field field : fields ) {
+				if ( field.getName().equals( name ) ) {
+					return new MemberAccessor( field, null, null );
+				}
+			}
+			currentClass = currentClass.getSuperclass();
+		}
+		return null;
+	}
+
+	/**
+	 * Finds fields and/or getters annotated with {@code annoClass}
+	 *
+	 * @param cls class
+	 * @param annoClass annotation
+	 * @return List of accessors
+	 */
+	public static List<MemberAccessor> findAccessorsByAnnotation( Class<?> cls,
+			Class<? extends Annotation> annoClass ) {
+		List<MemberAccessor> accessors = new ArrayList<>();
+
+		//--- add all public getters
+		List<Method> getters = findMethodsByAnnotation( cls, annoClass );
+		getters.forEach( getter -> {
+			accessors.add( new MemberAccessor( null, getter,
+					ReflectionHelper.obtainSetterFromMethod( cls, getter ) ) );
+		} );
+
+		//--- add all fields. needs to travel up all superclasses
+		Class<?> currentClass = cls;
+		while ( currentClass != null ) {
+			Field[] fields = cls.getDeclaredFields();
+			for ( Field field : fields ) {
+				if ( field.isAnnotationPresent( annoClass ) ) {
+					accessors.add( new MemberAccessor( field, null, null ) );
+				}
+			}
+			currentClass = currentClass.getSuperclass();
+		}
+		return accessors;
+	}
+
+	/**
 	 * Finds fields with the given annotation.
+	 * <p>
+	 * Finds all fields with that annotation: public, protected, private. But only in given
+	 * class, not in any superclass.
+	 * </p>
 	 *
 	 * @param cls The class in which to find fields
 	 * @param annoClass The annotation which must be present on the field
@@ -176,13 +241,13 @@ public class BeanHelper {
 	}
 
 	/**
-	 * Finds methods with the given annotation.
+	 * Finds public methods with the given annotation in given class and any superclass.
 	 *
 	 * @param cls The class in which to find methods
 	 * @param annoClass The annotation which must be present on the method
 	 * @return annotated methods or <em>null</em> if none found
 	 */
-	public static List<Method> findMethods( Class<?> cls,
+	public static List<Method> findMethodsByAnnotation( Class<?> cls,
 			Class<? extends Annotation> annoClass ) {
 		List<Method> annotatedMethods = new ArrayList<>();
 		Method[] methods = cls.getMethods();
@@ -192,43 +257,6 @@ public class BeanHelper {
 			}
 		}
 		return annotatedMethods;
-	}
-
-	/**
-	 * Gets the value from a field or method in the given bean. Any exception will be
-	 * logged
-	 * with level WARNING and {@code null} will be returned.
-	 *
-	 * @param bean bean which contains the element
-	 * @param kind type of the element (FIELD or METHOD)
-	 * @param name name of the element
-	 * @return value of the element
-	 */
-	public static Object getValue( Object bean, ElementKind kind,
-			String name ) {
-		Object value = null;
-		try {
-			if ( kind == ElementKind.FIELD ) {
-				Field field = bean.getClass()
-						.getDeclaredField( name );
-				field.setAccessible( true );
-				value = field.get( bean );
-			} else if ( kind == ElementKind.METHOD ) {
-				Method method = bean.getClass()
-						.getDeclaredMethod( name, (Class<?>[]) null );
-				method.setAccessible( true );
-				value = method.invoke( bean, (Object[]) null );
-			}
-		} catch ( IllegalAccessException | IllegalArgumentException
-							| InvocationTargetException | NoSuchFieldException
-							| SecurityException | NoSuchMethodException e ) {
-			String msg = "Error reading value from " + name + " in bean "
-					+ bean.getClass();
-			logger.atWarning()
-					.withCause( e )
-					.log( msg );
-		}
-		return value;
 	}
 
 	/**
@@ -399,23 +427,21 @@ public class BeanHelper {
 	}
 
 	/**
-	 * Obtains all setter methods of the given class.
+	 * Obtains all public setter methods of the given class and any superclass.
 	 * <p>
 	 * A setter method is defined by:
 	 * <ol>
-	 * <li>The method name starts with 'set'</li>
-	 * <li>The first char following 'set' is upper case</li>
-	 * <li>The method has exactly one single parameter</li>
+	 * <li>method name starts with 'set'</li>
+	 * <li>first char following 'set' is upper case</li>
+	 * <li>method has exactly one single parameter</li>
 	 * </ol>
 	 *
 	 * @param clazz The Java class to obtain the setter methods from
-	 * @param withInheritance {@code true} includes inherited classes
 	 * @return list of setter methods
 	 */
-	public static List<Method> obtainSetters( Class<?> clazz,
-			boolean withInheritance ) {
+	public static List<Method> obtainSetters( Class<?> clazz ) {
 		List<Method> setters = new ArrayList<>();
-		Method[] methods = withInheritance ? clazz.getMethods() : clazz.getDeclaredMethods();
+		Method[] methods = clazz.getMethods();
 		for ( Method method : methods ) {
 			if ( ReflectionHelper.isSetter( method ) ) {
 				setters.add( method );
@@ -425,55 +451,28 @@ public class BeanHelper {
 	}
 
 	/**
-	 * Obtains all setter methods of the given class.
-	 *
-	 * @param clazz The Java class to obtain the setter methods from
-	 * @return list of setter methods
-	 */
-	public static List<Method> obtainSetters( Class<?> clazz ) {
-		return obtainSetters( clazz, false );
-	}
-
-	/**
-	 * Populates a Java object from a map.
-	 *
-	 * @param bean Java object to populate
-	 * @param setters array of setter methods
-	 * @param map map with values
-	 * @throws IllegalAccessException if access is prohibited
-	 * @throws IllegalArgumentException if getter name is wrong
-	 * @throws InvocationTargetException if getter must not be invoked
-	 * @throws ParseException if map has wrong structure
-	 */
-	public static void populate( Object bean, List<Method> setters,
-			Map<String, Object> map )
-			throws IllegalAccessException, IllegalArgumentException,
-			InvocationTargetException, ParseException {
-		populate( bean, setters, map, false );
-	}
-
-	/**
-	 * Sets properties of the given bean which have a setter method. The property must have
-	 * the same name as the key of an entry from the map.
+	 * Sets properties of the given bean which have a setter method.
+	 * <p>
+	 * The property must have the same name as the key of an entry from the map.
+	 * </p>
 	 *
 	 * @param bean fields will be populated from the map by calling its setters
 	 * @param setters Setter methods. Use null to obtain them here
 	 * @param map keys must have property names
-	 * @param withInherited {@code true} includes inherited classes
 	 * @throws IllegalArgumentException if value has incorrect type
 	 * @throws IllegalAccessException if access to setter is prohibited
 	 * @throws InvocationTargetException in setter cannot be invoked
 	 * @throws ParseException if a parsing error occurs
 	 */
 	public static void populate( Object bean, List<Method> setters,
-			Map<String, Object> map, boolean withInherited )
+			Map<String, Object> map )
 			throws IllegalAccessException, IllegalArgumentException,
 			InvocationTargetException, ParseException {
 		logger.atFiner().log( bean + ", " + map );
 
 		// --- No setters given => obtain here
 		if ( setters == null ) {
-			setters = obtainSetters( bean.getClass(), withInherited );
+			setters = obtainSetters( bean.getClass() );
 		}
 
 		// --- Loop through setter methods

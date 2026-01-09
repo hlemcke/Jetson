@@ -273,6 +273,7 @@ public class ReflectionHelper {
 	public static Object getValueFromMember( Object bean,
 			Member member ) throws IllegalAccessException, InvocationTargetException {
 		if ( member instanceof Field field ) {
+			field.setAccessible( true );
 			return field.get( bean );
 		}
 		//--- Use getter
@@ -281,6 +282,7 @@ public class ReflectionHelper {
 			throw new RuntimeException(
 					String.format( "No getter in %s from %s", bean, member ) );
 		}
+		getter.setAccessible( true );
 		return getter.invoke( bean, (Object[]) null );
 	}
 

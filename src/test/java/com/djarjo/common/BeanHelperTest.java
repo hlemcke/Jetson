@@ -50,7 +50,8 @@ public class BeanHelperTest {
 	@Test
 	void findAnnotatedMethods() {
 		//--- when
-		List<Method> methods = BeanHelper.findMethods( MainBean.class, Json.class );
+		List<Method> methods = BeanHelper.findMethodsByAnnotation( MainBean.class,
+				Json.class );
 
 		//--- then
 		assertEquals( 1, methods.size() );
@@ -105,7 +106,8 @@ public class BeanHelperTest {
 		assertEquals( NestedBean.keyValue, mainBean.nestedBean.key );
 
 		//--- when
-		boolean wasSet = BeanHelper.setValue( mainBean, "nestedBeanListNull/key", newKey );
+		boolean wasSet = BeanHelper.setValue( mainBean, "nestedBeanListNull/key",
+				newKey );
 
 		//--- then
 		assertTrue( wasSet );
@@ -121,7 +123,8 @@ public class BeanHelperTest {
 		assertEquals( NestedBean.keyValue, mainBean.nestedBean.key );
 
 		//--- when
-		boolean wasSet = BeanHelper.setValue( mainBean, "nestedBeanListEmpty/key", newKey );
+		boolean wasSet = BeanHelper.setValue( mainBean, "nestedBeanListEmpty/key",
+				newKey );
 
 		//--- then
 		assertTrue( wasSet );
