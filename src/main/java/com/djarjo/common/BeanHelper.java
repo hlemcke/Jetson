@@ -461,8 +461,6 @@ public class BeanHelper {
 	 * @param map keys must have property names
 	 * @throws IllegalArgumentException if value has incorrect type
 	 * @throws IllegalAccessException if access to setter is prohibited
-	 * @throws InvocationTargetException in setter cannot be invoked
-	 * @throws ParseException if a parsing error occurs
 	 */
 	public static void populate( Object bean, List<Method> setters,
 			Map<String, Object> map )

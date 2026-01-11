@@ -129,8 +129,8 @@ public class BaseConverter {
 							InvocationTargetException ex ) {
 			String message = String.format( "Enumeration %s has no value %s", type, name );
 			logger.atWarning().withCause( ex ).log( message );
+			throw new RuntimeException( message, ex );
 		}
-		return null;
 	}
 
 	/**
