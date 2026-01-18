@@ -19,7 +19,6 @@ import java.lang.reflect.Method;
  *   <li>method → must be public</li>
  *   <li>field → could be private</li>
  *   </ul>
- * </p>
  *
  * @param clazz the class with annotation(s)
  * @param config attributes from {@literal @Json} annotation
@@ -111,12 +110,12 @@ public record JsonAccessor(Class<?> clazz, JsonConfig config, Field field, Metho
 	 *
 	 * @return {@code true} if encode is allowed
 	 */
-	public boolean mayEncode( Object value ) {
+	public boolean mayEncode( Object value, boolean withNulls ) {
 		if ( isClass() ) return true;
 		return switch ( config.encode() ) {
 			case ALWAYS -> true;
 			case NEVER -> false;
-			case ONLY_IF_NOT_EMPTY -> BeanHelper.isNotEmpty( value );
+			case ONLY_IF_NOT_EMPTY -> withNulls || BeanHelper.isNotEmpty( value );
 		};
 	}
 

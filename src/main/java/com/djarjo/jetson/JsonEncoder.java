@@ -314,7 +314,7 @@ public class JsonEncoder {
 		//--- now handle all fields and methods
 		for ( JsonAccessor accessor : accessors ) {
 			Object value = accessor.getValue( pojo );
-			if ( accessor.mayEncode( value ) ) {
+			if ( accessor.mayEncode( value, _withNulls ) ) {
 				_encodePojoMember( builder, accessor, value );
 			}
 		}

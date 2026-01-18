@@ -50,6 +50,24 @@ class JsonEncoderTest {
 		assertEquals( "\"en_US\"", jsonText );
 	}
 
+	@Test
+	void testEncodeNulls() {
+		//--- given
+		Map<String, Object> map = new HashMap<>();
+		map.put( "key", "value" );
+		map.put( "empty", null );
+
+		//--- when
+		String json = JsonEncoder.encoder().encode( map );
+
+		//--- then
+		assertEquals( "{\"key\":\"value\"}", json );
+
+		//--- no with null
+		json = JsonEncoder.encoder().withNulls().encode( map );
+		assertEquals( "{\"key\":\"value\",\"empty\":null}", json );
+	}
+
 	/**
 	 * Test method for {@link com.djarjo.jetson.JsonEncoder#encoder()}.
 	 */
@@ -111,13 +129,12 @@ class JsonEncoderTest {
 		TestData.PojoBasics basics = new TestData.PojoBasics();
 		String jsonText = JsonEncoder.encoder().encode( basics );
 		assertEquals( "{\"intVar\":0}", jsonText );
+
 		// --- Test with initialized object
 		basics.initialize();
-		jsonText = JsonEncoder.encoder()
-				.encode( basics );
+		jsonText = JsonEncoder.encoder().encode( basics );
 		@SuppressWarnings("unchecked") Map<String, Object> map =
-				(Map<String, Object>) JsonDecoder.decoder()
-						.decode( jsonText );
+				(Map<String, Object>) JsonDecoder.decoder().decode( jsonText );
 		assertEquals( basics.decimalConst.toString(), map.get( "decimalVar" ) );
 		assertFalse( (Boolean) map.get( "boolVar" ) );
 		assertEquals( basics.longConst, map.get( "intVar" ) );

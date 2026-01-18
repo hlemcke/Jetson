@@ -7,7 +7,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.text.ParseException;
 import java.time.*;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -490,13 +489,12 @@ public class BeanHelper {
 	 * @param bean fields will be populated from the map by calling its setters
 	 * @param setters Setter methods. Use null to obtain them here
 	 * @param map keys must have property names
-	 * @throws IllegalArgumentException if value has incorrect type
 	 * @throws IllegalAccessException if access to setter is prohibited
+	 * @throws IllegalArgumentException if value has incorrect type
 	 */
 	public static void populate( Object bean, List<Method> setters,
 			Map<String, Object> map )
-			throws IllegalAccessException, IllegalArgumentException,
-			InvocationTargetException, ParseException {
+			throws IllegalAccessException, IllegalArgumentException {
 		logger.atFiner().log( bean + ", " + map );
 
 		// --- No setters given => obtain here
