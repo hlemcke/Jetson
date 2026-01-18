@@ -15,7 +15,8 @@ import java.util.List;
  */
 public class ReflectionHelper {
 	/** Prefixes for getter methods */
-	public final static List<String> getterPrefixes = List.of( "get", "has", "is" );
+	public final static List<String> getterPrefixes = List.of( "can", "get", "has", "is",
+			"may" );
 
 	/** Prefixes for setter methods */
 	public final static List<String> setterPrefixes = List.of( "add", "set", "with" );
@@ -481,6 +482,27 @@ public class ReflectionHelper {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Returns field name from method if method is a getter.
+	 *
+	 * @param method getter
+	 * @return field name without prefix starts with lowercase char or {@code null}
+	 */
+	public static String makeFieldName( Method method ) {
+		if ( method == null ) return "";
+		String name = method.getName();
+		for ( String prefix : getterPrefixes ) {
+			if ( name.startsWith( prefix ) ) {
+				name = name.substring( prefix.length() );
+				if ( !name.isEmpty() && Character.isUpperCase( name.charAt( 0 ) ) ) {
+					return Character.toLowerCase( name.charAt( 0 ) ) + name.substring( 1 );
+				}
+
+			}
+		}
+		return "";
 	}
 
 	/**

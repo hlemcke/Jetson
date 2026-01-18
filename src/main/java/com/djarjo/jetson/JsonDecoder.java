@@ -271,9 +271,7 @@ public class JsonDecoder {
 			Type keyType, Type valueType ) throws ParseException,
 			IllegalAccessException {
 		Object key, value;
-		if ( target == null ) {
-			target = new HashMap<>();
-		}
+		target = (target == null) ? new HashMap<>() : target;
 		while ( true ) {
 			key = _obtainNameFromJson();
 			if ( key == null ) {
@@ -699,7 +697,9 @@ public class JsonDecoder {
 				((Field) member).getAnnotation( Json.class ) :
 				((Method) member).getAnnotation( Json.class );
 
-		if ( anno.decodable() ) {
+		if ( anno.decode().equals( Json.DecodeMode.ALWAYS ) ||
+				(anno.decode().equals( Json.DecodeMode.ONLY_IF_EMPTY ) &&
+						BeanHelper.isNotEmpty( value )) ) {
 			// --- Use "converter" if present
 			if ( anno.converter() != JsonConverter.class ) {
 				value = _useConverterToDecode( anno, value );

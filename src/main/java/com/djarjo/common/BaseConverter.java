@@ -11,8 +11,6 @@ import java.time.*;
 import java.util.*;
 import java.util.function.Function;
 
-import static java.lang.Math.abs;
-
 /**
  * This class solely consists of static methods which convert a value from one type to
  * another one. If the input type is of type string then the parser methods from
@@ -177,7 +175,7 @@ public class BaseConverter {
 		if ( list == null || list.isEmpty() ) {
 			return null;
 		}
-		Class<?> componentType = list.get( 0 ).getClass();
+		Class<?> componentType = list.getFirst().getClass();
 		int size = list.size();
 		Object array = Array.newInstance( componentType, size );
 		for ( int i = 0; i < size; i++ ) {
@@ -216,7 +214,7 @@ public class BaseConverter {
 		}
 		List<Byte> bytes = new ArrayList<>();
 		for ( int i = Long.BYTES - 1; i >= 0; i-- ) {
-			bytes.add( 0, (byte) (value & 0xFF) );
+			bytes.addFirst( (byte) (value & 0xFF) );
 			value >>= 8;
 		}
 		return bytes;
@@ -229,12 +227,15 @@ public class BaseConverter {
 	 * @return {@code null} if not convertible to Boolean
 	 */
 	public static Boolean toBoolean( Object value ) {
-		if ( value == null ) return null;
-		if ( value instanceof Boolean b ) return b;
-		if ( value instanceof String s ) return TextHelper.parseBoolean( s );
-		if ( value instanceof Number n ) return n.doubleValue() != 0.0;
-		logger.atWarning().log( "Cannot convert to Boolean: '%s'", value );
-		return false;
+		return switch ( value ) {
+			case Boolean b -> b;
+			case String s -> TextHelper.parseBoolean( s );
+			case Number n -> n.doubleValue() != 0.0;
+			default -> {
+				logger.atWarning().log( "Cannot convert to Boolean: '%s'", value );
+				yield false;
+			}
+		};
 	}
 
 	/**
@@ -244,32 +245,21 @@ public class BaseConverter {
 	 * @return new instance of {@code BigDecimal} or {@code null} if not convertible
 	 */
 	public static BigDecimal toBigDecimal( Object value ) {
-		if ( value == null ) {
-			return null;
-		}
+		if ( value == null ) return null;
 		if ( value instanceof BigDecimal big ) return big;
 		if ( value instanceof String ) {
 			return TextHelper.parseBigDecimal( (String) value );
 		}
 		try {
-			if ( value instanceof Byte ) {
-				return BigDecimal.valueOf( (Byte) value );
-			}
-			if ( value instanceof Double ) {
-				return BigDecimal.valueOf( (Double) value );
-			}
-			if ( value instanceof Float ) {
-				return BigDecimal.valueOf( (Float) value );
-			}
-			if ( value instanceof Integer ) {
-				return BigDecimal.valueOf( (Integer) value );
-			}
-			if ( value instanceof Long ) {
-				return BigDecimal.valueOf( (Long) value );
-			}
-			if ( value instanceof Short ) {
-				return BigDecimal.valueOf( (Short) value );
-			}
+			return switch ( value ) {
+				case Byte b -> BigDecimal.valueOf( b );
+				case Double v -> BigDecimal.valueOf( v );
+				case Float v -> BigDecimal.valueOf( v );
+				case Integer i -> BigDecimal.valueOf( i );
+				case Long l -> BigDecimal.valueOf( l );
+				case Short i -> BigDecimal.valueOf( i );
+				default -> null;
+			};
 		} catch ( NumberFormatException e ) {
 			// --- Just return null
 		}
@@ -283,12 +273,16 @@ public class BaseConverter {
 	 * @return {@code null} if not convertible to Byte
 	 */
 	public static Byte toByte( Object value ) {
-		if ( value == null ) return null;
-		if ( value instanceof Byte b ) return b;
-		if ( value instanceof Number n ) return n.byteValue();
-		if ( value instanceof String s ) return TextHelper.parseByte( s );
-		logger.atWarning().log( "Cannot convert to Byte: '%s'", value );
-		return null;
+		return switch ( value ) {
+			case null -> null;
+			case Byte b -> b;
+			case Number n -> n.byteValue();
+			case String s -> TextHelper.parseByte( s );
+			default -> {
+				logger.atWarning().log( "Cannot convert to Byte: '%s'", value );
+				yield null;
+			}
+		};
 	}
 
 	/**
@@ -479,32 +473,29 @@ public class BaseConverter {
 	}
 
 	/**
-	 * Converts given object (could be {@code null}) to {@code TimeZone}.
+	 * Converts given object to a timezone.
 	 *
-	 * @param value to convert
-	 * @return new instance of {@code TimeZone} or {@code null}
+	 * @param value to convert (could be {@code null})
+	 * @return new instance of {@code ZoneId} or {@code null}
 	 */
-	public static TimeZone toTimeZone( Object value ) {
-		if ( value == null ) return null;
-		if ( value instanceof TimeZone tz ) return tz;
-		if ( value instanceof Duration d ) {
-			return toTimeZoneFromMinutes( d.toMinutes() );
-		}
-		if ( value instanceof String s ) return TextHelper.parseTimeZone( s );
-		if ( value instanceof OffsetDateTime o ) return TimeZone.getTimeZone( o.getOffset() );
-		return null;
+	public static ZoneId toZoneId( Object value ) {
+		return switch ( value ) {
+			case Duration d -> toZoneIdFromMinutes( (int) d.toMinutes() );
+			case String s -> TextHelper.parseTimeZone( s );
+			case OffsetDateTime o -> o.getOffset();
+			case ZoneId tz -> tz;
+			case null, default -> null;
+		};
 	}
 
 	/**
-	 * Converts {@code minutes} to {@code TimeZone}
+	 * Converts {@code minutes} to {@code ZoneId}
 	 *
 	 * @param minutes well ... minutes
-	 * @return new instance of {@code TimeZone}
+	 * @return new instance of {@code ZoneId}
 	 */
-	public static TimeZone toTimeZoneFromMinutes( long minutes ) {
-		String s = String.format( "GMT%s%02d:%02d", (minutes < 0 ? "-" : "+"),
-				abs( minutes / 60 ), abs( minutes % 60 ) );
-		return TimeZone.getTimeZone( s );
+	public static ZoneId toZoneIdFromMinutes( int minutes ) {
+		return ZoneOffset.ofTotalSeconds( minutes * 60 );
 	}
 
 	/**
@@ -578,9 +569,10 @@ public class BaseConverter {
 			_converters.put( OffsetDateTime.class, BaseConverter::toOffsetDateTime );
 			_converters.put( Period.class, BaseConverter::toPeriod );
 			_converters.put( String.class, v -> v );
-			_converters.put( TimeZone.class, BaseConverter::toTimeZone );
+			_converters.put( TimeZone.class, BaseConverter::toZoneId );
 			_converters.put( UUID.class, BaseConverter::toUuid );
 			_converters.put( ZonedDateTime.class, BaseConverter::toZonedDateTime );
+			_converters.put( ZoneId.class, BaseConverter::toZonedDateTime );
 		}
 		return _converters;
 	}

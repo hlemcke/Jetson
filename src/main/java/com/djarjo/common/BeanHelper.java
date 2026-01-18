@@ -330,6 +330,37 @@ public class BeanHelper {
 	}
 
 	/**
+	 * Checks if {@code value} is {@code null} or empty
+	 *
+	 * @param value value
+	 * @return {@code false} if neither {@code null} nor empty
+	 */
+	public static boolean isEmpty( Object value ) {
+		if ( value == null ) return true;
+
+		//--- special handling for fucking Java arrays
+		if ( value.getClass().isArray() ) {
+			return Array.getLength( value ) == 0;
+		}
+		return switch ( value ) {
+			case String s -> s.isBlank() || s.equalsIgnoreCase( "null" );
+			case Collection<?> c -> c.isEmpty();
+			case Map<?, ?> m -> m.isEmpty();
+			default -> false;
+		};
+	}
+
+	/**
+	 * Checks if {@code value} is neither {@code null} nor empty
+	 *
+	 * @param value value
+	 * @return {@code false} if {@code null} or empty
+	 */
+	public static boolean isNotEmpty( Object value ) {
+		return !isEmpty( value );
+	}
+
+	/**
 	 * Makes a class name from the given name by making the first character upper case.
 	 *
 	 * @param name Name of a method or field

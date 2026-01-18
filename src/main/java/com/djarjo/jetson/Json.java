@@ -5,18 +5,16 @@ import com.djarjo.jetson.converter.JsonConverter;
 import java.lang.annotation.*;
 
 /**
- * Annotate a property or a getter method will encode its value into a Json string or sets
- * the value from decoding a Json string.
+ * Annotate a property or a getter method will encode its value into a JSON string or sets
+ * the value from decoding a JSON string.
  * <p>
- * A Json annotation provides the following optional parameters:
+ * A JSON annotation provides the following optional parameters:
  * <ul>
  * <li>{@link #converter()} - JsonConverter defaults to no converter</li>
- * <li>{@link #decodable()} - boolean defaults to true</li>
- * <li>{@link #encodable()} - boolean defaults to true</li>
+ * <li>{@link #decode()} - specifies when to encode</li>
+ * <li>{@link #encode()} - specifies when to decode</li>
  * <li>{@link #name()} - String defaults to property name</li>
  * </ul>
- * Setting both {@link #decodable()} and {@link #encodable()} to false is
- * exactly the same as not annotating the field or getter at all.
  *
  * @author Hajo Lemcke
  * @version 2014-12-06 Initial version
@@ -39,8 +37,7 @@ public @interface Json {
 	JsonAccessType accessType() default JsonAccessType.PROPERTY;
 
 	/**
-	 * Converter encodes a given value into a JSON string and decodes a given string
-	 * into a
+	 * Converter encodes a given value into a JSON string and decodes a given string into a
 	 * Java object. Defaults to no converter.
 	 *
 	 * @return converter class
@@ -48,21 +45,18 @@ public @interface Json {
 	Class<? extends JsonConverter> converter() default JsonConverter.class;
 
 	/**
-	 * Controls decoding of JSON string. {@code false} will not write the decoded value
-	 * into
-	 * the member. Default is {@code true}.
+	 * Controls decoding a JSON string. Defaults to {@code DecodeMode.ALWAYS}
 	 *
-	 * @return {@code false} if the member should not be set during decoding
+	 * @return mode
 	 */
-	boolean decodable() default true;
+	DecodeMode decode() default DecodeMode.ALWAYS;
 
 	/**
-	 * Controls encoding to JSON string. {@code false} will not write the encoded value.
-	 * Default is {@code true}.
+	 * Controls encoding a JSON string. Defaults to {@code EncodeMode.ONLY_IF_NOT_EMPTY}
 	 *
-	 * @return {@code false} if the field should not be encoded
+	 * @return mode
 	 */
-	boolean encodable() default true;
+	EncodeMode encode() default EncodeMode.ONLY_IF_NOT_EMPTY;
 
 	/**
 	 * Controls encoding and decoding of enumeration values.
@@ -82,8 +76,7 @@ public @interface Json {
 	 *   public int getCode() { return code; }
 	 * </pre>
 	 * <p>
-	 * will encode {@code SomeEnum.VAL1} to {@code 17} and decode any one of {@code 17
-	 * } or
+	 * will encode {@code SomeEnum.VAL1} to {@code 17} and decode any one of {@code 17 } or
 	 * {@code VAL1} or {@code SomeEnum.VAL1} to SomeEnum.VAL1;
 	 *
 	 * @return name of getter method to obtain the enumeration value for encoding
@@ -94,10 +87,8 @@ public @interface Json {
 	 * Controls behaviour when decoding a JSON string into a collection property of an
 	 * existing object.
 	 * <p>
-	 * Default {@code false} will completely replace the collection of the object by a
-	 * new
-	 * one from JSON string. {@code true} will keep existing entries in the collection
-	 * and
+	 * Default {@code false} will completely replace the collection of the object by a new
+	 * one from JSON string. {@code true} will keep existing entries in the collection and
 	 * merge values from JSON string.
 	 * </p>
 	 *
@@ -106,8 +97,7 @@ public @interface Json {
 	boolean mergeCollection() default false;
 
 	/**
-	 * The key used for the value in the JSON string. Defaults to the name of the
-	 * field or
+	 * The key used for the value in the JSON string. Defaults to the name of the field or
 	 * the name of the getter method without "get".
 	 *
 	 * <p>
@@ -125,4 +115,16 @@ public @interface Json {
 	 * @return name for JSON value
 	 */
 	String name() default defaultName;
+
+	enum DecodeMode {
+		ALWAYS,
+		NEVER,
+		ONLY_IF_EMPTY
+	}
+
+	enum EncodeMode {
+		ALWAYS,
+		NEVER,
+		ONLY_IF_NOT_EMPTY
+	}
 }

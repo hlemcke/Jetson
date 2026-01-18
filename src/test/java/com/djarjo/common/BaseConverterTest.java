@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
-import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -70,30 +70,37 @@ public class BaseConverterTest {
 	}
 
 	@Test
-	void toTimeZoneFromMinutes() {
+	void testToZoneIdFromMinutes() {
 		//--- given
-		List<Long> inputs = List.of( 0L, 60L, 150L, -210L );
-		List<TimeZone> expected = List.of( TimeZone.getTimeZone( "GMT" ),
-				TimeZone.getTimeZone( "CET" ),
-				TimeZone.getTimeZone( "GMT+02:30" ),
-				TimeZone.getTimeZone( "GMT-03:30" ) );
+		List<Integer> inputs = List.of( 0, 60, 150, -210 );
+		List<ZoneId> expected = List.of( ZoneId.of( "Z" ),
+				ZoneId.of( "+01:00" ),
+				ZoneId.of( "+02:30" ),
+				ZoneId.of( "-03:30" ) );
 
 		//--- when / then
 		for ( int i = 0; i < inputs.size(); i++ ) {
-			TimeZone tz = BaseConverter.toTimeZoneFromMinutes( inputs.get( i ) );
-			assertEquals( expected.get( i ).getRawOffset(), tz.getRawOffset(),
+			ZoneId timeZone = BaseConverter.toZoneIdFromMinutes( inputs.get( i ) );
+			assertEquals( expected.get( i ), timeZone,
 					String.format( "inputs[%d] = %s", i, inputs.get( i ) ) );
 		}
 	}
 
 	@Test
-	void toTimeZone() {
+	void testToZoneId() {
 		//--- given
 		List<Object> inputs = List.of( "0", "-90", "PT4H", "-PT4H30M", "Europe/Berlin" );
-		List<TimeZone> expected = List.of( TimeZone.getTimeZone( "GMT" ),
-				TimeZone.getTimeZone( "GMT-01:30" ),
-				TimeZone.getTimeZone( "GMT+04:00" ),
-				TimeZone.getTimeZone( "GMT-04:30" ),
-				TimeZone.getTimeZone( "GMT+01:00" ) );
+		List<ZoneId> expected = List.of( ZoneId.of( "Z" ),
+				ZoneId.of( "-01:30" ),
+				ZoneId.of( "+04:00" ),
+				ZoneId.of( "-04:30" ),
+				ZoneId.of( "Europe/Berlin" ) );
+
+		//--- when / then
+		for ( int i = 0; i < inputs.size(); i++ ) {
+			ZoneId timeZone = BaseConverter.toZoneId( inputs.get( i ) );
+			assertEquals( expected.get( i ), timeZone,
+					String.format( "inputs[%d] = %s", i, inputs.get( i ) ) );
+		}
 	}
 }

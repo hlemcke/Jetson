@@ -283,75 +283,39 @@ public class JsonEncoder {
 	/**
 	 * Encodes the given plain old Java object (POJO) into a JSON object
 	 */
+	@SuppressWarnings("unchecked")
 	private String _encodePojo( Object pojo ) {
-		boolean accessFields = false;
-		boolean allMembers = false;
 		StringBuilder builder = new StringBuilder();
-		String name;
-		Class<?> clazz = pojo.getClass();
-		Object value = null;
+		Class<?> pojoClass = pojo.getClass();
+		List<JsonAccessor> accessors = JsonCache.getAccessors( pojoClass );
+		if ( accessors == null || accessors.isEmpty() ) return "";
 
-		// --- Check annotation on class level
-		Json anno = clazz.getAnnotation( Json.class );
-		if ( anno != null ) {
+		//--- Handle class level annotation "converter" or "toJson()" right here
+		if ( (accessors.size() == 1) && (accessors.getFirst().isClass()) ) {
 			// --- use converter if given
-			JsonConverter converter = Jetson.getConverter( anno );
+			JsonConverter converter = accessors.getFirst().getConverter();
 			if ( converter != null ) {
 				return converter.encodeToJson( pojo );
 			}
 
 			//--- use method "toJson()" if it exists in pojo class
-			Method toJson = ReflectionHelper.findMethod( clazz, METHOD_TO_JSON );
+			Method toJson = ReflectionHelper.findMethod( pojoClass, METHOD_TO_JSON );
 			if ( toJson != null ) {
 				try {
 					return ReflectionHelper.getValueFromMember( pojo, toJson ).toString();
 				} catch ( IllegalAccessException | InvocationTargetException e ) {
 					logger.atWarning().withCause( e )
-							.log( "Cannot get value from 'toJson' in %s",
-									clazz.getName() );
+							.log( "Cannot get value from 'toJson()' in %s", pojoClass.getName() );
 					return null;
 				}
 			}
-			if ( JsonAccessType.FIELD.equals( anno.accessType() ) ) {
-				accessFields = true;
-			}
-			allMembers = true;
 		}
 
-		// --- Encode fields
-		Field[] fields = clazz.getFields();
-		for ( Field field : fields ) {
-			if ( _isToEncode( field, allMembers, accessFields ) ) {
-				try {
-					anno = field.getAnnotation( Json.class );
-					field.setAccessible( true );
-					name = field.getName();
-					value = field.get( pojo );
-					_encodePojoMember( builder, anno, name, value );
-				} catch ( IllegalArgumentException | IllegalAccessException e ) {
-					logger.atWarning()
-							.withCause( e )
-							.log( "Cannot encode field " + field + " for " + value );
-				}
-			}
-		}
-
-		// --- Encode methods
-		List<Method> methods = BeanHelper.obtainGetters( pojo.getClass() );
-		for ( Method method : methods ) {
-			if ( _isToEncode( method, allMembers, !accessFields ) ) {
-				try {
-					anno = method.getAnnotation( Json.class );
-					method.setAccessible( true );
-					name = ReflectionHelper.getVarNameFromMethodName( method.getName() );
-					value = method.invoke( pojo, (Object[]) null );
-					_encodePojoMember( builder, anno, name, value );
-				} catch ( IllegalAccessException | IllegalArgumentException |
-									InvocationTargetException e ) {
-					logger.atWarning()
-							.withCause( e )
-							.log( "Cannot invoke %s on %s", method, clazz );
-				}
+		//--- now handle all fields and methods
+		for ( JsonAccessor accessor : accessors ) {
+			Object value = accessor.getValue( pojo );
+			if ( accessor.mayEncode( value ) ) {
+				_encodePojoMember( builder, accessor, value );
 			}
 		}
 		return "{" + _stripLeadingComma( builder ) + "}";
@@ -364,24 +328,20 @@ public class JsonEncoder {
 	 * <li>check {@code Json.converter()}</li>
 	 * </ol>
 	 *
-	 * @param anno Complete annotation with attributes
-	 * @param name Name of field
+	 * @param builder to append result to
+	 * @param accessor accessor
 	 * @param value value to be encoded
 	 */
-	private void _encodePojoMember( StringBuilder builder, Json anno, String name,
+	private void _encodePojoMember( StringBuilder builder, JsonAccessor accessor,
 			Object value ) {
+		String name = accessor.getJsonName();
 
 		//--- Check annotation attributes (if present)
-		if ( anno != null && value != null ) {
-			if ( !anno.name().equals( Json.defaultName ) ) {
-				name = anno.name();
-			}
-			JsonConverter converter = Jetson.getConverter( anno );
-			if ( converter != null ) {
-				value = converter.encodeToJson( value );
-			} else if ( value instanceof Enum<?> e ) {
-				value = _useEnumAccessor( anno, e );
-			}
+		JsonConverter converter = accessor.getConverter();
+		if ( converter != null ) {
+			value = converter.encodeToJson( value );
+		} else if ( value instanceof Enum<?> e ) {
+			value = _useEnumAccessor( accessor, e );
 		}
 		_encodeKeyValue( builder, name, _encodeValue( value ) );
 	}
@@ -460,12 +420,18 @@ public class JsonEncoder {
 		return json;
 	}
 
-	boolean _isToEncode( AccessibleObject member, boolean allMembers,
-			boolean accessMember ) {
+	boolean _shouldEncode( AccessibleObject member, boolean allMembers,
+			boolean accessMember, Object value ) {
 		Json anno = member.getAnnotation( Json.class );
-		return ((anno != null && anno.encodable())
-				|| (anno == null && allMembers && accessMember && !member.isAnnotationPresent(
-				JsonTransient.class )));
+		if ( anno != null ) {
+			return switch ( anno.encode() ) {
+				case ALWAYS -> true;
+				case ONLY_IF_NOT_EMPTY -> BeanHelper.isNotEmpty( value );
+				default -> false;
+			};
+		}
+		return allMembers && accessMember && !member.isAnnotationPresent(
+				JsonTransient.class );
 	}
 
 	private String _stripLeadingComma( StringBuilder builder ) {
@@ -477,18 +443,18 @@ public class JsonEncoder {
 				builder.substring( 1 ) : builder.toString();
 	}
 
-	private Object _useEnumAccessor( Json anno, Enum<?> value ) {
-		String accessor = anno.enumAccessor();
-		if ( accessor.equals( Json.defaultName ) ) return value;
+	private Object _useEnumAccessor( JsonAccessor accessor, Enum<?> value ) {
+		String enumAccessor = accessor.config().enumAccessor();
+		if ( enumAccessor.equals( Json.defaultName ) ) return value;
 		Class<? extends Enum> enumClass = value.getClass();
 		try {
-			Field field = enumClass.getDeclaredField( accessor );
+			Field field = enumClass.getDeclaredField( enumAccessor );
 			field.setAccessible( true );
 			return field.get( value );
 		} catch ( IllegalAccessException | NoSuchFieldException ignored ) {
 			//--- No field => lookup getter method
 			try {
-				Method method = enumClass.getMethod( accessor, (Class<?>[]) null );
+				Method method = enumClass.getMethod( enumAccessor, (Class<?>[]) null );
 				method.setAccessible( true );
 				return method.invoke( value, (Object[]) null );
 			} catch ( NoSuchMethodException | IllegalAccessException |

@@ -109,8 +109,7 @@ class JsonEncoderTest {
 	void testEncoder_PojoBasics() throws IllegalAccessException, ParseException {
 		// --- Test with empty object
 		TestData.PojoBasics basics = new TestData.PojoBasics();
-		String jsonText = JsonEncoder.encoder()
-				.encode( basics );
+		String jsonText = JsonEncoder.encoder().encode( basics );
 		assertEquals( "{\"intVar\":0}", jsonText );
 		// --- Test with initialized object
 		basics.initialize();

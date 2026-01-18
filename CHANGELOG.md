@@ -1,3 +1,9 @@
+## 2.2.0
+
+* removed attributes from `@Json`: _decodable_ and _encodable_. Use __decode__ and __encode__ instead
+* Added internal `JsonAccessor` for any annotation on class, method or field
+* Added internal `JsonCache` to cache classes already scanned for JSON annotations
+
 ## 2.1.4
 
 * Added `MemberAccessor` to bundle field or getter/setter-pair
