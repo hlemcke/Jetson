@@ -46,8 +46,8 @@ class JsonDecoderTest {
 		beanFromDb.whenInserted = now;
 		PojoWithList beanFromUi = new PojoWithList();
 		beanFromUi.fruits = new ArrayList<>( List.of( "Banana", "Cherry", "Peach" ) );
-		beanFromUi.uuidList = List.of(someId);
-		beanFromUi.pojos.remove( 0 );
+		beanFromUi.uuidList = List.of( someId );
+		beanFromUi.pojos.removeFirst();
 		String json = Jetson.encode( beanFromUi );
 
 		//--- when
@@ -60,19 +60,20 @@ class JsonDecoderTest {
 		assertEquals( "Cherry", decodedBean.fruits.get( 1 ) );
 		assertEquals( "Peach", decodedBean.fruits.get( 2 ) );
 		assertEquals( 1, decodedBean.pojos.size() );
-		assertEquals( "second", decodedBean.pojos.get( 0 ).title );
+		assertEquals( "second", decodedBean.pojos.getFirst().title );
 		assertEquals( now, decodedBean.whenInserted, "Must be kept from DB entity" );
-		assertEquals( someId, decodedBean.uuidList.get( 0 ) );
+		assertEquals( someId, decodedBean.uuidList.getFirst() );
 	}
 
 	@Test
-	void testDecodeJsonIntoNewPojoWithList() throws ParseException, IllegalAccessException {
+	void testDecodeJsonIntoNewPojoWithList() throws ParseException,
+			IllegalAccessException {
 		//--- given
 		UUID someId = UUID.fromString( "1baf6ea7-6cc1-4816-8804-991faedf1c47" );
 		OffsetDateTime now = OffsetDateTime.now();
 		PojoWithList beanFromUi = new PojoWithList();
 		beanFromUi.fruits = new ArrayList<>( List.of( "Banana", "Cherry", "Peach" ) );
-		beanFromUi.uuidList = List.of(someId);
+		beanFromUi.uuidList = List.of( someId );
 		beanFromUi.pojos.remove( 0 );
 		String json = Jetson.encode( beanFromUi );
 
@@ -86,12 +87,12 @@ class JsonDecoderTest {
 		assertEquals( "Cherry", decodedBean.fruits.get( 1 ) );
 		assertEquals( "Peach", decodedBean.fruits.get( 2 ) );
 		assertEquals( 1, decodedBean.pojos.size() );
-		assertEquals( "second", decodedBean.pojos.get( 0 ).title );
-		assertEquals( someId, decodedBean.uuidList.get( 0 ) );
+		assertEquals( "second", decodedBean.pojos.getFirst().title );
+		assertEquals( someId, decodedBean.uuidList.getFirst() );
 	}
 
 	@Test
-	void testDecodeJsonIntoPojoWithMergeDecoding() throws ParseException,
+	void testDecodeJsonIntoPojoWithMerge() throws ParseException,
 			IllegalAccessException {
 		//--- given
 		OffsetDateTime now = OffsetDateTime.now();
@@ -100,9 +101,9 @@ class JsonDecoderTest {
 		PojoWithList beanFromUi = new PojoWithList();
 		beanFromUi.id = beanFromDb.id;
 		beanFromUi.fruits = new ArrayList<>( List.of( "Banana", "Cherry", "Peach" ) );
-		beanFromUi.pojos.remove( 0 );
-		beanFromUi.pojos.get( 0 ).id = beanFromDb.pojos.get( 1 ).id;
-		beanFromUi.pojos.get( 0 ).title = "second changed";
+		beanFromUi.pojos.removeFirst();
+		beanFromUi.pojos.getFirst().id = beanFromDb.pojos.get( 1 ).id;
+		beanFromUi.pojos.getFirst().title = "another Title";
 		String json = Jetson.encode( beanFromUi );
 
 		//--- when
@@ -116,9 +117,9 @@ class JsonDecoderTest {
 		assertEquals( "Banana", decodedBean.fruits.get( 2 ) );
 		assertEquals( "Cherry", decodedBean.fruits.get( 3 ) );
 		assertEquals( "Peach", decodedBean.fruits.get( 4 ) );
-		assertEquals( 2, decodedBean.pojos.size() );
-		assertEquals( "first", decodedBean.pojos.get( 0 ).title );
-		assertEquals( "second changed", decodedBean.pojos.get( 1 ).title );
+		assertEquals( 3, decodedBean.pojos.size() );
+		assertEquals( "first", decodedBean.pojos.getFirst().title );
+		assertEquals( "another Title", decodedBean.pojos.get( 2 ).title );
 		assertEquals( now, decodedBean.whenInserted, "Must be kept from DB entity" );
 	}
 

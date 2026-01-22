@@ -6,6 +6,7 @@ import com.google.common.flogger.FluentLogger;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
@@ -34,7 +35,9 @@ public class BaseConverter {
 	private static final Map<Class<?>, Function<Object, Object>> _converters =
 			new HashMap<>();
 
-	/** Useless public constructor implemented for Javadoc only */
+	/**
+	 * Useless public constructor implemented for Javadoc only
+	 */
 	public BaseConverter() {
 	}
 
@@ -49,9 +52,7 @@ public class BaseConverter {
 			return null;
 		}
 		List<Object> list = new ArrayList<>( array.length );
-		for ( Object o : array ) {
-			list.add( o );
-		}
+		Collections.addAll( list, array );
 		return list;
 	}
 
@@ -138,21 +139,25 @@ public class BaseConverter {
 	 * @param type target type
 	 * @return value converted to target type
 	 */
-	public static Object convertToType( Object value, Class<?> type ) {
-		if ( value == null ) { // null has no type
-			return null;
-		}
-		if ( type.equals( value.getClass() )
-				|| type.equals( Object.class ) ) {
+	public static Object convertToType( Object value, Type type ) {
+		//--- null has no type
+		if ( value == null ) return null;
+
+		if ( type.equals( value.getClass() ) || type.equals( Object.class ) ) {
 			return value;
 		}
 		if ( value instanceof Map ) {
 			return value;
 		} else if ( value instanceof Collection ) {
-			return type.isArray() ? ((Collection<?>) value).toArray() : value;
-		} else if ( Enum.class.isAssignableFrom( type ) ) {
-			return convertToEnum( type, (String) value );
-		} else if ( type.isArray() ) {
+			return ReflectionHelper.isArray( type ) ? ((Collection<?>) value).toArray() :
+					value;
+		} else if ( ReflectionHelper.isEnum( type ) ) {
+			return convertToEnum( (Class<? extends Enum>) type, (String) value );
+		} else if ( ReflectionHelper.isList( type ) ) {
+			return value;
+		} else if ( ReflectionHelper.isByteArray( type ) && (value instanceof String) ) {
+			return Base64.decoder().decode( (String) value );
+		} else if ( ReflectionHelper.isArray( type ) ) {
 			if ( value.getClass().isArray() ) {
 				return value;
 			}

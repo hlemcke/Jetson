@@ -11,6 +11,7 @@ import java.time.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Helper methods for beans.
@@ -65,70 +66,19 @@ public class BeanHelper {
 	 * @throws IllegalArgumentException if getter name is wrong
 	 * @throws InvocationTargetException if getter must not be invoked
 	 */
-	public static Map<String, Object> describe( Object bean )
-			throws IllegalAccessException, IllegalArgumentException,
-			InvocationTargetException {
-		List<Method> getters = obtainGetters( bean.getClass() );
-		return describe( bean, getters );
-	}
+	public static Map<String, Object> describe( Object bean ) {
+		if ( bean == null ) return Collections.emptyMap();
 
-	/**
-	 * Describes the given bean into a map. The description contains the properties of the
-	 * bean which can be obtained through the given getter methods.
-	 *
-	 * @param bean Java object to be described
-	 * @param getters list of getter methods
-	 * @return new instance of HashMap
-	 * @throws IllegalAccessException if access is prohibited
-	 * @throws IllegalArgumentException if getter name is wrong
-	 * @throws InvocationTargetException if getter must not be invoked
-	 */
-	public static Map<String, Object> describe( Object bean, List<Method> getters )
-			throws IllegalAccessException, IllegalArgumentException,
-			InvocationTargetException {
-
-		// ----- Prepare resulting map
-		Map<String, Object> map = new HashMap<>();
-
-		// --- Put values into map
-		String key = null;
-		Object value = null;
-		for ( Method method : getters ) {
-			key = ReflectionHelper.getVarNameFromMethodName( method.getName() );
-			method.setAccessible( true );
-			value = method.invoke( bean, (Object[]) null );
-			map.put( key, value );
-		}
-		return map;
-	}
-
-	/**
-	 * Obtains all fields from the bean and stores them in a map where key is the name of
-	 * the field.
-	 *
-	 * @param bean The bean to describe
-	 * @return map with field names and their values
-	 * @throws IllegalAccessException if access is prohibited
-	 */
-	public static Map<String, Object> describeFields( Object bean )
-			throws IllegalAccessException {
-		Map<String, Object> map = new HashMap<>();
-
-		// --- Put values into map
-		String key = null;
-		Object value = null;
-		Field[] fields = bean.getClass()
-				.getDeclaredFields();
-		for ( Field field : fields ) {
-			key = field.getName();
-			if ( Modifier.isStatic( field.getModifiers() ) ) {
-				continue;
-			}
-			field.setAccessible( true );
-			value = field.get( bean );
-			map.put( key, value );
-		}
-		return map;
+		return obtainGetters( bean.getClass() ).stream()
+				.collect( HashMap::new, ( map, method ) -> {
+					try {
+						String name = ReflectionHelper.getVarNameFromMethodName( method.getName() );
+						method.setAccessible( true );
+						map.put( name, method.invoke( bean ) );
+					} catch ( Exception e ) {
+						logger.atWarning().withCause( e ).log( "Failed to describe property %s", method.getName() );
+					}
+				}, HashMap::putAll );
 	}
 
 	/**
@@ -137,21 +87,12 @@ public class BeanHelper {
 	 * @param fullName The full name of a class or interface
 	 * @return package name
 	 */
-	public static String extractPackageFromName( String fullName ) {
-		String str = fullName;
-		if ( fullName.endsWith( ".class" ) ) {
-			str = fullName.substring( 0, fullName.length() - 6 );
-		} else if ( fullName.endsWith( ".java" ) ) {
-			str = fullName.substring( 0, fullName.length() - 5 );
-		}
-		// --- adapt path to package
-		str = str.replace( '/', '.' );
-		str = str.replace( '\\', '.' );
-		int i = str.lastIndexOf( '.' );
-		if ( i > 0 ) {
-			str = str.substring( 0, i );
-		}
-		return str;
+	public static String extractPackage( String fullName ) {
+		if ( fullName == null ) return "";
+		String cleanName = fullName.replace( ".class", "" ).replace( ".java", "" )
+				.replace( '/', '.' ).replace( '\\', '.' );
+		int lastDot = cleanName.lastIndexOf( '.' );
+		return (lastDot > 0) ? cleanName.substring( 0, lastDot ) : "";
 	}
 
 	/**
@@ -162,25 +103,25 @@ public class BeanHelper {
 	 * @return accessor or {@code null}
 	 */
 	public static MemberAccessor findAccessorByName( Class<?> cls, String name ) {
-		Method[] methods = cls.getMethods();
-		for ( Method method : methods ) {
-			if ( method.getName().equals( name ) ) {
-				Method setter = ReflectionHelper.obtainSetterFromMethod( cls, method );
-				return new MemberAccessor( null, method, setter );
-			}
+		//--- 1. Try to find traditional Getter/Setter pair
+		Method getter = ReflectionHelper.findGetter( cls, name );
+		if ( getter != null ) {
+			Method setter = ReflectionHelper.obtainSetterFromMethod( cls, getter );
+			return new MemberAccessor( null, getter, setter );
 		}
 
-		//--- add all fields. needs to travel up all superclasses
-		Class<?> currentClass = cls;
-		while ( currentClass != null ) {
-			Field[] fields = cls.getDeclaredFields();
-			for ( Field field : fields ) {
-				if ( field.getName().equals( name ) ) {
-					return new MemberAccessor( field, null, null );
-				}
-			}
-			currentClass = currentClass.getSuperclass();
+		//--- 2. Try to find a Field
+		Field field = ReflectionHelper.findField( cls, name );
+		if ( field != null ) {
+			return new MemberAccessor( field, null, null );
 		}
+
+		//--- 3. Setter-only
+		Method setter = ReflectionHelper.findSetter( cls, name );
+		if ( setter != null ) {
+			return new MemberAccessor( null, null, setter );
+		}
+
 		return null;
 	}
 
@@ -441,19 +382,14 @@ public class BeanHelper {
 	 * to the key is the getter method itself.
 	 * </p>
 	 *
-	 * @param cls The Java class to obtain the getter methods from
+	 * @param clazz The Java class to obtain the getter methods from
 	 * @return List of getter methods (could be empty)
 	 */
-	public static List<Method> obtainGetters( Class<?> cls ) {
-		List<Method> getters = new ArrayList<>();
-		Method[] methods = cls.getMethods();
-		for ( Method method : methods ) {
-			if ( ReflectionHelper.isGetter( method ) ) {
-				getters.add( method );
-			}
-		}
-		getters.sort( methodNameComparator );
-		return getters;
+	public static List<Method> obtainGetters( Class<?> clazz ) {
+		return Arrays.stream( clazz.getMethods() )
+				.filter( ReflectionHelper::isGetter )
+				.sorted( Comparator.comparing( Method::getName ) )
+				.collect( Collectors.toList() );
 	}
 
 	/**
@@ -507,7 +443,8 @@ public class BeanHelper {
 		for ( Method setter : setters ) {
 			key = ReflectionHelper.getVarNameFromMethodName( setter.getName() );
 			if ( map.containsKey( key ) ) {
-				ReflectionHelper.setValue( bean, setter, 0, map.get( key ) );
+				MemberAccessor accessor = new MemberAccessor( null, null, setter );
+				ReflectionHelper.setValue( bean, accessor, 0, map.get( key ) );
 			}
 		}
 	}
@@ -695,49 +632,47 @@ public class BeanHelper {
 						index = "+".equals( indexText ) ? -1 : TextHelper.parseInteger( indexText );
 					}
 				}
-
-				//--- Setter or fallback to field
-				Member member = ReflectionHelper.findSetter( currentBean.getClass(), prop );
-				if ( member == null ) {
-					member = ReflectionHelper.findField( currentBean.getClass(), prop );
-					if ( member == null ) {
-						String message = String.format( "No field '%s' in bean %s", prop, bean );
-						logger.atFiner().log( message );
-						throw new RuntimeException( new NoSuchFieldException( message ) );
-					}
+				MemberAccessor accessor = findAccessorByName( currentBean.getClass(), prop );
+				if ( accessor == null ) {
+					String message = String.format( "No property '%s' in bean %s", prop, bean );
+					logger.atFiner().log( message );
+					throw new RuntimeException( new NoSuchFieldException( message ) );
 				}
-				((AccessibleObject) member).setAccessible( true );
 
-				//--- Set value into last property from path
+				//--- Last property in path => set value
 				if ( i == props.length - 1 ) {
-					ReflectionHelper.setValue( currentBean, member, index, value );
+					ReflectionHelper.setValue( currentBean, accessor, index, value );
 					return true;
 				}
 
-				//--- Obtain current pojo from property path
-				Object currentValue = ReflectionHelper.getValueFromMember( currentBean, member );
+				//--- Obtain current POJO from property path
+				Object currentValue = accessor.getValue( currentBean );
 
-				//--- Current property is null -> create it
+				//--- Current POJO is null -> create it
 				if ( currentValue == null ) {
-					currentValue = ReflectionHelper.instantiateProperty( currentBean, member );
+					currentValue = ReflectionHelper.createInstance( accessor.getType() );
+					accessor.setValue( currentBean, currentValue );
 				}
 
-				if ( ReflectionHelper.isArrayOrList( currentValue.getClass() ) ) {
-					//--- Obtain item or create it
-					Object listItem = ReflectionHelper.getValueByIndex( currentValue, index );
-					//--- list is empty -> create item
-					if ( listItem == null ) {
-						listItem = ReflectionHelper.instantiateGeneric( bean, member, currentValue,
-								index );
+				if ( ReflectionHelper.isList( currentValue.getClass() ) ) {
+					List<Object> list = (List<Object>) currentValue;
+					if ( list.isEmpty() || (index >= list.size()) ) {
+						Type itemType = ReflectionHelper.getGenericInnerType( accessor.getType() );
+						Object newItem = ReflectionHelper.createInstance( itemType );
+						if ( index < 0 || index >= list.size() ) {
+							list.add( newItem );
+						} else {
+							list.set( index, newItem );
+						}
+						currentValue = newItem;
+					} else {
+						currentValue = list.get( index );
 					}
-					currentValue = listItem;
 				}
 				currentBean = currentValue;
 			}
 		} catch ( IllegalAccessException e ) {
 			logger.atFiner().log( "Cannot access '%s' in bean %s", prop, bean );
-			throw new RuntimeException( e );
-		} catch ( InvocationTargetException e ) {
 			throw new RuntimeException( e );
 		}
 		return false;

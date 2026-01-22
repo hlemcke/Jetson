@@ -11,11 +11,57 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Caches classes with their accessors for JSON
+ * Caches classes with their JSON accessors
  */
 class JsonCache {
 	private final static Map<Class<?>, List<JsonAccessor>> _cache = new HashMap<>();
 
+	/**
+	 * Find JSON accessor in class by its JSON {@code name}
+	 * <p>
+	 * Algorithm:
+	 *   <ul><li>checks name directly</li>
+	 *   <li>checks annotation attribute {@literal @Json( name = ...)}</li>
+	 *   <li>tries all {@link ReflectionHelper#GETTER_PREFIXES}</li>
+	 *   <li>tries all {@link ReflectionHelper#SETTER_PREFIXES}</li>
+	 *   </ul>
+	 * If {@code name} cannot be found then both getter and setter prefixes will be tried.
+	 * </p>
+	 *
+	 * @param clazz the class
+	 * @param name the JSON name
+	 * @return accessor or {@code null}
+	 */
+	public static JsonAccessor findAccessorByName( Class<?> clazz, String name ) {
+		List<JsonAccessor> accessors = getAccessors( clazz );
+		if ( accessors == null || accessors.isEmpty() ) return null;
+		String suffix = Character.toUpperCase( name.charAt( 0 ) ) + (name.length() > 1
+				? name.substring( 1 ) : "");
+
+		return accessors.stream().filter( accessor -> {
+					String accName = accessor.getJsonName();
+					if ( accName.equals( name ) ) return true;
+
+					//--- check getter prefixes
+					for ( String prefix : ReflectionHelper.GETTER_PREFIXES ) {
+						if ( accName.equals( prefix + suffix ) ) return true;
+					}
+
+					//--- check setter prefixes
+					for ( String prefix : ReflectionHelper.SETTER_PREFIXES ) {
+						if ( accName.equals( prefix + suffix ) ) return true;
+					}
+					return false;
+				}
+		).findFirst().orElse( null );
+	}
+
+	/**
+	 * Gets all JSON accessors for given class.
+	 *
+	 * @param clazz class with JSON annotations
+	 * @return List of accessors (could be empty)
+	 */
 	public static List<JsonAccessor> getAccessors( Class<?> clazz ) {
 		List<JsonAccessor> accessors = _cache.get( clazz );
 		if ( accessors == null ) {

@@ -1,12 +1,16 @@
 package com.djarjo.jetson;
 
+import com.djarjo.common.BaseConverter;
 import com.djarjo.common.BeanHelper;
 import com.djarjo.common.ReflectionHelper;
 import com.djarjo.jetson.converter.JsonConverter;
+import com.djarjo.text.TextHelper;
+import com.google.common.flogger.FluentLogger;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 /**
  * Accessor for a Java type annotated with {@literal @Json}.
@@ -28,6 +32,7 @@ import java.lang.reflect.Method;
  */
 public record JsonAccessor(Class<?> clazz, JsonConfig config, Field field, Method getter,
 													 Method setter) {
+	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 
 	public JsonAccessor {
 		if ( field != null ) field.setAccessible( true );
@@ -35,10 +40,15 @@ public record JsonAccessor(Class<?> clazz, JsonConfig config, Field field, Metho
 		if ( setter != null ) setter.setAccessible( true );
 	}
 
+	/**
+	 * Gets a new instance of {@code JsonConverter} if the annotation specifies one.
+	 *
+	 * @return converter or {@code null}
+	 */
 	public JsonConverter<?> getConverter() {
-		if ( config.converter().equals( JsonConverter.class ) ) return null;
 		try {
-			return config.converter().getDeclaredConstructor().newInstance();
+			return hasConverter() ?
+					config.converter().getDeclaredConstructor().newInstance() : null;
 		} catch ( IllegalAccessException | InstantiationException |
 							InvocationTargetException | NoSuchMethodException e ) {
 			throw new RuntimeException( "Cannot instantiate " + config.converter().getName(),
@@ -47,13 +57,16 @@ public record JsonAccessor(Class<?> clazz, JsonConfig config, Field field, Metho
 	}
 
 	/**
-	 * Gets name of class, field or getter
+	 * Gets enum accessor if annotation specifies it.
 	 *
-	 * @return member name
+	 * @return enum accessor
 	 */
-	public String getName() {
-		return isField() ? field.getName()
-				: isMethod() ? getter.getName() : clazz.getSimpleName();
+	public String getEnumAccessor() {
+		return config.enumAccessor();
+	}
+
+	public Type getGenericType() {
+		return ReflectionHelper.getGenericInnerType( getType() );
 	}
 
 	/**
@@ -68,15 +81,59 @@ public record JsonAccessor(Class<?> clazz, JsonConfig config, Field field, Metho
 				: clazz.getSimpleName();
 	}
 
+	/**
+	 * Gets name of class, field or getter
+	 *
+	 * @return member name
+	 */
+	public String getName() {
+		return isField() ? field.getName()
+				: isMethod() ? getter.getName() : clazz.getSimpleName();
+	}
+
+	public Type getType() {
+		return isField() ? field.getGenericType()
+				: isMethod() ? getter.getGenericReturnType()
+				: clazz;
+	}
+
+	/**
+	 * Gets value from {@code bean} using this accessor.
+	 * <p>
+	 * If accessor specifies a converter, then the converted value will be returned.
+	 * </p><p>
+	 * If property is an enumeration and accessor specifies an {@code enumAccessor} then
+	 * that one will be returned.
+	 * </p>
+	 *
+	 * @param bean the bean
+	 * @return value from accessor
+	 */
 	public Object getValue( Object bean ) {
 		if ( isClass() ) {
 			throw new IllegalStateException( "Cannot get value from class " + clazz.getName() );
 		}
 		try {
-			return isField() ? field.get( bean ) : getter.invoke( bean, (Object[]) null );
+			Object value = isField() ? field.get( bean ) : getter.invoke( bean, (Object[]) null );
+			if ( hasConverter() ) {
+				JsonConverter converter = getConverter();
+				return converter.encodeToJson( value );
+			}
+			if ( hasEnumAccessor() ) {
+				return _useEnumAccessor( (Enum<?>) value );
+			}
+			return value;
 		} catch ( IllegalAccessException | InvocationTargetException e ) {
 			throw new RuntimeException( e );
 		}
+	}
+
+	public boolean hasConverter() {
+		return !config.converter().equals( JsonConverter.class );
+	}
+
+	public boolean hasEnumAccessor() {
+		return !config.enumAccessor().equals( Json.defaultName );
 	}
 
 	public boolean isClass() {
@@ -119,9 +176,29 @@ public record JsonAccessor(Class<?> clazz, JsonConfig config, Field field, Metho
 		};
 	}
 
+	/**
+	 * Sets {@code value} in {@code bean}.
+	 * <p>
+	 * If accessor specifies a converter, then the converted value will be set.
+	 * This requires the value to be a JSON string.
+	 * </p>
+	 *
+	 * @param bean the bean
+	 * @param value the value
+	 */
+	@SuppressWarnings("unchecked")
 	public void setValue( Object bean, Object value ) {
 		if ( isClass() ) {
 			throw new IllegalStateException( "Cannot set value on class " + clazz.getName() );
+		}
+		if ( bean == null ) return;
+		if ( hasConverter() ) {
+			JsonConverter converter = getConverter();
+			value = converter.decodeFromJson( (String) value );
+		} else if ( ReflectionHelper.isEnum( getType() ) ) {
+			value = TextHelper.findEnum( value, (Class<? extends Enum>) getType(), null, getEnumAccessor() );
+		} else {
+			value = BaseConverter.convertToType( value, getType() );
 		}
 		try {
 			if ( isField() ) {
@@ -133,6 +210,29 @@ public record JsonAccessor(Class<?> clazz, JsonConfig config, Field field, Metho
 							InvocationTargetException e ) {
 			throw new RuntimeException( e );
 		}
+	}
+
+	private Object _useEnumAccessor( Enum<?> value ) {
+		if ( value == null ) return null;
+		String enumAccessor = config().enumAccessor();
+		if ( enumAccessor.equals( Json.defaultName ) ) return value;
+		Class<? extends Enum> enumClass = value.getClass();
+		try {
+			Field field = enumClass.getDeclaredField( enumAccessor );
+			field.setAccessible( true );
+			return field.get( value );
+		} catch ( IllegalAccessException | NoSuchFieldException ignored ) {
+			//--- No field => lookup getter method
+			try {
+				Method method = enumClass.getMethod( enumAccessor, (Class<?>[]) null );
+				method.setAccessible( true );
+				return method.invoke( value, (Object[]) null );
+			} catch ( NoSuchMethodException | IllegalAccessException |
+								InvocationTargetException e ) {
+				logger.atFine().log( "Enum %s has no accessor: ", enumClass, enumAccessor );
+			}
+		}
+		return value;
 	}
 
 	@Override

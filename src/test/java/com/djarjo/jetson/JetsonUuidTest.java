@@ -40,11 +40,10 @@ public class JetsonUuidTest {
 		//--- given
 		UUID uuid4 = UUID.randomUUID();
 		UUID uuid5 = UUID.randomUUID();
-		String encoded = String.format(
-				"""
-						{ "references" : [ "%s", "%s" ],
-						  "id" : "%s"
-						}""", uuid4, uuid5, uuid4 );
+		String encoded = String.format( """
+				{ "references" : [ "%s", "%s" ],
+				  "id" : "%s"
+				}""", uuid4, uuid5, uuid4 );
 
 		//--- when
 		Pojo pojo = (Pojo) Jetson.decodeIntoObject( encoded, new Pojo() );

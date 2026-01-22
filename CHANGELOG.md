@@ -1,3 +1,8 @@
+## 2.2.1
+
+* fixed JsonDecoder when class is annotated
+* `ReflectionHelper` no heavily uses `Type` instead of `Member`
+
 ## 2.2.0
 
 * removed attributes from `@Json`: _decodable_ and _encodable_. Use __decode__ and __encode__ instead

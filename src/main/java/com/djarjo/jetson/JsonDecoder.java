@@ -4,13 +4,15 @@
 package com.djarjo.jetson;
 
 import com.djarjo.common.BaseConverter;
-import com.djarjo.common.BeanHelper;
 import com.djarjo.common.ReflectionHelper;
 import com.djarjo.jetson.converter.JsonConverter;
 import com.djarjo.text.*;
 import com.google.common.flogger.FluentLogger;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.util.*;
 import java.util.logging.Level;
@@ -108,7 +110,7 @@ public class JsonDecoder {
 				TokenizerOption.SKIP_LINEBREAK, TokenizerOption.SKIP_WHITESPACE );
 		_tokenizer.nextToken();
 		Object result = _handleClassAnnotation( target );
-		return (result != null) ? result : _decodeValue( target, null, null );
+		return (result != null) ? result : _decodeJsonValue( target, null );
 	}
 
 	/**
@@ -129,13 +131,14 @@ public class JsonDecoder {
 		}
 		_tokenizer = new Tokenizer( jsonString,
 				TokenizerOption.SKIP_DOUBLESLASH_UNTIL_EOL,
-				TokenizerOption.SKIP_LINEBREAK, TokenizerOption.SKIP_WHITESPACE );
+				TokenizerOption.SKIP_LINEBREAK,
+				TokenizerOption.SKIP_WHITESPACE );
 		Token token = _tokenizer.nextToken();
 		if ( token.symbol != Symbol.LEFT_BRACKET ) {
 			String s = _makeErrorInfo( "Syntax error. '[' expected to parse a list" );
 			throw new ParseException( s, 0 );
 		}
-		return (List<T>) _decodeList( new ArrayList<T>(), itemClass );
+		return (List<T>) _decodeJsonList( new ArrayList<T>(), itemClass );
 	}
 
 	/**
@@ -175,17 +178,6 @@ public class JsonDecoder {
 	}
 
 	/**
-	 * Clones the given collection into a new {@code ArrayList}. Used for decoding
-	 * {@code json} into an existing collection.
-	 *
-	 * @param toBeCloned Collection to be cloned
-	 * @return ArrayList with items from given collection
-	 */
-	private Collection<?> _cloneCollection( Collection<Object> toBeCloned ) {
-		return new ArrayList<>( toBeCloned );
-	}
-
-	/**
 	 * Decodes a JSON string starting with "[". Returns the given {@code target} or creates
 	 * a new ArrayList filled with values from the JSON string until "]". Values in the
 	 * JSON
@@ -197,93 +189,50 @@ public class JsonDecoder {
 	 * @throws IllegalAccessException what it says
 	 * @throws ParseException what it says
 	 */
-	@SuppressWarnings({"rawtypes", "unchecked"})
-	private Collection _decodeList( Collection target,
-			Type valueType ) throws IllegalAccessException, ParseException {
-		Token token;
-		target = (target == null) ? new ArrayList<>() : target;
+	private Object _decodeJsonList( Object target, Type valueType )
+			throws IllegalAccessException, ParseException {
 
-		//--- Build a new list
-		List<Object> listFromJson = new ArrayList<>();
+		//--- Build a new list or clear current one
+		List<Object> tempValues = new ArrayList<>();
+		Type itemType = ReflectionHelper.getGenericInnerType( valueType );
+
 		while ( true ) {
-			token = _tokenizer.nextToken();
-			if ( token.symbol == Symbol.COMMA ) {
-				token = _tokenizer.nextToken();
-			}
-			if ( token.symbol == Symbol.RIGHT_BRACKET ) {
-				break; // --- Safely skip comma if in front of curly brace
-			}
+			Token token = _tokenizer.nextToken();
+
+			// --- Safely skip comma even if in front of bracket
+			if ( token.symbol == Symbol.COMMA ) token = _tokenizer.nextToken();
+			if ( token.symbol == Symbol.RIGHT_BRACKET ) break;
 			if ( token.symbol == Symbol.EOF ) {
 				String s = _makeErrorInfo( "Syntax error. Value or ']' expected" );
 				throw new ParseException( s, _tokenizer.getPosition() );
 			}
-			//--- extract json list element (if map) for optional second parse
-			int startIndex = (token.symbol == Symbol.LEFT_BRACE) ? token.position : -1;
-			//--- Value from JSON string
-			Object value = _decodeValue( null, null, valueType );
-			if ( valueType != null ) {
-				value = BaseConverter.convertToType( value, (Class<?>) valueType );
+			Object value = _decodeJsonValue( null, itemType );
+			if ( itemType != null ) {
+				value = BaseConverter.convertToType( value, itemType );
 			}
-			boolean isMerged = false;
-			if ( startIndex >= 0 ) {
-				int endIndex = _tokenizer.getPosition();
-				String jsonElement = _tokenizer.getText().substring( startIndex,
-						endIndex );
-				logger.atFiner()
-						.log( "start=%d, end = %d, text=%s", startIndex, endIndex,
-								jsonElement );
-				//--- Search for this object (if it is an object) in target
-				for ( Object element : target ) {
-					if ( value.equals( element ) ) {
-						JsonDecoder.decoder().decodeIntoObject( jsonElement, element );
-						isMerged = true;
-						break;
-					}
-				}
-			}
-			//--- Append value to new list ensures order from JSON string
-			if ( !_mergeCollections || !isMerged ) {
-				listFromJson.add( value );
-			}
+			tempValues.add( value );
 		}
-		// --- Transfer json elements into target
-		if ( !_mergeCollections ) {
-			target.clear();
-		}
-		target.addAll( listFromJson );
-		return target;
-	}
+		Class<?> rawClass = ReflectionHelper.getRawClass( valueType );
 
-	/**
-	 * Decodes the JSON string for a map. String has started with "{". Map elements are
-	 * encoded {@code name ":" value}. Elements are separated by a comma. Values can be of
-	 * basic type, LocalDate, OffsetDateTime, UUID or enumeration.
-	 *
-	 * @param target map to be filled. {@code null} will create a new {@code HashMap}
-	 * @param keyType Type of the key. Can be {@code null} for basic types
-	 * @param valueType Type of the value. Can be {@code null} for basic types
-	 * @return given {@code target} or a new instance of {@code HashMap}
-	 * @throws ParseException on json string error
-	 * @throws IllegalAccessException on target access error
-	 */
-	private Map<Object, Object> _decodeMap( Tokenizer tokenizer,
-			Map<Object, Object> target,
-			Type keyType, Type valueType ) throws ParseException,
-			IllegalAccessException {
-		Object key, value;
-		target = (target == null) ? new HashMap<>() : target;
-		while ( true ) {
-			key = _obtainNameFromJson();
-			if ( key == null ) {
-				break;
+		// CASE A: Target/Type is an Array
+		if ( rawClass != null && rawClass.isArray() ) {
+			Class<?> componentType = rawClass.getComponentType();
+			Object array = Array.newInstance( componentType, tempValues.size() );
+			for ( int i = 0; i < tempValues.size(); i++ ) {
+				Array.set( array, i,
+						BaseConverter.convertToType( tempValues.get( i ), componentType ) );
 			}
-			if ( keyType != null ) {
-				key = BaseConverter.convertToType( key, (Class<?>) keyType );
-			}
-			value = _decodeValue( null, null, valueType );
-			target.put( key, value );
+			return array;
 		}
-		return target;
+
+		// CASE B: Target/Type is a Collection
+		Collection<Object> collectionTarget = (target instanceof Collection)
+				? (Collection<Object>) target
+				: new ArrayList<>();
+
+		if ( !_mergeCollections ) collectionTarget.clear();
+		collectionTarget.addAll( tempValues );
+		return collectionTarget;
 	}
 
 	/**
@@ -291,231 +240,110 @@ public class JsonDecoder {
 	 * matching "}". Entries are decoded in between. Each entry looks like
 	 *
 	 * @param target The target object for the values
-	 * @param keyType type of key for a map
-	 * @param valueType generic type of map or collection
+	 * @param targetType type if target is null
 	 * @return target or new map filled from JSON string
 	 * @throws IllegalAccessException if access to an object field or setter fails
 	 * @throws ParseException if json string has a format error
 	 */
 	@SuppressWarnings("unchecked")
-	private Object _decodeObject( Object target, Type keyType,
-			Type valueType ) throws IllegalAccessException, ParseException {
-		boolean accessFields = false;
-		boolean allMembers = false;
-		Map<String, Member> members;
-		String name;
-		Token token;
-		Object value;
+	private Object _decodeJsonObject( Object target, Type targetType )
+			throws IllegalAccessException, ParseException {
 
 		// --- New target if none given
 		if ( target == null ) {
-			if ( valueType == null || valueType == Object.class ) {
-				return _decodeMap( _tokenizer, null, null, valueType );
-			}
-			target = ReflectionHelper.createInstanceFromType( valueType );
+			target = (targetType == null) ? new HashMap<>() : ReflectionHelper.createInstance(
+					targetType );
 		}
-
-		// --- target is a map
-		if ( Map.class.isAssignableFrom( target.getClass() ) ) {
-			return _decodeMap( _tokenizer, (Map<Object, Object>) target, keyType,
-					valueType );
-		}
-
-		//--- Check if class is annotated with @Json
-		Json classAnno = target.getClass().getAnnotation( Json.class );
-		if ( classAnno != null ) {
-			Object object = _handleClassAnnotation( target );
-			if ( object != null ) {
-				return object;
-			}
-			if ( JsonAccessType.FIELD.equals( classAnno.accessType() ) ) {
-				accessFields = true;
-			}
-			allMembers = true;
-		}
-
-		members = _obtainMembers( target );
 
 		// --- Loop through JSON object until "}"
 		while ( true ) {
-			name = _obtainNameFromJson();
-			if ( name == null ) {
-				break;
+			Token token = _tokenizer.nextToken();
+			if ( token.symbol == Symbol.COMMA ) token = _tokenizer.nextToken();
+			if ( token.symbol == Symbol.RIGHT_BRACE ) break;
+
+			//--- get key and consume ":"
+			String key = _obtainNameFromJson();
+
+			// --- Next token must be the value. Delay target instantiation
+			if ( target instanceof Map map ) {
+				map.put( key, _decodeJsonValue( null, null ) );
+				continue;
 			}
-			Member member = members.get( name );
-			if ( member == null ) {
+
+			//--- Check if there is an accessor
+			JsonAccessor accessor = JsonCache.findAccessorByName( target.getClass(), key );
+			if ( accessor == null ) {
 				if ( (_logLevel4MissingAttribute != Level.OFF) && (!_keysToSkip.contains(
-						name )) ) {
-					String message =
-							_makeErrorInfo(
-									"Name '" + name + "' does not exist in " + target.getClass() );
-					logger.at( _logLevel4MissingAttribute )
-							.log( message );
+						key )) ) {
+					String message = _makeErrorInfo(
+							"Name '" + key + "' does not exist in " + target.getClass() );
+					logger.at( _logLevel4MissingAttribute ).log( message );
 				}
 				_skipValue();
 				continue;
-			}
-			// --- Next token must be the value. Delay target instantiation
-			token = _tokenizer.getToken();
-			if ( token.symbol == Symbol.LEFT_BRACKET || token.symbol == Symbol.LEFT_BRACE ) {
-				value = _decodeObjectValue( target, member );
 			} else {
-				value = _decodeValue( null, null, null );
+				// RECURSION: Pass current value of field so nested lists/beans are reused
+				Object currentValue = accessor.getValue( target );
+				Object decodedValue = _decodeJsonValue( currentValue, accessor.getType() );
+
+				// BaseConverter handles String -> UUID conversion here
+				accessor.setValue( target, decodedValue );
 			}
-			_setValue( target, member, value );
 		}
 		return target;
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
-	private Object _decodeObjectValue( Object target,
-			Member member ) throws IllegalAccessException, ParseException {
-		Object newTarget;
-		Type valueType = null, keyType = null, type = null;
-
-		// --- Determine target type
-		if ( member instanceof Field ) {
-			type = ((Field) member).getGenericType();
-			((Field) member).setAccessible( true );
-			newTarget = ((Field) member).get( target );
-		} else {
-			type = ((Method) member).getGenericReturnType();
-			newTarget = BeanHelper.getValue( target, ((Method) member) );
-		}
-
-		// --- Generic type
-		if ( type instanceof ParameterizedType pType ) {
-			String rawTypeName = pType.getRawType()
-					.getTypeName();
-			if ( Collection.class.getName()
-					.equals( rawTypeName ) || List.class.getName()
-					.equals( rawTypeName ) ) {
-				if ( newTarget == null ) {
-					newTarget = new ArrayList<>();
-				}
-				valueType = ReflectionHelper.getActualTypeArgument( pType, 0 );
-			} else if ( Set.class.getName()
-					.equals( rawTypeName ) ) {
-				if ( newTarget == null ) {
-					newTarget = new HashSet<>();
-				}
-				valueType = ReflectionHelper.getActualTypeArgument( pType, 0 );
-			} else if ( Map.class.getName()
-					.equals( rawTypeName ) ) {
-				if ( newTarget == null ) {
-					newTarget = new HashMap<>();
-				}
-				keyType = ReflectionHelper.getActualTypeArgument( pType, 0 );
-				valueType = ReflectionHelper.getActualTypeArgument( pType, 1 );
-			} else if ( EnumMap.class.getName()
-					.contentEquals( rawTypeName ) ) {
-				keyType = ReflectionHelper.getActualTypeArgument( pType, 0 );
-				valueType = ReflectionHelper.getActualTypeArgument( pType, 1 );
-				if ( newTarget == null ) {
-					newTarget = new EnumMap( (Class<?>) keyType );
-				}
-			}
-		}
-		if ( newTarget == null ) {
-			valueType = type;
-		}
-		return _decodeValue( newTarget, keyType, valueType );
-	}
-
 	/**
-	 * Analyzes the value from the current token.
-	 * <p>
-	 * The returned object can be:
-	 * <p>
-	 * <ul>
-	 * <li>Boolean</li>
-	 * <li>Byte, Short, Integer and Long</li>
-	 * <li>String</li>
-	 * <li>Object</li>
-	 * </ul>
-	 * an array of these types or a complete new map.
-	 * </p>
+	 * Analyzes the value from the current token and acts accordingly.
 	 *
-	 * @param target target object
-	 * @param keyType type of key in a map ({@code null} if target is no map)
-	 * @param valueType type of value
+	 * @param target target object or null
+	 * @param targetType type of target
 	 * @return value from decoded JSON string
 	 * @throws IllegalAccessException on target access error
 	 * @throws ParseException on json format error
 	 */
-	private Object _decodeValue( Object target, Type keyType,
-			Type valueType ) throws IllegalAccessException, ParseException {
-		Object retval;
+	@SuppressWarnings("unchecked")
+	private Object _decodeJsonValue( Object target, Type targetType )
+			throws IllegalAccessException, ParseException {
 		Token token = _tokenizer.getToken();
 
-		//--- Handle class annotation for value
-		if ( valueType != null ) {
-			Json classAnno = ReflectionHelper.getRawClass( valueType )
-					.getAnnotation( Json.class );
-			if ( classAnno != null ) {
+		//--- 1. Check Class-level @Json annotation
+		Class<?> rawClass = (target != null) ? target.getClass()
+				: ReflectionHelper.getRawClass( targetType );
+		if ( (rawClass != null) && rawClass.isAnnotationPresent( Json.class ) ) {
+			Json jsonAnno = rawClass.getAnnotation( Json.class );
+			if ( jsonAnno != null ) {
 				Object object = _handleClassAnnotation(
-						ReflectionHelper.createInstanceFromType( valueType ) );
+						ReflectionHelper.createInstance( targetType ) );
 				if ( object != null ) {
 					return object;
 				}
 			}
 		}
 
-		if ( token.symbol == Symbol.LEFT_BRACKET ) { // JSON List
-			if ( target != null && target.getClass().isArray() ) {
-				List<?> list = BaseConverter.arrayToList( (Object[]) target );
-				if ( valueType == null ) {
-					valueType = target.getClass().getComponentType();
-				}
-				retval = _decodeList( list, valueType );
-				retval = BaseConverter.listToArray( list );
-			} else {
-				retval = _decodeList( (Collection<?>) target, valueType );
-			}
-		} else if ( token.symbol == Symbol.LEFT_BRACE ) { // JSON Object
-			retval = _decodeObject( target, keyType, valueType );
-		} else if ( token.symbol == Symbol.WORD ) {
-			String name = token.value;
-			if ( name.equalsIgnoreCase( "false" ) ) {
-				retval = Boolean.FALSE;
-			} else if ( name.equalsIgnoreCase( "null" ) ) {
-				retval = null;
-			} else if ( name.equalsIgnoreCase( "true" ) ) {
-				retval = Boolean.TRUE;
-			} else {
-				String s = _makeErrorInfo( "Unknown value: '" + name + "'" );
+		return switch ( token.symbol ) {
+			case LEFT_BRACE -> _decodeJsonObject( target, targetType );
+			case LEFT_BRACKET -> _decodeJsonList( target, targetType );
+			case STRING -> token.value;
+			case VALUE_DECIMAL -> Double.parseDouble( token.value );
+			case VALUE_DOUBLE -> token.getAsDouble();
+			case VALUE_HEX -> TextHelper.parseHex( token.value );
+			case VALUE_INTEGER -> token.getAsLong();
+			case WORD -> _decodeJsonWord( token );
+			default -> {
+				String s = _makeErrorInfo( "Unknown token " + token );
 				throw new ParseException( s, _tokenizer.getPosition() );
 			}
-		}
+		};
+	}
 
-		// --- Value is an integer
-		else if ( token.symbol == Symbol.VALUE_INTEGER ) {
-			retval = token.getAsLong();
-		}
-
-		// --- Value is hexadecimal
-		else if ( token.symbol == Symbol.VALUE_HEX ) {
-			retval = TextHelper.parseHex( token.value );
-		}
-
-		// --- Value is a decimal or double
-		else if ( token.symbol == Symbol.VALUE_DECIMAL ) {
-			retval = Double.parseDouble( token.value );
-		}
-
-		// --- Value is a decimal
-		else if ( token.symbol == Symbol.VALUE_DOUBLE ) {
-			retval = token.getAsDouble();
-		}
-
-		// --- Value is a string
-		else if ( token.symbol == Symbol.STRING ) {
-			retval = token.value;
-		} else {
-			String s = _makeErrorInfo( "Unknown token " + token );
-			throw new ParseException( s, _tokenizer.getPosition() );
-		}
-		return retval;
+	private Object _decodeJsonWord( Token token ) throws ParseException {
+		String name = token.value;
+		if ( name.equalsIgnoreCase( "false" ) ) return Boolean.FALSE;
+		if ( name.equalsIgnoreCase( "null" ) ) return null;
+		if ( name.equalsIgnoreCase( "true" ) ) return Boolean.TRUE;
+		String s = _makeErrorInfo( "Unknown value: '" + name + "'" );
+		throw new ParseException( s, _tokenizer.getPosition() );
 	}
 
 	/**
@@ -598,68 +426,14 @@ public class JsonDecoder {
 	}
 
 	/**
-	 * Obtains all fields within the given target which are annotated with
-	 * {@link com.djarjo.jetson.Json @Json}.
+	 * Parses the JSON name in a JSON object, consumes following colon (':') and value.
 	 *
-	 * @param target The target object
-	 * @return Map with JSON names and members (fields and getters) as targets for JSON
-	 * values
-	 */
-	private Map<String, Member> _obtainMembers( Object target ) {
-		Map<String, Member> members = new HashMap<>();
-
-		// --- Obtain fields
-		for ( Field field : target.getClass()
-				.getFields() ) {
-			Json anno = field.getAnnotation( Json.class );
-			if ( anno != null ) {
-				String name = anno.name();
-				if ( name.equals( Json.defaultName ) ) {
-					name = field.getName();
-				}
-				members.put( name, field );
-			}
-		}
-
-		// --- Obtain methods
-		for ( Method method : target.getClass()
-				.getMethods() ) {
-			Json anno = method.getAnnotation( Json.class );
-			if ( anno != null ) {
-				String name = anno.name();
-				if ( name.equals( Json.defaultName ) ) {
-					name = ReflectionHelper.getVarNameFromMethodName( method.getName() );
-				}
-				members.put( name, method );
-			}
-		}
-		return members;
-	}
-
-	/**
-	 * Parses the JSON string within a map or an object. Returns {@code null} when finding
-	 * the closing "}". Skips ",". Parses {@code name} (which will be returned). Skips ":".
-	 * Parses "value" without evaluating it.
-	 *
-	 * @return name or {@code null} if JSON element is "}"
+	 * @return name
 	 */
 	private String _obtainNameFromJson() {
-		Token token = _tokenizer.nextToken();
+		Token token = _tokenizer.getToken();
 
-		// --- '}' ends parsing
-		if ( token.symbol == Symbol.RIGHT_BRACE ) {
-			return null;
-		}
-
-		// --- Skip comma ',' as separator between elements
-		if ( token.symbol == Symbol.COMMA ) {
-			token = _tokenizer.nextToken();
-		}
-		if ( token.symbol == Symbol.RIGHT_BRACE ) {
-			return null; // --- Safely skip comma in front of curly brace
-		}
-
-		// --- "name" expected
+		// --- "name" expected or just name if JSON5
 		if ( (token.symbol != Symbol.STRING) && (token.symbol != Symbol.WORD) ) {
 			throw new JsonParseException(
 					_makeErrorInfo( "Syntax error. Name or '}' expected" ) );
@@ -672,49 +446,8 @@ public class JsonDecoder {
 			throw new JsonParseException(
 					_makeErrorInfo( "Syntax error. Colon ':' expected" ) );
 		}
-
-		// --- Next token must be the value.
-		token = _tokenizer.nextToken();
+		_tokenizer.nextToken();
 		return name;
-	}
-
-	/**
-	 * Sets the given value into the {@code member} of object {@code target}. If the JSON
-	 * annotation at {@code member} contains {@code converter=SomeClass} this converter
-	 * will
-	 * be used to decode the JSON string into the value for the target.
-	 *
-	 * @param target t
-	 * @param member m
-	 * @param value v
-	 * @throws IllegalAccessException ex
-	 */
-	@SuppressWarnings("unchecked")
-	private void _setValue( Object target, Member member,
-			Object value ) throws IllegalAccessException {
-
-		Json anno = (member instanceof Field) ?
-				((Field) member).getAnnotation( Json.class ) :
-				((Method) member).getAnnotation( Json.class );
-
-		if ( anno.decode().equals( Json.DecodeMode.ALWAYS ) ||
-				(anno.decode().equals( Json.DecodeMode.ONLY_IF_EMPTY ) &&
-						BeanHelper.isNotEmpty( value )) ) {
-			// --- Use "converter" if present
-			if ( anno.converter() != JsonConverter.class ) {
-				value = _useConverterToDecode( anno, value );
-			} else if ( ReflectionHelper.isEnum( member ) ) {
-				String accessor = anno.enumAccessor();
-				if ( !accessor.equals( Json.defaultName ) ) {
-					Class<? extends Enum> enumClass = (Class<? extends Enum>)
-							ReflectionHelper.getType( member );
-					value = TextHelper.findEnum( value, enumClass, null, accessor );
-				}
-			}
-
-			// --- Set value into field or use setter method
-			ReflectionHelper.setValue( target, member, 0, value );
-		}
 	}
 
 	/**
@@ -741,27 +474,5 @@ public class JsonDecoder {
 		} else if ( token.symbol == Symbol.LEFT_BRACE ) {
 			_skipMap();
 		}
-	}
-
-	@SuppressWarnings("rawtypes")
-	private Object _useConverterToDecode( Json anno,
-			Object value ) throws IllegalAccessException {
-		if ( (anno != null) && (value != null) && (anno.converter() != JsonConverter.class) ) {
-			Class<? extends JsonConverter> annotatedConverter = anno.converter();
-			try {
-				JsonConverter converter = annotatedConverter.getDeclaredConstructor()
-						.newInstance();
-				value = converter.decodeFromJson( (String) value );
-			} catch ( InstantiationException | IllegalArgumentException |
-								InvocationTargetException | NoSuchMethodException |
-								SecurityException e ) {
-				IllegalAccessException ex = new IllegalAccessException( _makeErrorInfo(
-						"Cannot "
-								+ "instantiate converter: " + annotatedConverter ) );
-				ex.initCause( e );
-				throw ex;
-			}
-		}
-		return value;
 	}
 }

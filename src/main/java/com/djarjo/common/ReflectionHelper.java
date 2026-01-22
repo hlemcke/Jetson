@@ -3,9 +3,7 @@ package com.djarjo.common;
 import com.google.common.flogger.FluentLogger;
 
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * Provides low level methods to access beans.
@@ -14,16 +12,23 @@ import java.util.List;
  * </p>
  */
 public class ReflectionHelper {
-	/** Prefixes for getter methods */
-	public final static List<String> getterPrefixes = List.of( "can", "get", "has", "is",
+
+	/**
+	 * Prefixes for getter methods
+	 */
+	public final static Set<String> GETTER_PREFIXES = Set.of( "can", "get", "has", "is",
 			"may" );
 
-	/** Prefixes for setter methods */
-	public final static List<String> setterPrefixes = List.of( "add", "set", "with" );
+	/**
+	 * Prefixes for setter methods
+	 */
+	public final static Set<String> SETTER_PREFIXES = Set.of( "add", "set", "with" );
 
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 
-	/** Exists only to comply with Javadoc */
+	/**
+	 * Exists only to comply with Javadoc
+	 */
 	public ReflectionHelper() {
 	}
 
@@ -33,79 +38,33 @@ public class ReflectionHelper {
 	 * @param type any type
 	 * @return new instance or {@code null}
 	 */
-	public static Object createInstanceFromType( Type type ) {
-		if ( !(type instanceof Class<?> cls) ) {
-			return null;
-		}
-		if ( isList( getRawClass( type ) ) ) {
-			return new ArrayList<>();
-		}
+	public static Object createInstance( Type type ) {
+		if ( type == null ) return null;
 
-		// Check for interfaces or abstract classes which cannot be instantiated directly
-		if ( cls.isInterface() || Modifier.isAbstract(
-				cls.getModifiers() ) ) {
-			logger.atWarning()
-					.log( "Cannot create instance of interface or abstract class: %s",
-							cls.getName() );
-			return null;
-		}
+		if ( isArray( type ) ) return _createArrayWithOneItem( type );
+		if ( isList( type ) ) return new ArrayList<>();
+
 		try {
-			Constructor<?> constructor = cls.getDeclaredConstructor();
+			Class<?> clazz = getRawClass( type );
+			if ( clazz == null || clazz.isInterface() || Modifier.isAbstract(
+					clazz.getModifiers() ) ) {
+				// Check common interfaces
+				if ( clazz != null ) {
+					if ( Map.class.isAssignableFrom( clazz ) ) return new HashMap<>();
+					if ( Set.class.isAssignableFrom( clazz ) ) return new HashSet<>();
+				}
+				throw new InstantiationException(
+						"Cannot instantiate abstract/interface: " + type.getTypeName() );
+			}
+
+			Constructor<?> constructor = clazz.getDeclaredConstructor();
 			constructor.setAccessible( true );
 			return constructor.newInstance();
-		} catch ( IllegalAccessException | InstantiationException | IllegalArgumentException |
-							InvocationTargetException | NoSuchMethodException | SecurityException e ) {
-			logger.atWarning().log( "Cannot create instance of %s", cls );
-			throw new RuntimeException( e );
+		} catch ( Exception e ) {
+			String msg = "Instantiation failed for " + type.getTypeName();
+			logger.atWarning().withCause( e ).log( msg );
+			throw new RuntimeException( msg, e );
 		}
-	}
-
-	/**
-	 * Finds method in class.
-	 *
-	 * @param clazz class which should contain method
-	 * @param name name of method
-	 * @return method or null
-	 */
-	public static Method findMethod( Class<?> clazz, String name ) {
-		for ( Method method : clazz.getMethods() ) {
-			if ( method.getName().equals( name ) ) {
-				return method;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Finds method by name in given methods.
-	 *
-	 * @param methods methods from class
-	 * @param propertyName name of property
-	 * @param prefixes list of allowed prefixes
-	 * @return method or null
-	 */
-	public static Method findMethod( Method[] methods, String propertyName,
-			List<String> prefixes ) {
-		assert methods != null : "No methods given";
-		assert !prefixes.isEmpty() : "No prefixes given";
-		if ( propertyName == null || propertyName.isEmpty() ) {
-			return null;
-		}
-		String name = "" + Character.toUpperCase( propertyName.charAt( 0 ) );
-		if ( propertyName.length() > 1 ) {
-			name += propertyName.substring( 1 );
-		}
-		String methodName;
-		for ( Method method : methods ) {
-			methodName = method.getName();
-			for ( String prefix : prefixes ) {
-				if ( methodName.startsWith( prefix ) && name
-						.equals( methodName.substring( prefix.length() ) ) ) {
-					return method;
-				}
-			}
-		}
-		return null;
 	}
 
 	/**
@@ -116,13 +75,12 @@ public class ReflectionHelper {
 	 * @return Field or {@code null}
 	 */
 	public static Field findField( Class<?> clazz, String name ) {
-		Field[] fields = clazz.getDeclaredFields();
-		for ( Field field : fields ) {
-			if ( field.getName().equals( name ) ) {
-				return field;
-			}
+		try {
+			return clazz.getDeclaredField( name );
+		} catch ( NoSuchFieldException e ) {
+			return (clazz.getSuperclass() != null) ? findField( clazz.getSuperclass(),
+					name ) : null;
 		}
-		return null;
 	}
 
 	/**
@@ -139,7 +97,42 @@ public class ReflectionHelper {
 	 */
 	public static Method findGetter( Class<?> beanClass, String propertyName ) {
 		Method[] methods = beanClass.getMethods();
-		return findMethod( methods, propertyName, getterPrefixes );
+		return findMethodWithPrefixes( methods, propertyName, GETTER_PREFIXES );
+	}
+
+	/**
+	 * Finds method in class.
+	 *
+	 * @param clazz class which should contain method
+	 * @param name name of method
+	 * @return method or null
+	 */
+	public static Method findMethod( Class<?> clazz, String name ) {
+		return Arrays.stream( clazz.getMethods() )
+				.filter( m -> m.getName().equals( name ) )
+				.findFirst().orElse( null );
+	}
+
+	/**
+	 * Finds method by name in given methods.
+	 *
+	 * @param methods methods from class
+	 * @param prop name of property
+	 * @param prefixes list of allowed prefixes
+	 * @return method or null
+	 */
+	private static Method findMethodWithPrefixes( Method[] methods, String prop,
+			Set<String> prefixes ) {
+		if ( prop == null || prop.isEmpty() ) return null;
+		String suffix = Character.toUpperCase(
+				prop.charAt( 0 ) ) + (prop.length() > 1 ? prop.substring( 1 ) : "");
+
+		for ( Method m : methods ) {
+			for ( String pre : prefixes ) {
+				if ( m.getName().equals( pre + suffix ) ) return m;
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -155,50 +148,20 @@ public class ReflectionHelper {
 	 */
 	public static Method findSetter( Class<?> beanClass, String propertyName ) {
 		Method[] methods = beanClass.getMethods();
-		//--- Check if method without setter prefix exists
-		for ( Method method : methods ) {
-			if ( method.getName().equals( propertyName ) ) {
-				return method;
-			}
-		}
-		//--- No method with given name => check all standard setter prefixes
-		return findMethod( methods, propertyName, setterPrefixes );
+		// Exact name match (Fluent API style)
+		Method exact = findMethod( beanClass, propertyName );
+		if ( exact != null && exact.getParameterCount() == 1 ) return exact;
+		return findMethodWithPrefixes( methods, propertyName, SETTER_PREFIXES );
 	}
 
-	/**
-	 * Gets actual type.
-	 *
-	 * @param genericType type
-	 * @param index index into list of generic types (normally 0)
-	 * @return type
-	 */
-	public static Type getActualTypeArgument( Type genericType, int index ) {
-		if ( genericType instanceof ParameterizedType paramType ) {
-			Type[] actualTypes = paramType.getActualTypeArguments();
-			return ((index < 0) || (index >= actualTypes.length)) ? null : actualTypes[index];
-		}
-		if ( genericType instanceof Class<?> cls && cls.isArray() ) {
-			return cls.getComponentType();
+	public static Type getGenericInnerType( Type type ) {
+		if ( type instanceof Class<?> cls && cls.isArray() ) return cls.getComponentType();
+		if ( type instanceof GenericArrayType gat ) return gat.getGenericComponentType();
+		if ( type instanceof ParameterizedType pt && pt.getActualTypeArguments().length > 0 ) {
+			return pt.getActualTypeArguments()[0];
 		}
 		return null;
 	}
-
-	/**
-	 * Gets type of member
-	 *
-	 * @param member field or getter
-	 * @return type
-	 */
-	public static Class<?> getMemberType( Member member ) {
-		if ( member instanceof Field field ) {
-			return field.getType();
-		}
-		if ( member instanceof Method method ) {
-			return isSetter( method ) ? method.getParameterTypes()[0] : method.getReturnType();
-		}
-		return member.getClass();
-	}
-
 
 	/**
 	 * Gets all parameters types of member
@@ -212,52 +175,30 @@ public class ReflectionHelper {
 				((Method) member).getParameterTypes();
 	}
 
-	/**
-	 * Gets raw class of type
-	 *
-	 * @param type type
-	 * @return raw class
-	 */
 	public static Class<?> getRawClass( Type type ) {
-		if ( type instanceof Class ) {
-			return (Class<?>) type;
-		} else if ( type instanceof ParameterizedType ) {
-			// Extracts the raw type from a generic type (e.g., List<String> -> List)
-			return (Class<?>) ((ParameterizedType) type).getRawType();
-		}
-		// TODO add checks for GenericArrayType, WildcardType, etc., for completeness
+		if ( type instanceof Class<?> cls ) return cls;
+		if ( type instanceof ParameterizedType pt ) return (Class<?>) pt.getRawType();
 		return null;
-	}
-
-	/**
-	 * Gets type
-	 *
-	 * @param member field or getter
-	 * @return type
-	 */
-	public static Class<?> getType( Member member ) {
-		return (member == null) ? null :
-				(member instanceof Field f) ? f.getType() : ((Method) member).getReturnType();
 	}
 
 	/**
 	 * Gets value
 	 *
-	 * @param bean list or array
+	 * @param arrayOrList list or array
 	 * @param index index
 	 * @return value at index
 	 */
-	public static Object getValueByIndex( Object bean, int index ) {
-		if ( bean == null ) return null;
-		Class<?> beanType = bean.getClass();
+	public static Object getValueByIndex( Object arrayOrList, int index ) {
+		if ( arrayOrList == null ) return null;
+		Class<?> beanType = arrayOrList.getClass();
 
 		if ( List.class.isAssignableFrom( beanType ) ) {
-			List<?> list = (List<?>) bean;
+			List<?> list = (List<?>) arrayOrList;
 			return ((0 <= index) && (index < list.size())) ? list.get( index ) : null;
 		}
 		if ( beanType.isArray() ) {
-			int length = Array.getLength( bean );
-			return ((0 <= index) && (index < length)) ? Array.get( bean, index ) : null;
+			int length = Array.getLength( arrayOrList );
+			return ((0 <= index) && (index < length)) ? Array.get( arrayOrList, index ) : null;
 		}
 		return null;
 	}
@@ -296,8 +237,8 @@ public class ReflectionHelper {
 	 * @return name of the variable o r {@code null}
 	 */
 	public static String getVarNameFromMethodName( String methodName ) {
-		List<String> prefixes = new ArrayList<>( getterPrefixes );
-		prefixes.addAll( setterPrefixes );
+		List<String> prefixes = new ArrayList<>( GETTER_PREFIXES );
+		prefixes.addAll( SETTER_PREFIXES );
 		for ( String prefix : prefixes ) {
 			if ( methodName.startsWith( prefix ) ) {
 				int len = prefix.length();
@@ -309,129 +250,35 @@ public class ReflectionHelper {
 	}
 
 	/**
-	 * Instantiates the generic class of an array or a list and writes it into
-	 *
-	 * @param bean pojo needed for array resize
-	 * @param member in pojo needed to set resized array
-	 * @param arrayOrList array or list object
-	 * @param index -1 to append
-	 * @return pojo created and set into array or list
-	 * @throws IllegalAccessException e
-	 */
-	public static Object instantiateGeneric( Object bean,
-			Member member, Object arrayOrList, int index ) throws IllegalAccessException {
-		Type genericType;
-		if ( member instanceof Field field ) {
-			genericType = field.getGenericType();
-		} else if ( member instanceof Method method ) {
-			genericType = isGetter( method ) ? method.getGenericReturnType() :
-					method.getGenericParameterTypes()[0];
-		} else {
-			String msg = "Member must be field or method but is " + member;
-			logger.atFinest().log( msg );
-			throw new RuntimeException( msg );
-		}
-		Type actualType = ReflectionHelper.getActualTypeArgument( genericType, 0 );
-		Object pojo = ReflectionHelper.createInstanceFromType( actualType );
-
-		//--- Append to end of list or array
-		int currentSize = _getSize( arrayOrList );
-		if ( (index < 0) || (currentSize <= index) ) {
-			_appendValueToList( bean, member, arrayOrList, pojo );
-		} else {
-			_writeValueToList( arrayOrList, index, pojo );
-		}
-		return pojo;
-	}
-
-	/**
-	 * Instantiates property.
-	 * <p>
-	 * Attention: this method creates a new instance for the member. It should only be
-	 * called if the current value is {@code null}!
-	 * </p>
-	 * <p>
-	 * If {@code member} is of type {@code list} then it becomes a new {@code ArrayList}.
-	 * Its generic will be instantiated, added to the list and returned.
-	 * </p><p>
-	 * If {@code member} is of type {@code aray} then it becomes a new array of size 1. Its
-	 * generic will be instantiated, added to the array and returned.
-	 * </p>
-	 *
-	 * @param bean contains member
-	 * @param member setter method or field
-	 * @return new instance
-	 */
-	public static Object instantiateProperty( Object bean, Member member ) {
-		Class<?> memberType = getMemberType( member );
-
-		try {
-			//--- Special handling for lists and arrays
-			if ( (List.class.isAssignableFrom( memberType )) || memberType.isArray() ) {
-				return _instantiateListProperty( bean, member, memberType );
-			}
-			if ( memberType.isInterface() || Modifier.isAbstract(
-					memberType.getModifiers() ) ) {
-				throw new RuntimeException(
-						"Cannot auto-instantiate interface or abstract class: " + memberType.getName() );
-			}
-
-			//--- Standard Pojo
-			Object pojo = createInstanceFromType( memberType );
-			_writeValueToMember( bean, member, pojo );
-			return pojo;
-		} catch ( IllegalAccessException e ) {
-			logger.atFinest().log( "Cannot access %s in bean %s", member, bean );
-			throw new RuntimeException( e );
-		}
-	}
-
-	/**
 	 * Checks if class is array or list
 	 *
-	 * @param clazz class
+	 * @param type class or an array of a basic type
 	 * @return true if array or list
 	 */
-	public static boolean isArrayOrList( Class<?> clazz ) {
-		return (clazz != null) && (isList( clazz ) || clazz.isArray());
+	public static boolean isArray( Type type ) {
+		return (type instanceof Class) ? ((Class<?>) type).isArray() :
+				type instanceof GenericArrayType;
 	}
 
 	/**
-	 * Checks if member is a byte array
+	 * Checks if type is a byte array
 	 *
-	 * @param member field or getter
+	 * @param type type of field or getter
 	 * @return {@code true} if a byte array
 	 */
-	public static boolean isByteArray( Member member ) {
-		return (member instanceof Field field) ? field.getType() == byte[].class
-				: member instanceof Method method && method.getReturnType() == byte[].class;
+	public static boolean isByteArray( Type type ) {
+		return getRawClass( type ) == byte[].class;
 	}
 
 	/**
-	 * Checks if member is an enumeration.
+	 * Checks if {@code type} is an enumeration.
 	 *
-	 * @param member field or getter
+	 * @param type type
 	 * @return {@code true} if an enumeration
 	 */
-	public static boolean isEnum( Member member ) {
-		if ( member instanceof Field field ) {
-			return field.getType().isEnum();
-		}
-		if ( member instanceof Method method ) {
-			Class<?> returnType = method.getReturnType();
-			return returnType.isEnum() || Enum.class.isAssignableFrom( returnType );
-		}
-		return false;
-	}
-
-	/**
-	 * Checks if class is a list
-	 *
-	 * @param clazz class
-	 * @return true if list
-	 */
-	public static boolean isList( Class<?> clazz ) {
-		return clazz != null && List.class.isAssignableFrom( clazz );
+	public static boolean isEnum( Type type ) {
+		//--- A Type must be a Class to potentially be an Enum
+		return (type instanceof Class<?> cls) && cls.isEnum();
 	}
 
 	/**
@@ -453,7 +300,7 @@ public class ReflectionHelper {
 			return false;
 		}
 		String methodName = method.getName();
-		for ( String prefix : getterPrefixes ) {
+		for ( String prefix : GETTER_PREFIXES ) {
 			if ( methodName.startsWith( prefix ) ) {
 				if ( Character.isUpperCase( methodName.charAt( prefix.length() ) ) ) {
 					return true;
@@ -461,6 +308,17 @@ public class ReflectionHelper {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Checks if {@code type} is a list
+	 *
+	 * @param type type
+	 * @return true if list
+	 */
+	public static boolean isList( Type type ) {
+		return (type instanceof Class<?> cls) ? List.class.isAssignableFrom( cls )
+				: type instanceof ParameterizedType pt && isList( pt.getRawType() );
 	}
 
 	/**
@@ -476,7 +334,7 @@ public class ReflectionHelper {
 	public static boolean isSetter( Method method ) {
 		if ( method == null ) return false;
 		String methodName = method.getName();
-		for ( String prefix : setterPrefixes ) {
+		for ( String prefix : SETTER_PREFIXES ) {
 			if ( methodName.startsWith( prefix ) && method.getParameterCount() == 1 ) {
 				return true;
 			}
@@ -493,7 +351,7 @@ public class ReflectionHelper {
 	public static String makeFieldName( Method method ) {
 		if ( method == null ) return "";
 		String name = method.getName();
-		for ( String prefix : getterPrefixes ) {
+		for ( String prefix : GETTER_PREFIXES ) {
 			if ( name.startsWith( prefix ) ) {
 				name = name.substring( prefix.length() );
 				if ( !name.isEmpty() && Character.isUpperCase( name.charAt( 0 ) ) ) {
@@ -510,7 +368,7 @@ public class ReflectionHelper {
 	 * is followed by the propertyName whose first character is converted to uppercase.
 	 *
 	 * @param prefix The prefix for the method like "get", "has", "is", "set" or "with".
-	 * Best to use entry from {@link #getterPrefixes} or {@link #setterPrefixes}
+	 * Best to use entry from {@link #GETTER_PREFIXES} or {@link #SETTER_PREFIXES}
 	 * @param propertyName The name of a property
 	 * @return method name or {@code null} if {@code propertyName} is empty
 	 */
@@ -559,37 +417,43 @@ public class ReflectionHelper {
 	/**
 	 * Sets {@code member} in {@code bean} to {@code value}.
 	 * <p>
-	 * If {@code member} is a list and {@code value} is not then the list will be gotten
-	 * (or
+	 * If {@code member} is a list and {@code value} is not then the list will be read (or
 	 * created) and {@code value} will be added to it.
 	 * </p>
 	 *
 	 * @param bean bean
-	 * @param member field or method
+	 * @param accessor field or method
 	 * @param index index if member is a list or an array
 	 * @param value new value
 	 * @throws IllegalAccessException e
 	 */
-	public static void setValue( Object bean, Member member, int index,
+	public static void setValue( Object bean, MemberAccessor accessor, int index,
 			Object value ) throws IllegalAccessException {
+		if ( accessor.isField() ) {
+			_setValueUsingField( bean, accessor.field(), index, value );
+		} else {
+			_setValueUsingSetter( bean, accessor.setter(), index, value );
+		}
+	}
 
-		//--- Handle Field
-		if ( member instanceof Field field ) {
-			_setValueUsingField( bean, field, index, value );
+	private static void _appendValueToArrayOrList( Object bean, Member member,
+			Object arrayOrList, Object value ) throws IllegalAccessException {
+		if ( isArray( arrayOrList.getClass() ) ) {
+			int largerSize = Array.getLength( arrayOrList ) + 1;
+			Object[] largerArray = Arrays.copyOf( (Object[]) arrayOrList, largerSize );
+			largerArray[largerSize - 1] = value;
+
+			//--- replace old array with larger one
+			_writeValueToMember( bean, member, largerArray );
 			return;
 		}
+		((List) arrayOrList).add( value );
+	}
 
-		//--- Handle setter method
-		if ( member instanceof Method method ) {
-			Method setter = obtainSetterFromMethod( bean.getClass(), method );
-			if ( setter == null ) {
-				throw new RuntimeException(
-						String.format( "No setter found in bean %s from %s", bean, method ) );
-			}
-			_setValueUsingSetter( bean, setter, index, value );
-		} else {
-			throw new RuntimeException( "Member must be field or method but is " + member );
-		}
+	private static Object _createArrayWithOneItem( Type type ) {
+		Type componentType = getGenericInnerType( type );
+		Class<?> cls = getRawClass( componentType != null ? componentType : Object.class );
+		return Array.newInstance( cls != null ? cls : Object.class, 1 );
 	}
 
 	private static int _getSize( Object value ) {
@@ -599,63 +463,32 @@ public class ReflectionHelper {
 	}
 
 	/**
-	 * Instantiates array (with length 1)  or list and writes it into the bean.
-	 *
-	 * @param bean bean
-	 * @param member field or setter
-	 * @param memberType array or list
-	 * @return array or list
-	 * @throws IllegalAccessException e
-	 */
-	private static Object _instantiateListProperty( Object bean, Member member,
-			Class<?> memberType ) throws IllegalAccessException {
-		if ( memberType.isArray() ) {
-			Class<?> componentType = memberType.getComponentType();
-			Object[] array = (Object[]) Array.newInstance( componentType, 1 );
-			_writeValueToMember( bean, member, array );
-			return array;
-		}
-		List<Object> l = new ArrayList<>();
-		_writeValueToMember( bean, member, l );
-		return l;
-	}
-
-	/**
 	 * Sets {@code value} into {@code member} in {@code bean}.
-	 * <p>{@code member} type must be list or array</p>
+	 * <p>{@code member} type must be an array or a list</p>
 	 *
 	 * @param bean object
 	 * @param member field or setter
-	 * @param index -1 to append or index 0 .. n
+	 * @param index -1 to append or valid index
 	 * @param value value to set at index
 	 */
 	private static void _setValueAt( Object bean, Member member, int index,
 			Object value ) throws IllegalAccessException {
 		assert value != null;
 		Class<?>[] types = getParameterTypes( member );
-
-		//--- If value itself is a list then directly write into member
-		if ( isArrayOrList( value.getClass() ) ) {
-			_writeValueToMember( bean, member, value );
-			return;
-		}
-
-		//--- Handle case with index
 		try {
-			Object currentValue = getValueFromMember( bean, member );
-			if ( currentValue == null ) {
-				currentValue = createInstanceFromType( types[0] );
-				_writeValueToMember( bean, member, currentValue );
+			Object arrayOrList = getValueFromMember( bean, member );
+			if ( arrayOrList == null ) {
+				arrayOrList = createInstance( types[0] );
+				_writeValueToMember( bean, member, arrayOrList );
 			}
-			int currentSize = _getSize( currentValue );
+			int currentSize = _getSize( arrayOrList );
 
 			//--- Append to end of list or array
 			if ( (index < 0) || (currentSize <= index) ) {
-				_appendValueToList( bean, member, currentValue, value );
+				_appendValueToArrayOrList( bean, member, arrayOrList, value );
 				return;
 			}
-
-			_writeValueToList( currentValue, index, value );
+			_writeValueToArrayOrList( arrayOrList, index, value );
 		} catch ( InvocationTargetException e ) {
 			throw new IllegalAccessException( e.getMessage() );
 		}
@@ -678,7 +511,7 @@ public class ReflectionHelper {
 			return;
 		}
 
-		if ( (List.class.isAssignableFrom( types[0] )) || types[0].isArray() ) {
+		if ( (List.class.isAssignableFrom( types[0] )) || isArray( types[0] ) ) {
 			_setValueAt( bean, field, index, value );
 			return;
 		}
@@ -706,7 +539,7 @@ public class ReflectionHelper {
 			//--- If field is 'byte[]' and value is String then decode from Base64 to bytes
 			if ( (value instanceof String) && (types[0] == byte[].class) ) {
 				value = Base64.decoder().decode( (String) value );
-			} else if ( isArrayOrList( types[0] ) ) {
+			} else if ( (List.class.isAssignableFrom( types[0] )) || isArray( types[0] ) ) {
 				_setValueAt( bean, setter, index, value );
 				return;
 			}
@@ -722,25 +555,8 @@ public class ReflectionHelper {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static void _appendValueToList( Object bean, Member member, Object listOrArray,
-			Object value ) throws IllegalAccessException {
-		if ( isList( listOrArray.getClass() ) ) {
-			List<Object> l = (List<Object>) listOrArray;
-			l.add( value );
-			return;
-		}
-		//--- Increment array
-		Object[] array = (Object[]) listOrArray;
-		int largerSize = array.length;
-		Object[] largerArray = Arrays.copyOf( array, largerSize );
-		largerArray[largerSize - 1] = value;
-
-		//--- replace old array with larger one
-		_writeValueToMember( bean, member, largerArray );
-	}
-
-	@SuppressWarnings("unchecked")
-	private static void _writeValueToList( Object listOrArray, int index, Object value ) {
+	private static void _writeValueToArrayOrList( Object listOrArray, int index,
+			Object value ) {
 		if ( isList( listOrArray.getClass() ) ) {
 			List<Object> l = (List<Object>) listOrArray;
 			l.set( index, value );

@@ -147,13 +147,16 @@ class JsonEncoderTest {
 
 	@Test
 	void testDecoder_PojoBasics() throws IllegalAccessException, ParseException {
+		//--- given
 		TestData.PojoBasics basics = new TestData.PojoBasics();
 		basics.initialize();
-		String jsonText = JsonEncoder.encoder()
-				.encode( basics );
+		String jsonText = JsonEncoder.encoder().encode( basics );
+
+		//--- when
 		TestData.PojoBasics decoded = new TestData.PojoBasics();
-		JsonDecoder.decoder()
-				.decodeIntoObject( jsonText, decoded );
+		JsonDecoder.decoder().decodeIntoObject( jsonText, decoded );
+
+		//--- then
 		assertEquals( basics.decimalConst, decoded.decimalVar );
 		assertFalse( decoded.boolVar );
 		assertEquals( basics.longConst, decoded.intVar );

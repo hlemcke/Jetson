@@ -111,7 +111,7 @@ public class BeanHelperTest {
 
 		//--- then
 		assertTrue( wasSet );
-		assertEquals( newKey, mainBean.nestedBeanListNull.get( 0 ).key );
+		assertEquals( newKey, mainBean.nestedBeanListNull.getFirst().key );
 	}
 
 	@Test
@@ -128,7 +128,7 @@ public class BeanHelperTest {
 
 		//--- then
 		assertTrue( wasSet );
-		assertEquals( newKey, mainBean.nestedBeanListEmpty.get( 0 ).key );
+		assertEquals( newKey, mainBean.nestedBeanListEmpty.getFirst().key );
 	}
 
 	@Test

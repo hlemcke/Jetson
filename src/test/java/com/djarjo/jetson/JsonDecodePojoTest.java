@@ -42,10 +42,10 @@ public class JsonDecodePojoTest {
 
 	@Test
 	@DisplayName("decode POJO with List")
-	void testPojoWithArray() throws ParseException,
-			IllegalAccessException {
+	void testPojoWithArray() throws ParseException, IllegalAccessException {
 		//--- given
-		String json = "{\"pojoArray\":[{\"ival\":71},{\"ival\":123}]}";
+		String json = """
+				{"pojoArray":[{"ival":71},{"ival":123}]}""";
 
 		//--- when
 		PojoWithCollection pojo = (PojoWithCollection)
@@ -60,8 +60,7 @@ public class JsonDecodePojoTest {
 
 	@Test
 	@DisplayName("decode POJO with List")
-	void testPojoWithList() throws ParseException,
-			IllegalAccessException {
+	void testPojoWithList() throws ParseException, IllegalAccessException {
 		//--- given
 		String json = "{\"pojoList\":[{\"ival\":71},{\"ival\":123}]}";
 
@@ -109,11 +108,6 @@ public class JsonDecodePojoTest {
 	void testDecodePojoWithConverterCollection() throws ParseException,
 			IllegalAccessException {
 		//--- given
-//		String json = """
-//				{"pojoArray":[{"ival":42,"str":"öäü$"},{"ival":17,"str":"?µM"}],
-//				"pojoList":[{"ival":42,"str":"öäü$"},{"ival":27,"str":"pojo in list"}],
-//				"pojoSet":[{"ival":37,"str":"pojo in Set"},{"ival":42,"str":"öäü$"}],
-//				"furies":["enc=4711","enc=69"]}""";
 		String json = """
 				{
 				"pojoList":[{"ival":42,"str":"öäü$"},{"ival":27,"str":"pojo in list"}],

@@ -1,16 +1,14 @@
 package com.djarjo.common;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 
 /**
- * Accessor using either a field or methods (getter and setter)
+ * Accessor using either a field or methods {@code getter} and {@code setter}
  *
- * @param field Field should be {@code null} if getter given
- * @param getter Method required if {@code field} is {@code null}
- * @param setter Method required when getter is given and setValue to be called
+ * @param field should be {@code null} if getter given
+ * @param getter required if {@code field} is {@code null}
+ * @param setter required when {@code getter} is given and {@code setValue} to be called
  */
 public record MemberAccessor(Field field, Method getter, Method setter) {
 
@@ -22,17 +20,18 @@ public record MemberAccessor(Field field, Method getter, Method setter) {
 			throw new IllegalArgumentException(
 					"Provide EITHER a field OR a getter/setter combination, not both" );
 		}
-		if ( !hasField && !hasGetter ) {
+		if ( !hasField && !hasGetter && !hasSetter ) {
 			throw new IllegalArgumentException(
-					"Must provide EITHER a field OR a getter/setter" );
+					"Must provide at least a field, a getter or a setter" );
 		}
 		if ( hasField ) {
 			field.setAccessible( true );
-		} else {
+		}
+		if ( hasGetter ) {
 			getter.setAccessible( true );
-			if ( hasSetter ) {
-				setter.setAccessible( true );
-			}
+		}
+		if ( hasSetter ) {
+			setter.setAccessible( true );
 		}
 	}
 
@@ -40,13 +39,26 @@ public record MemberAccessor(Field field, Method getter, Method setter) {
 		return isField() ? field.getAnnotations() : getter.getAnnotations();
 	}
 
+	public Member getMember() {
+		return isField() ? field : getter;
+	}
+
 	public String getName() {
 		return isField() ? field.getName() : getter.getName();
 	}
 
+	public Type getType() {
+		return isField() ? field.getGenericType()
+				: (getter != null) ? getter.getGenericReturnType()
+				: (setter != null) ? setter.getGenericParameterTypes()[0]
+				: Object.class;
+	}
+
 	public Object getValue( Object bean ) {
 		try {
-			return isField() ? field.get( bean ) : getter.invoke( bean, (Object[]) null );
+			return isField() ? field.get( bean )
+					: (getter != null) ? getter.invoke( bean, (Object[]) null )
+					: null;
 		} catch ( IllegalAccessException | InvocationTargetException e ) {
 			throw new RuntimeException( e );
 		}
@@ -56,6 +68,10 @@ public record MemberAccessor(Field field, Method getter, Method setter) {
 			Class<? extends Annotation> annotation ) {
 		return isField() ? field.isAnnotationPresent(
 				annotation ) : getter.isAnnotationPresent( annotation );
+	}
+
+	public boolean isField() {
+		return (field != null);
 	}
 
 	public void setValue( Object bean, Object value ) {
@@ -69,10 +85,6 @@ public record MemberAccessor(Field field, Method getter, Method setter) {
 							InvocationTargetException e ) {
 			throw new RuntimeException( e );
 		}
-	}
-
-	public boolean isField() {
-		return (field != null);
 	}
 
 	@Override

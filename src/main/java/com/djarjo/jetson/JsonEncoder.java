@@ -10,7 +10,10 @@ import com.djarjo.jetson.converter.JsonConverter;
 import com.djarjo.text.RecursionException;
 import com.google.common.flogger.FluentLogger;
 
-import java.lang.reflect.*;
+import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URL;
@@ -32,7 +35,9 @@ import java.util.*;
  * @since 2017-01-02
  */
 public class JsonEncoder {
-	/** METHOD_TO_JSON */
+	/**
+	 * METHOD_TO_JSON
+	 */
 	public final static String METHOD_TO_JSON = "toJson";
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 	private final int MAX_INDENT = 10;
@@ -315,35 +320,12 @@ public class JsonEncoder {
 		for ( JsonAccessor accessor : accessors ) {
 			Object value = accessor.getValue( pojo );
 			if ( accessor.mayEncode( value, _withNulls ) ) {
-				_encodePojoMember( builder, accessor, value );
+				String name = accessor.getJsonName();
+				String encodedValue = _encodeValue( value );
+				_encodeKeyValue( builder, name, encodedValue );
 			}
 		}
 		return "{" + _stripLeadingComma( builder ) + "}";
-	}
-
-	/**
-	 * Encodes the value of a member (from object field or method) into a JSON string.
-	 * <ol>
-	 * <li>check {@code Json.access()}</li>
-	 * <li>check {@code Json.converter()}</li>
-	 * </ol>
-	 *
-	 * @param builder to append result to
-	 * @param accessor accessor
-	 * @param value value to be encoded
-	 */
-	private void _encodePojoMember( StringBuilder builder, JsonAccessor accessor,
-			Object value ) {
-		String name = accessor.getJsonName();
-
-		//--- Check annotation attributes (if present)
-		JsonConverter converter = accessor.getConverter();
-		if ( converter != null ) {
-			value = converter.encodeToJson( value );
-		} else if ( value instanceof Enum<?> e ) {
-			value = _useEnumAccessor( accessor, e );
-		}
-		_encodeKeyValue( builder, name, _encodeValue( value ) );
 	}
 
 	private String _encodeString( String str ) {
@@ -441,27 +423,5 @@ public class JsonEncoder {
 		}
 		return ((builder.length() > 2) && (builder.charAt( 0 ) == ',')) ?
 				builder.substring( 1 ) : builder.toString();
-	}
-
-	private Object _useEnumAccessor( JsonAccessor accessor, Enum<?> value ) {
-		String enumAccessor = accessor.config().enumAccessor();
-		if ( enumAccessor.equals( Json.defaultName ) ) return value;
-		Class<? extends Enum> enumClass = value.getClass();
-		try {
-			Field field = enumClass.getDeclaredField( enumAccessor );
-			field.setAccessible( true );
-			return field.get( value );
-		} catch ( IllegalAccessException | NoSuchFieldException ignored ) {
-			//--- No field => lookup getter method
-			try {
-				Method method = enumClass.getMethod( enumAccessor, (Class<?>[]) null );
-				method.setAccessible( true );
-				return method.invoke( value, (Object[]) null );
-			} catch ( NoSuchMethodException | IllegalAccessException |
-								InvocationTargetException e ) {
-				logger.atFine().log( "Enum %s has no accessor: ", enumClass, accessor );
-			}
-		}
-		return value;
 	}
 }
