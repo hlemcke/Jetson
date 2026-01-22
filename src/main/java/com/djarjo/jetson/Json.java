@@ -116,15 +116,31 @@ public @interface Json {
 	 */
 	String name() default defaultName;
 
+	/**
+	 * Values for attribute {@code decode}
+	 */
 	enum DecodeMode {
+		/** Always decode */
 		ALWAYS,
+
+		/** Never decode */
 		NEVER,
+
+		/** Decode only if bean property currently is {@code null} or empty */
 		ONLY_IF_EMPTY
 	}
 
+	/**
+	 * Values for attribute {@code encode}
+	 */
 	enum EncodeMode {
+		/** Always encode */
 		ALWAYS,
+
+		/** Never encode */
 		NEVER,
+
+		/** Encode only if value from bean is not empty */
 		ONLY_IF_NOT_EMPTY
 	}
 }

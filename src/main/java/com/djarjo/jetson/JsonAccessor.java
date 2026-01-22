@@ -34,6 +34,7 @@ public record JsonAccessor(Class<?> clazz, JsonConfig config, Field field, Metho
 													 Method setter) {
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 
+	/** Makes each given member accessible */
 	public JsonAccessor {
 		if ( field != null ) field.setAccessible( true );
 		if ( getter != null ) getter.setAccessible( true );
@@ -65,10 +66,6 @@ public record JsonAccessor(Class<?> clazz, JsonConfig config, Field field, Metho
 		return config.enumAccessor();
 	}
 
-	public Type getGenericType() {
-		return ReflectionHelper.getGenericInnerType( getType() );
-	}
-
 	/**
 	 * Gets name used by JSON codec.
 	 *
@@ -91,6 +88,11 @@ public record JsonAccessor(Class<?> clazz, JsonConfig config, Field field, Metho
 				: isMethod() ? getter.getName() : clazz.getSimpleName();
 	}
 
+	/**
+	 * Gets type of member
+	 *
+	 * @return type
+	 */
 	public Type getType() {
 		return isField() ? field.getGenericType()
 				: isMethod() ? getter.getGenericReturnType()
@@ -114,7 +116,8 @@ public record JsonAccessor(Class<?> clazz, JsonConfig config, Field field, Metho
 			throw new IllegalStateException( "Cannot get value from class " + clazz.getName() );
 		}
 		try {
-			Object value = isField() ? field.get( bean ) : getter.invoke( bean, (Object[]) null );
+			Object value = isField() ? field.get( bean ) : getter.invoke( bean,
+					(Object[]) null );
 			if ( hasConverter() ) {
 				JsonConverter converter = getConverter();
 				return converter.encodeToJson( value );
@@ -128,22 +131,47 @@ public record JsonAccessor(Class<?> clazz, JsonConfig config, Field field, Metho
 		}
 	}
 
+	/**
+	 * Checks for converter
+	 *
+	 * @return {@code true} if converter specified
+	 */
 	public boolean hasConverter() {
 		return !config.converter().equals( JsonConverter.class );
 	}
 
+	/**
+	 * Checks for enumeration accessor
+	 *
+	 * @return {@code true} if enum accessor specified
+	 */
 	public boolean hasEnumAccessor() {
 		return !config.enumAccessor().equals( Json.defaultName );
 	}
 
+	/**
+	 * Checks for class
+	 *
+	 * @return {@code true} if accessor contains a class
+	 */
 	public boolean isClass() {
 		return (field == null) && (getter == null);
 	}
 
+	/**
+	 * Checks for field
+	 *
+	 * @return {@code true} if accessor contains a field
+	 */
 	public boolean isField() {
 		return field != null;
 	}
 
+	/**
+	 * Checks for method
+	 *
+	 * @return {@code true} if accessor contains a method
+	 */
 	public boolean isMethod() {
 		return (field == null) && (getter != null);
 	}
@@ -179,8 +207,8 @@ public record JsonAccessor(Class<?> clazz, JsonConfig config, Field field, Metho
 	/**
 	 * Sets {@code value} in {@code bean}.
 	 * <p>
-	 * If accessor specifies a converter, then the converted value will be set.
-	 * This requires the value to be a JSON string.
+	 * If accessor specifies a converter, then the converted value will be set. This
+	 * requires the value to be a JSON string.
 	 * </p>
 	 *
 	 * @param bean the bean
@@ -196,7 +224,8 @@ public record JsonAccessor(Class<?> clazz, JsonConfig config, Field field, Metho
 			JsonConverter converter = getConverter();
 			value = converter.decodeFromJson( (String) value );
 		} else if ( ReflectionHelper.isEnum( getType() ) ) {
-			value = TextHelper.findEnum( value, (Class<? extends Enum>) getType(), null, getEnumAccessor() );
+			value = TextHelper.findEnum( value, (Class<? extends Enum>) getType(), null,
+					getEnumAccessor() );
 		} else {
 			value = BaseConverter.convertToType( value, getType() );
 		}

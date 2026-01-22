@@ -62,9 +62,7 @@ public class BeanHelper {
 	 *
 	 * @param bean Java object to be described
 	 * @return new instance of HashMap
-	 * @throws IllegalAccessException if access is prohibited
 	 * @throws IllegalArgumentException if getter name is wrong
-	 * @throws InvocationTargetException if getter must not be invoked
 	 */
 	public static Map<String, Object> describe( Object bean ) {
 		if ( bean == null ) return Collections.emptyMap();
@@ -72,11 +70,15 @@ public class BeanHelper {
 		return obtainGetters( bean.getClass() ).stream()
 				.collect( HashMap::new, ( map, method ) -> {
 					try {
-						String name = ReflectionHelper.getVarNameFromMethodName( method.getName() );
+						String name =
+								ReflectionHelper.getVarNameFromMethodName( method.getName() );
 						method.setAccessible( true );
 						map.put( name, method.invoke( bean ) );
 					} catch ( Exception e ) {
-						logger.atWarning().withCause( e ).log( "Failed to describe property %s", method.getName() );
+						logger.atWarning()
+								.withCause( e )
+								.log( "Failed to describe property %s",
+										method.getName() );
 					}
 				}, HashMap::putAll );
 	}
@@ -160,7 +162,8 @@ public class BeanHelper {
 	/**
 	 * Finds fields with the given annotation.
 	 * <p>
-	 * Finds all fields with that annotation: public, protected, private. But only in given
+	 * Finds all fields with that annotation: public, protected, private. But only in
+	 * given
 	 * class, not in any superclass.
 	 * </p>
 	 *
@@ -201,7 +204,8 @@ public class BeanHelper {
 
 	/**
 	 * Gets the value from the given member (field or method). A method must not have any
-	 * parameters. Any exception will be logged with level WARNING and {@code null} will be
+	 * parameters. Any exception will be logged with level WARNING and {@code null}
+	 * will be
 	 * returned.
 	 *
 	 * @param bean The bean which contains the element
@@ -561,7 +565,8 @@ public class BeanHelper {
 			try {
 				value = getter.invoke( bean, (Object[]) null );
 				s.append( (withNullValues || value != null)
-						? indent + ReflectionHelper.getVarNameFromMethodName( getter.getName() )
+						?
+						indent + ReflectionHelper.getVarNameFromMethodName( getter.getName() )
 						+ ": "
 						+ _prettyPrintIndent( value, maxDepth,
 						withNullValues, curDepth + 1, path )
@@ -594,10 +599,12 @@ public class BeanHelper {
 	 * </p>
 	 * <h4>List Properties</h4>
 	 * <p>
-	 * {@code value} can also be written into a list property. If {@code value} itself is a
+	 * {@code value} can also be written into a list property. If {@code value} itself
+	 * is a
 	 * list then it will directly be written into the property.
 	 * </p><p>
-	 * Otherwise {@code value} will be converted into the lists generic type. If the (list)
+	 * Otherwise {@code value} will be converted into the lists generic type. If the
+	 * (list)
 	 * property is {@code null} then the list will be created first and written into the
 	 * property. Then {@code value} will be written into the list:
 	 * <ol>
@@ -629,12 +636,15 @@ public class BeanHelper {
 					if ( matcher.matches() ) {
 						prop = matcher.group( 1 );
 						String indexText = matcher.group( 2 );
-						index = "+".equals( indexText ) ? -1 : TextHelper.parseInteger( indexText );
+						index = "+".equals( indexText ) ? -1 :
+								TextHelper.parseInteger( indexText );
 					}
 				}
-				MemberAccessor accessor = findAccessorByName( currentBean.getClass(), prop );
+				MemberAccessor accessor = findAccessorByName( currentBean.getClass(),
+						prop );
 				if ( accessor == null ) {
-					String message = String.format( "No property '%s' in bean %s", prop, bean );
+					String message = String.format( "No property '%s' in bean %s", prop,
+							bean );
 					logger.atFiner().log( message );
 					throw new RuntimeException( new NoSuchFieldException( message ) );
 				}
@@ -657,7 +667,8 @@ public class BeanHelper {
 				if ( ReflectionHelper.isList( currentValue.getClass() ) ) {
 					List<Object> list = (List<Object>) currentValue;
 					if ( list.isEmpty() || (index >= list.size()) ) {
-						Type itemType = ReflectionHelper.getGenericInnerType( accessor.getType() );
+						Type itemType =
+								ReflectionHelper.getGenericInnerType( accessor.getType() );
 						Object newItem = ReflectionHelper.createInstance( itemType );
 						if ( index < 0 || index >= list.size() ) {
 							list.add( newItem );
