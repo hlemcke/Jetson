@@ -156,12 +156,12 @@ public class BeanHelperTest {
 		//--- when / then #1
 		boolean wasSet = BeanHelper.setValue( mainBean, "names", str1 );
 		assertTrue( wasSet );
-		assertEquals( str1, mainBean.names.get( 0 ) );
+		assertEquals( str1, mainBean.names.getFirst() );
 
 		//--- when / then #1
 		wasSet = BeanHelper.setValue( mainBean, "names", str2 );
 		assertTrue( wasSet );
-		assertEquals( str2, mainBean.names.get( 0 ) );
+		assertEquals( str2, mainBean.names.getFirst() );
 
 		//--- when / then #1
 		wasSet = BeanHelper.setValue( mainBean, "names[+]", str3 );

@@ -307,7 +307,8 @@ public class JsonEncoder {
 			Method toJson = ReflectionHelper.findMethod( pojoClass, METHOD_TO_JSON );
 			if ( toJson != null ) {
 				try {
-					return ReflectionHelper.getValueFromMember( pojo, toJson ).toString();
+					String json = (String) ReflectionHelper.getValueFromMember( pojo, toJson );
+					return _encodeString( json );
 				} catch ( IllegalAccessException | InvocationTargetException e ) {
 					logger.atWarning().withCause( e )
 							.log( "Cannot get value from 'toJson()' in %s", pojoClass.getName() );
@@ -328,11 +329,15 @@ public class JsonEncoder {
 		return "{" + _stripLeadingComma( builder ) + "}";
 	}
 
+	/**
+	 * Encodes given string for JSON.
+	 *
+	 * @param str string
+	 * @return string enclosed in quotes
+	 */
 	private String _encodeString( String str ) {
+		if ( _toJson5 ) return "'" + str + "'";
 		str = str.replace( "\\", "\\\\" );
-		if ( _toJson5 ) {
-			return "'" + str + "'";
-		}
 		str = str.replace( "\"", "\\\"" );
 		return "\"" + str + "\"";
 	}

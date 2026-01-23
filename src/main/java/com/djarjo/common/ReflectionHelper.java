@@ -212,20 +212,21 @@ public class ReflectionHelper {
 	 * @throws IllegalAccessException if access not allowed
 	 * @throws InvocationTargetException if member cannot be invoked
 	 */
-	public static Object getValueFromMember( Object bean,
-			Member member ) throws IllegalAccessException, InvocationTargetException {
+	public static Object getValueFromMember( Object bean, Member member )
+			throws IllegalAccessException, InvocationTargetException {
+		//--- Use field
 		if ( member instanceof Field field ) {
 			field.setAccessible( true );
 			return field.get( bean );
 		}
 		//--- Use getter
-		Method getter = obtainGetterFromMethod( bean.getClass(), (Method) member );
-		if ( getter == null ) {
-			throw new RuntimeException(
-					String.format( "No getter in %s from %s", bean, member ) );
+		if ( member instanceof Method getter ) {
+			getter.setAccessible( true );
+			return getter.invoke( bean, (Object[]) null );
 		}
-		getter.setAccessible( true );
-		return getter.invoke( bean, (Object[]) null );
+		throw new IllegalAccessException(
+				String.format( "Can only obtain value from field or getter but member in " +
+						"class %s is %s", bean.getClass(), member ) );
 	}
 
 	/**
@@ -476,7 +477,13 @@ public class ReflectionHelper {
 		assert value != null;
 		Class<?>[] types = getParameterTypes( member );
 		try {
-			Object arrayOrList = getValueFromMember( bean, member );
+			Object arrayOrList;
+			if ( member instanceof Method setter ) {
+				Method getter = obtainGetterFromMethod( bean.getClass(), setter );
+				arrayOrList = getValueFromMember( bean, getter );
+			} else { // member must be a Field
+				arrayOrList = getValueFromMember( bean, member );
+			}
 			if ( arrayOrList == null ) {
 				arrayOrList = createInstance( types[0] );
 				_writeValueToMember( bean, member, arrayOrList );
