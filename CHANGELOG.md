@@ -1,3 +1,8 @@
+## 2.2.2
+
+* fixed enumeration decodings
+* fixed decoding JSON list into set
+
 ## 2.2.1
 
 * fixed JsonDecoder when class is annotated

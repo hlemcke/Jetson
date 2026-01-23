@@ -146,14 +146,20 @@ public class BaseConverter {
 		if ( type.equals( value.getClass() ) || type.equals( Object.class ) ) {
 			return value;
 		}
-		if ( value instanceof Map ) {
-			return value;
-		} else if ( value instanceof Collection ) {
-			return ReflectionHelper.isArray( type ) ? ((Collection<?>) value).toArray() :
-					value;
-		} else if ( ReflectionHelper.isEnum( type ) ) {
+		if ( value instanceof Map ) return value;
+
+		//--- handle target collection
+		if ( value instanceof Collection coll ) {
+			if ( ReflectionHelper.isArray( type ) ) return coll.toArray();
+			return ReflectionHelper.isSet( type ) ? new HashSet<>( coll )
+					: value;
+		}
+
+		if ( ReflectionHelper.isEnum( type ) ) {
 			return convertToEnum( (Class<? extends Enum>) type, (String) value );
-		} else if ( ReflectionHelper.isList( type ) ) {
+		}
+
+		if ( ReflectionHelper.isList( type ) ) {
 			return value;
 		} else if ( ReflectionHelper.isByteArray( type ) && (value instanceof String) ) {
 			return Base64.decoder().decode( (String) value );
@@ -291,18 +297,45 @@ public class BaseConverter {
 	}
 
 	/**
+	 * Converts {@code value} to old Date.
+	 *
+	 * @param value to be converted
+	 * @return Date or {@code null}
+	 */
+	public static Date toDate( Object value ) {
+		if ( value == null ) return null;
+		if ( value instanceof Date date ) return date;
+		if ( value instanceof Instant i ) return Date.from( i );
+		if ( value instanceof LocalDate ld ) {
+			return Date.from( ld.atStartOfDay( ZoneId.systemDefault() ).toInstant() );
+		}
+		if ( value instanceof LocalDateTime ldt ) {
+			return Date.from( ldt.atZone( ZoneId.systemDefault() ).toInstant() );
+		}
+		if ( value instanceof OffsetDateTime odt ) return Date.from( odt.toInstant() );
+		if ( value instanceof ZonedDateTime zdt ) return Date.from( zdt.toInstant() );
+		if ( value instanceof String s ) return toDate( TextHelper.parseDate( s ) );
+		logger.atWarning().log( "Cannot convert to Date: '%s'", value );
+		return null;
+	}
+
+	/**
 	 * Converts {@code value} to a Double.
 	 *
 	 * @param value to be converted
 	 * @return {@code null} if not convertible to a Double
 	 */
 	public static Double toDouble( Object value ) {
-		if ( value == null ) return null;
-		if ( value instanceof Double d ) return d;
-		if ( value instanceof Number n ) return n.doubleValue();
-		if ( value instanceof String s ) return TextHelper.parseDouble( s );
-		logger.atWarning().log( "Cannot convert to Double: '%s'", value );
-		return null;
+		return switch ( value ) {
+			case null -> null;
+			case Double d -> d;
+			case Number n -> n.doubleValue();
+			case String s -> TextHelper.parseDouble( s );
+			default -> {
+				logger.atWarning().log( "Cannot convert to Double: '%s'", value );
+				yield null;
+			}
+		};
 	}
 
 	/**
@@ -559,6 +592,7 @@ public class BaseConverter {
 			_converters.put( byte.class, BaseConverter::toByte );
 			_converters.put( Byte.class, BaseConverter::toByte );
 			_converters.put( Currency.class, v -> Currency.getInstance( v.toString() ) );
+			_converters.put( Date.class, BaseConverter::toDate );
 			_converters.put( double.class, BaseConverter::toDouble );
 			_converters.put( Double.class, BaseConverter::toDouble );
 			_converters.put( Duration.class, BaseConverter::toDuration );

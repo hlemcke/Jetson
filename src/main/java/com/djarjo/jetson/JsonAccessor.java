@@ -63,7 +63,7 @@ public record JsonAccessor(Class<?> clazz, JsonConfig config, Field field, Metho
 	 * @return enum accessor
 	 */
 	public String getEnumAccessor() {
-		return config.enumAccessor();
+		return hasEnumAccessor() ? config.enumAccessor() : null;
 	}
 
 	/**

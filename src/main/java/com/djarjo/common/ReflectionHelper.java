@@ -323,6 +323,17 @@ public class ReflectionHelper {
 	}
 
 	/**
+	 * Checks if {@code type} is a Set
+	 *
+	 * @param type type
+	 * @return true if set
+	 */
+	public static boolean isSet( Type type ) {
+		return (type instanceof Class<?> clazz) ? Set.class.isAssignableFrom( clazz )
+				: ((type instanceof ParameterizedType pt) && isSet( pt.getRawType() ));
+	}
+
+	/**
 	 * Checks if given method is a setter.
 	 * <p>
 	 * A setter:
