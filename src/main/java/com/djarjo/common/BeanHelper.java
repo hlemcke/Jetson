@@ -7,7 +7,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,24 +24,6 @@ import java.util.stream.Collectors;
  * @since 2021-12-28 method "set" now uses generics from List
  */
 public class BeanHelper {
-	/**
-	 * Basic types automatically converted
-	 */
-	public static final Set<Class<?>> BASIC_TYPES = new HashSet<>( Arrays.asList(
-			Boolean.class,
-			Character.class,
-			Currency.class,
-			Duration.class,         // e.g., "PT1H30M" (Time-based: 1 hour 30 mins)
-			Instant.class,          // e.g. "2025-12-20T10:15:30Z"
-			LocalDate.class,
-			LocalTime.class,
-			LocalDateTime.class,
-			Locale.class,
-			OffsetDateTime.class,
-			Period.class,           // e.g., "P2Y3M" (Date-based: 2 years 3 months)
-			String.class,
-			UUID.class,
-			ZonedDateTime.class ) );
 	private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 	private static final Comparator<Object> keyComparator =
 			Comparator.comparing( Object::toString );
@@ -162,8 +146,7 @@ public class BeanHelper {
 	/**
 	 * Finds fields with the given annotation.
 	 * <p>
-	 * Finds all fields with that annotation: public, protected, private. But only in
-	 * given
+	 * Finds all fields with that annotation: public, protected, private. But only in given
 	 * class, not in any superclass.
 	 * </p>
 	 *
@@ -204,8 +187,7 @@ public class BeanHelper {
 
 	/**
 	 * Gets the value from the given member (field or method). A method must not have any
-	 * parameters. Any exception will be logged with level WARNING and {@code null}
-	 * will be
+	 * parameters. Any exception will be logged with level WARNING and {@code null} will be
 	 * returned.
 	 *
 	 * @param bean The bean which contains the element
@@ -256,21 +238,6 @@ public class BeanHelper {
 		Field internalField = clazz.getDeclaredField( fieldName );
 		internalField.setAccessible( true );
 		internalField.set( bean, value );
-	}
-
-	/**
-	 * Determines if an object should be treated as a single "basic" value rather than a
-	 * complex object that needs recursion.
-	 *
-	 * @param value any value
-	 * @return true if it's a basic Java type
-	 */
-	public static boolean isBasicType( Object value ) {
-		if ( value == null ) return true;
-		Class<?> clazz = value.getClass();
-		if ( BASIC_TYPES.contains( clazz ) ) return true;
-		if ( value instanceof Number ) return true;
-		return clazz.isEnum();
 	}
 
 	/**
@@ -567,10 +534,10 @@ public class BeanHelper {
 				s.append( (withNullValues || value != null)
 						?
 						indent + ReflectionHelper.getVarNameFromMethodName( getter.getName() )
-						+ ": "
-						+ _prettyPrintIndent( value, maxDepth,
-						withNullValues, curDepth + 1, path )
-						+ ",\n"
+								+ ": "
+								+ _prettyPrintIndent( value, maxDepth,
+								withNullValues, curDepth + 1, path )
+								+ ",\n"
 						: "" );
 			} catch ( IllegalAccessException | IllegalArgumentException
 								| InvocationTargetException e ) {
@@ -599,12 +566,10 @@ public class BeanHelper {
 	 * </p>
 	 * <h4>List Properties</h4>
 	 * <p>
-	 * {@code value} can also be written into a list property. If {@code value} itself
-	 * is a
+	 * {@code value} can also be written into a list property. If {@code value} itself is a
 	 * list then it will directly be written into the property.
 	 * </p><p>
-	 * Otherwise {@code value} will be converted into the lists generic type. If the
-	 * (list)
+	 * Otherwise {@code value} will be converted into the lists generic type. If the (list)
 	 * property is {@code null} then the list will be created first and written into the
 	 * property. Then {@code value} will be written into the list:
 	 * <ol>

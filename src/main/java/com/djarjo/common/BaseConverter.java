@@ -3,10 +3,7 @@ package com.djarjo.common;
 import com.djarjo.text.TextHelper;
 import com.google.common.flogger.FluentLogger;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
@@ -143,7 +140,8 @@ public class BaseConverter {
 		//--- null has no type
 		if ( value == null ) return null;
 
-		if ( type.equals( value.getClass() ) || type.equals( Object.class ) ) {
+		if ( type.equals( value.getClass() ) || type.equals( Object.class ) ||
+				(type instanceof TypeVariable) ) {
 			return value;
 		}
 		if ( value instanceof Map ) return value;
@@ -173,6 +171,20 @@ public class BaseConverter {
 		return _getConverters().getOrDefault( type, v -> {
 			throw new IllegalArgumentException( "Unsupported type:" + type );
 		} ).apply( value );
+	}
+
+	/**
+	 * Checks if {@code type} can be converted (is a <em>basic value</em>) which can be
+	 * converted with {@link #convertToType(Object, Type)}
+	 *
+	 * @param type type
+	 * @return true or false
+	 */
+	public static boolean isConvertible( Type type ) {
+		if ( type == null ) return true;
+		Class<?> clazz = ReflectionHelper.getRawClass( type );
+		return clazz != null && (_getConverters().containsKey(
+				clazz ) || ReflectionHelper.isEnum( type ));
 	}
 
 	/**

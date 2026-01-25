@@ -281,14 +281,13 @@ public class JsonDecoder {
 				}
 				_skipValue();
 				continue;
-			} else {
-				// RECURSION: Pass current value of field so nested lists/beans are reused
-				Object currentValue = accessor.getValue( target );
-				Object decodedValue = _decodeJsonValue( currentValue, accessor.getType() );
-
-				// BaseConverter handles String -> UUID conversion here
-				accessor.setValue( target, decodedValue );
 			}
+			// RECURSION: Pass current value of field so nested lists/beans are reused
+			Object currentValue = accessor.getValue( target );
+			Object decodedValue = _decodeJsonValue( currentValue, accessor.getType() );
+
+			// BaseConverter handles String -> UUID conversion here
+			accessor.setValue( target, decodedValue );
 		}
 		return target;
 	}
