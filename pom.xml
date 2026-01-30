@@ -63,6 +63,12 @@
             <scope>test</scope>
             <version>${org.junit.jupiter_junit-jupiter-engine_version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <scope>test</scope>
+            <version>${org.junit.jupiter_junit-jupiter-api_version}</version>
+        </dependency>
     </dependencies>
 
     <build>

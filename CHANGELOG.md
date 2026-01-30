@@ -1,6 +1,7 @@
 ## 2.3.2
 
 * changed `JsonAccessType` to integrated enum `Json.AccessType`
+* added Base32 encoding and decoding
 * multiple documentation updates
 
 ## 2.2.2
