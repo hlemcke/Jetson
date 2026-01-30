@@ -18,7 +18,7 @@ import java.lang.reflect.Type;
  * The annotation could be on:
  * <ul><li>class → either with {@code converter}, class has method {@code toJson()} or
  *   just all getters / setters are used unless annotation contains {@literal
- *   accessType=JsonAccessType.FIELD}. In this case {@code field}, {@code getter}
+ *   accessType=Json.AccessType.FIELD}. In this case {@code field}, {@code getter}
  *   and {@code setter} are all {@code null}</li>
  *   <li>method → must be public</li>
  *   <li>field → could be private</li>

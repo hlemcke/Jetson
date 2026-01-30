@@ -97,7 +97,7 @@ class JsonCache {
 			}
 			//--- need to scan all fields or methods
 			allMembers = true;
-			if ( jsonAnnoAtClass.accessType().equals( JsonAccessType.FIELD ) ) {
+			if ( jsonAnnoAtClass.accessType().equals( Json.AccessType.FIELD ) ) {
 				accessFields = true;
 			}
 		}

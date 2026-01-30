@@ -82,7 +82,7 @@ public class JsonDecoder {
 	 *   <li>If the target class is annotated with {@literal @Json} then:
 	 *     <ul><li>converter will be used if present</li>
 	 *       <li>all setters will be used (default) unless
-	 *       {@code accessType=JsonAccessType.FIELD} is set to use all public fields</li>
+	 *       {@code accessType=Json.AccessType.FIELD} is set to use all public fields</li>
 	 *       <li>Members (fields and setters) annotated with {@literal @JsonTransient}
 	 *       will be skipped</li>
 	 *     </ul></li>

@@ -14,11 +14,9 @@
     </organization>
     <packaging>jar</packaging>
     <url>https://maven.djarjo.com/jetson</url>
-    <version>2.2.2</version>
+    <version>2.3.2</version>
 
     <properties>
-        <maven.test.skip>true</maven.test.skip>
-        <maven.test.failure.ignore>true</maven.test.failure.ignore>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>21</java.version>
 
@@ -76,8 +74,6 @@
                 <version>${org.apache.maven.plugins_maven-compiler-plugin_version}</version>
                 <configuration>
                     <release>${java.version}</release>
-                    <source>18</source>
-                    <target>18</target>
                 </configuration>
             </plugin>
             <plugin>

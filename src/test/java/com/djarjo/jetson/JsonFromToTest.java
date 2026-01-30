@@ -139,7 +139,7 @@ public class JsonFromToTest {
 		}
 	}
 
-	@Json(accessType = JsonAccessType.FIELD)
+	@Json(accessType = Json.AccessType.FIELD)
 	static class Pojo {
 		public String fruit = "Apple";
 		public List<Furi> furies;

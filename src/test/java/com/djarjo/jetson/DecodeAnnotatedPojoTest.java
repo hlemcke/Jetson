@@ -26,7 +26,7 @@ public class DecodeAnnotatedPojoTest {
 		assertEquals( 123, pojo.value );
 	}
 
-	@Json(accessType = JsonAccessType.FIELD)
+	@Json(accessType = Json.AccessType.FIELD)
 	static class PojoWithFields {
 		LocalDate date = LocalDate.of( 2001, 12, 31 );
 		String name = "who am I";

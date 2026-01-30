@@ -111,7 +111,7 @@ public class JsonEncodePojoTest {
 		}
 	}
 
-	@Json(accessType = JsonAccessType.FIELD)
+	@Json(accessType = Json.AccessType.FIELD)
 	private static class PojoAnnotatedField {
 		public int ival = 42;
 

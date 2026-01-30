@@ -1,15 +1,17 @@
 # Jetson
 
-JSON codec with annotations and many integrated converters.
-Jetson encodes and decodes all basic values, arrays, lists, maps and other classes.
+JSON codec designed similar to JPA.
+
+Jetson encodes and decodes all basic values, lists, sets, maps and all your classes.
 
 The decoder automatically decodes both JSON and JSON5.
+To encode JSON5 use `Jetson.encoder().toJson5().encode( myObject )`.
 
 This package also includes:
 
-* `BeanHelper`
-* `ReflectionHelper`
-* `Tokenizer`
+* `BeanHelper` for direct bean access and manipulation
+* `ReflectionHelper` for deep class access using Java reflection
+* `Tokenizer` to analyze text and split into tokens
 
 ## Usage
 
@@ -23,37 +25,40 @@ For encoding to JSON additional features can be applied:
 
 * .bytesToList() → encodes `byte[]` to a JSON list instead of a string in Base64 format
 * .prettyPrint() → encodes to a pretty printed JSON string with indented entries
-* .toJson5() → encodes to human-readable JSON5 format
+* .toJson5() → encodes to better human-readable JSON5 format
 * .withNulls() → also encode null values instead of skipping them
 
 ## Example
 
 ```
+@Json( accessType = Json.AccessType.FIELD )
 class Pojo {
     private int code = 4711;
+    
+    @JsonTransient
     public Long id = 1234;
-    @Json
+
+    @Json(name = "key" )
     public String name = "abc";
 
     @Json
     public List<SomeClass> myList = new ArrayList<>();
     
-    @Json
     public getCode() { return code; }
     public void setCode( int code ) { this.code = code; }
 }
 ```
 
-Using `String jsonText = Jetson.encode( new Pojo())` produces the following JSON text.
+Using `String json = Jetson.encode( new Pojo())` produces the following JSON text.
 
 ```
-{"code":4711,"name":"abc"}
+{"code":4711,"key":"abc"}
 ```
 
-The text does not contain field "id", because it is not annotated.
+The text does not contain field `id`, because it is transient. 
 
 And the best thing is ... a JSON text can be decoded directly back into an object.
-`Jetson.decodeIntoObject( "{'name':'def'}", new Pojo());` delivers:
+`Jetson.decodeIntoObject( "{'key':'def'}", new Pojo());` delivers:
 
 ```
 Pojo
@@ -62,28 +67,50 @@ Pojo
   name = "def"
 ```
 
-## JSON Annotation with Attributes
+## JSON Annotation - Attributes
 
 The annotation `@Json` accepts these attributes:
 
-* converter → expects a class implementing `JsonConverter`. Encoding and decoding will use the converter.
-* decodable → Default true. `false` will not decode this field from JSON string
-* encodable → Default true. `false` will not encode this field into JSON string
-* enumAccessor → uses value from accessor (see below)
-* name → replaces field name like `@Json( name = "another" )` will produce `"another":...` during encoding.
-  Decoding also awaits "another"
-* mergeCollection →
+* `converter` → expects a class implementing `JsonConverter`. Encoding and decoding will use the converter.
+* `decode` → specifies decoding to `NEVER`, `ONLY_IF_EMPTY` or the default `ALWAYS`
+* `encode` → specifies encoding to `ALWAYS`, `NEVER` or the default `ONLY_IF_NOT_EMPTY`
+* `enumAccessor` → uses value from accessor (see below)
+* `name` → replaces field name
+* `mergeCollection` → `true` (default is `false`) will append decoding list entries to existing ones
 
-Annotation `@Json` can also be applied on class level. All attributes are still valid.
+
+## JSON Annotation - on Class
+
+Annotation `@Json` can also be applied on class level.
+The class level annotation specifies these attributes:
+
+* `accessType` → specify `FIELD` to use fields or the default `PROPERTY`
+* `converter` → encodes to a string and must create an object of this class from JSON string
+* `decode` → will apply its value to all fields or properties.
+  The value can be modified on each field or property by an individual `@Json` annotation
+* `encode` → will apply its value to all fields or properties
+  The value can be modified on each field or property by an individual `@Json` annotation
+* `enumAccessor` → unused
+* `name` → unused
+* `mergeCollection` → unused
+
+Priority of annotations:
+
+1. If the annotation specifies a `converter` then this will be used for encoding and decoding
+2. If the class contains method `String toJson()` then this will be invoked on encoding
+3. If the class contains method `static $ThisClass fromJson( String jsonText )`
+   then this will be invoked on decoding
+4. otherwise all fields or properties will be used. In this case an individual
+   {@literal @Json} annotation has higher priority and may overwrite attributes set at class level
 
 ## Functionalities
 
-Converters for the following standard Java classes are already integrated and are not required to be set on such
-attributes in a class:
+Converters for the following standard Java classes are already integrated
+and are not required to be set:
 
 * all basic types: boolean, byte, double, float, int, long, short and their classes
-* all from java.time
-* byte[] gets encoded into Base64 and decoded from a Base64 string
+* all types from `java.time`
+* `byte[]` gets encoded into Base64 and decoded from a Base64 string
 * Java classes: BigDecimal, Currency, Locale, URI, URL, UUID
 
 ### Encoding Enumerations
@@ -101,12 +128,4 @@ enum UserLanguage {
   UserLanguage( String code ) { this.code = code; } } 
 ```
 
-Then just annotate the class attribute with `enumAccessor`:
-
-```
-class MyClass {
-  @Json( enumAccessor = "code" )
-  UserLanguage lang = UserLanguage.ENGLISH;
-```
-
-will encode to `{"lang":"en"}` and decode back to the enum.
+Then just annotate the class attribute with `@Json( enumAccessor = "code" )`.

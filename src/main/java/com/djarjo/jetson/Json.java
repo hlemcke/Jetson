@@ -30,11 +30,11 @@ public @interface Json {
 	String defaultName = "##default";
 
 	/**
-	 * Access type if a class is annotated.
+	 * Access type for class level annotation.
 	 *
 	 * @return type of access: field or property. Defaults to property
 	 */
-	JsonAccessType accessType() default JsonAccessType.PROPERTY;
+	AccessType accessType() default AccessType.PROPERTY;
 
 	/**
 	 * Converter encodes a given value into a JSON string and decodes a given string into a
@@ -115,6 +115,21 @@ public @interface Json {
 	 * @return name for JSON value
 	 */
 	String name() default defaultName;
+
+
+	/**
+	 * Values for attribute {@code accessType} on a class level annotation.
+	 * <p>
+	 * Defaults to {#PROPERTY} if not specified
+	 * </p>
+	 */
+	public enum AccessType {
+		/** Uses only fields for encoding to JSON */
+		FIELD,
+
+		/** Uses only properties (getters) for encoding to JSON (default) */
+		PROPERTY
+	}
 
 	/**
 	 * Values for attribute {@code decode}

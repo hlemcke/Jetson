@@ -31,7 +31,7 @@ public class BeanHelperTest {
 
 		//--- when / then
 		for ( Map.Entry<Object, Boolean> entry : map.entrySet() ) {
-			assertEquals( entry.getValue(), BeanHelper.isBasicType( entry.getKey() ),
+			assertEquals( entry.getValue(), BaseConverter.isConvertible( entry.getKey().getClass() ) ,
 					"key=" + entry.getKey() + ", type=" + entry.getKey().getClass()
 							.getSimpleName() );
 		}
