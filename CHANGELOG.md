@@ -1,3 +1,7 @@
+## 2.3.3
+
+* fixed decoding JSON string into a record using static method `toJson()`
+
 ## 2.3.2
 
 * changed `JsonAccessType` to integrated enum `Json.AccessType`
