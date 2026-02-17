@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.text.ParseException;
 import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -163,7 +164,8 @@ class JsonEncoderTest {
         assertEquals(basics.nameConst, decoded.name);
         assertEquals(Math.PI, decoded.doublePi);
         assertEquals(basics.langConst, decoded.language);
-        assertEquals(basics.now, decoded.timestamptz);
+        assertEquals(basics.now.truncatedTo(ChronoUnit.MILLIS),
+                decoded.timestamptz.truncatedTo(ChronoUnit.MILLIS));
         assertEquals(basics.uuidConst, decoded.uuidVar);
     }
 

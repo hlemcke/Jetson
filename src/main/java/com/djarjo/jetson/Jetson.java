@@ -31,193 +31,210 @@ import java.util.Map;
  */
 public class Jetson {
 
-	private Jetson() {
-	}
+    private Jetson() {
+    }
 
-	/**
-	 * Decodes the given Json string into a basic value, a list or a map.
-	 * <p>
-	 * Finding a "{" will automatically create a new HashMap. Finding a "[" will
-	 * automatically create a new ArrayList. Any other value will just be returned.
-	 * </p>
-	 *
-	 * @param jsonString Json string to be decoded
-	 * @return new instance of basic value, list or map
-	 * @throws IllegalAccessException will not occur (Java exception definition problem)
-	 * @throws ParseException in case of an error in the Json string
-	 */
-	public static Object decode(
-			String jsonString ) throws IllegalAccessException, ParseException {
-		return JsonDecoder.decoder()
-				.decode( jsonString );
-	}
+    /**
+     * Decodes the given Json string into a basic value, a list or a map.
+     * <p>
+     * Finding a "{" will automatically create a new HashMap. Finding a "[" will
+     * automatically create a new ArrayList. Any other value will just be returned.
+     * </p>
+     *
+     * @param jsonString Json string to be decoded
+     * @return new instance of basic value, list or map
+     * @throws IllegalAccessException will not occur (Java exception definition problem)
+     * @throws ParseException         in case of an error in the Json string
+     */
+    public static Object decode(
+            String jsonString) throws IllegalAccessException, ParseException {
+        return JsonDecoder.decoder()
+                .decode(jsonString);
+    }
 
-	/**
-	 * Decodes given {@code jsonString} and writes values into {@code target} object.
-	 * <p>
-	 * Fields in target object must be annotated with {@code @Json}.
-	 * </p>
-	 * <p>
-	 * Uses default settings of {@link com.djarjo.jetson.JsonDecoder JsonDecoder}.
-	 * </p>
-	 *
-	 * @param jsonString Json string to decode
-	 * @param target target object with annotated getter methods
-	 * @return target updated with values from jsonString
-	 * @throws IllegalAccessException if a decoded value cannot be set into the target
-	 * object
-	 * @throws ParseException in case of an error in the JSON string
-	 */
-	public static Object decodeIntoObject( String jsonString,
-			Object target ) throws IllegalAccessException, ParseException {
-		Object object = JsonDecoder.decoder().decodeIntoObject( jsonString, target );
-		return (object == null) ? target : object;
-	}
+    /**
+     * Decodes given {@code jsonString} and writes values into {@code target} object.
+     * <p>
+     * Fields in target object must be annotated with {@code @Json}.
+     * </p>
+     * <p>
+     * Uses default settings of {@link com.djarjo.jetson.JsonDecoder JsonDecoder}.
+     * </p>
+     *
+     * @param jsonString Json string to decode
+     * @param target     target object with annotated getter methods
+     * @return target updated with values from jsonString
+     * @throws IllegalAccessException if a decoded value cannot be set into the target
+     *                                object
+     * @throws ParseException         in case of an error in the JSON string
+     */
+    public static Object decodeIntoObject(String jsonString,
+                                          Object target) throws IllegalAccessException, ParseException {
+        Object object = JsonDecoder.decoder().decodeIntoObject(jsonString, target);
+        return (object == null) ? target : object;
+    }
 
-	/**
-	 * Decodes given {@code jsonString} into a list
-	 *
-	 * <p>
-	 * Creates a new instance of {@code ArrayList} and writes values into new objects of
-	 * type {@code itemClass}.
-	 * </p>
-	 *
-	 * @param jsonString Json string to decode
-	 * @param itemClass Class of objects in list
-	 * @param <T> Type of elements in list
-	 * @return list
-	 * @throws IllegalAccessException when writing values into item object is not allowed
-	 * @throws ParseException in case of an error in the Json string
-	 */
-	@SuppressWarnings("unchecked")
-	public static <T> List<T> decodeToList( String jsonString,
-			Class<?> itemClass ) throws ParseException, IllegalAccessException {
-		return (List<T>) JsonDecoder.decoder().decodeList( jsonString, itemClass );
-	}
+    /**
+     * Decodes the given JSON string into the target object, resolving generic 'T'
+     * with the provided genericType class.
+     *
+     * @param json        string to decode
+     * @param target      object with annotated fields or getter methods
+     * @param genericType type used if target has a generic
+     * @return target updated with values from JSON string
+     * @throws IllegalAccessException if a decoded value cannot be set into the target
+     *                                object
+     * @throws ParseException         in case of an error in the JSON string
+     */
+    public static Object decodeIntoObject(String json, Object target, Class<?> genericType)
+            throws ParseException, IllegalAccessException {
+        return new JsonDecoder().decodeIntoObject(json, target, genericType);
+    }
 
-	/**
-	 * Decodes given {@code jsonString} into a map.
-	 * <p>
-	 * Utility method includes casting to map and suppresses compiler warning for unchecked
-	 * conversion.
-	 * </p>
-	 *
-	 * @param jsonString Json string to decode
-	 * @return map
-	 * @throws IllegalAccessException will not happen here
-	 * @throws ParseException in case of an error in the Json string
-	 */
-	@SuppressWarnings("unchecked")
-	public static Map<String, Object> decodeToMap(
-			String jsonString ) throws ParseException, IllegalAccessException {
-		return (Map<String, Object>) JsonDecoder.decoder().decode( jsonString );
-	}
+    /**
+     * Decodes given {@code jsonString} into a list
+     *
+     * <p>
+     * Creates a new instance of {@code ArrayList} and writes values into new objects of
+     * type {@code itemClass}.
+     * </p>
+     *
+     * @param jsonString Json string to decode
+     * @param itemClass  Class of objects in list
+     * @param <T>        Type of elements in list
+     * @return list
+     * @throws IllegalAccessException when writing values into item object is not allowed
+     * @throws ParseException         in case of an error in the Json string
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> List<T> decodeToList(String jsonString,
+                                           Class<?> itemClass) throws ParseException, IllegalAccessException {
+        return (List<T>) JsonDecoder.decoder().decodeList(jsonString, itemClass);
+    }
 
-	/**
-	 * Gets a new instance of JsonDecoder
-	 *
-	 * @return new instance of JsonDecoder
-	 */
-	public static JsonDecoder decoder() {
-		return new JsonDecoder();
-	}
+    /**
+     * Decodes given {@code jsonString} into a map.
+     * <p>
+     * Utility method includes casting to map and suppresses compiler warning for unchecked
+     * conversion.
+     * </p>
+     *
+     * @param jsonString Json string to decode
+     * @return map
+     * @throws IllegalAccessException will not happen here
+     * @throws ParseException         in case of an error in the Json string
+     */
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> decodeToMap(
+            String jsonString) throws ParseException, IllegalAccessException {
+        return (Map<String, Object>) JsonDecoder.decoder().decode(jsonString);
+    }
 
-	/**
-	 * Encodes object into a Json text.
-	 *
-	 * @param object to be encoded
-	 * @return encoded object
-	 */
-	public static String encode( Object object ) {
-		return JsonEncoder.encoder()
-				.encode( object );
-	}
+    /**
+     * Gets a new instance of JsonDecoder
+     *
+     * @return new instance of JsonDecoder
+     */
+    public static JsonDecoder decoder() {
+        return new JsonDecoder();
+    }
 
-	/**
-	 * Gets a new instance of JsonEncoder
-	 *
-	 * @return new instance of JsonEncoder
-	 */
-	public static JsonEncoder encoder() {
-		return new JsonEncoder();
-	}
+    /**
+     * Encodes object into a Json text.
+     *
+     * @param object to be encoded
+     * @return encoded object
+     */
+    public static String encode(Object object) {
+        return JsonEncoder.encoder()
+                .encode(object);
+    }
 
-	/**
-	 * Encodes byte arrays to a list instead of a BASE64 string.
-	 *
-	 * @return Encoder for fluent API
-	 */
-	public static JsonEncoder bytesToList() {
-		return JsonEncoder.encoder()
-				.bytesToList();
-	}
+    /**
+     * Gets a new instance of JsonEncoder
+     *
+     * @return new instance of JsonEncoder
+     */
+    public static JsonEncoder encoder() {
+        return new JsonEncoder();
+    }
 
-	/**
-	 * Decoding a JSON string will merge collection items from string into already existing
-	 * items of a collection.
-	 *
-	 * @return decoder for fluent API
-	 */
-	public static JsonDecoder mergeCollection() {
-		return JsonDecoder.decoder()
-				.mergeCollections();
-	}
+    /**
+     * Encodes byte arrays to a list instead of a BASE64 string.
+     *
+     * @return Encoder for fluent API
+     */
+    public static JsonEncoder bytesToList() {
+        return JsonEncoder.encoder()
+                .bytesToList();
+    }
 
-	/**
-	 * gets converter
-	 *
-	 * @param anno a
-	 * @return converter
-	 */
-	public static JsonConverter<?> getConverter( Json anno ) {
-		if ( anno == null ) {
-			return null;
-		}
-		Class<? extends JsonConverter> annotatedConverter = anno.converter();
-		try {
-			return (annotatedConverter == JsonConverter.class) ? null :
-					annotatedConverter.getDeclaredConstructor()
-							.newInstance();
-		} catch ( IllegalAccessException | InstantiationException |
-							InvocationTargetException | NoSuchMethodException e ) {
-			throw new JsonParseException(
-					"Converter " + annotatedConverter.getName() + " could not be " +
-							"instantiated" );
-		}
-	}
+    /**
+     * Decoding a JSON string will merge collection items from string into already existing
+     * items of a collection.
+     *
+     * @return decoder for fluent API
+     */
+    public static JsonDecoder mergeCollection() {
+        return JsonDecoder.decoder()
+                .mergeCollections();
+    }
 
-	/**
-	 * Pretty prints the encoded json string by writing each item on a separate line and
-	 * indenting it with the given {@code indent}.
-	 * <p>
-	 * A value of {@code null} will encode into a one line string
-	 * </p>
-	 *
-	 * @param indent default is no indentation
-	 * @return this for fluent API
-	 */
-	public static JsonEncoder prettyPrint( String indent ) {
-		return JsonEncoder.encoder()
-				.prettyPrint( indent );
-	}
+    /**
+     * gets converter
+     *
+     * @param anno a
+     * @return converter
+     */
+    public static JsonConverter<?> getConverter(Json anno) {
+        if (anno == null) {
+            return null;
+        }
+        Class<? extends JsonConverter> annotatedConverter = anno.converter();
+        try {
+            return (annotatedConverter == JsonConverter.class) ? null :
+                    annotatedConverter.getDeclaredConstructor()
+                            .newInstance();
+        } catch (IllegalAccessException | InstantiationException |
+                 InvocationTargetException | NoSuchMethodException e) {
+            throw new JsonParseException(
+                    "Converter " + annotatedConverter.getName() + " could not be " +
+                            "instantiated");
+        }
+    }
 
-	/**
-	 * Encodes to JSON-5 syntax.
-	 *
-	 * @return this for fluent API
-	 */
-	public static JsonEncoder toJson5() {
-		return JsonEncoder.encoder()
-				.toJson5();
-	}
+    /**
+     * Pretty prints the encoded json string by writing each item on a separate line and
+     * indenting it with the given {@code indent}.
+     * <p>
+     * A value of {@code null} will encode into a one line string
+     * </p>
+     *
+     * @param indent default is no indentation
+     * @return this for fluent API
+     */
+    public static JsonEncoder prettyPrint(String indent) {
+        return JsonEncoder.encoder()
+                .prettyPrint(indent);
+    }
 
-	/**
-	 * Encodes values from objects having a value of {@code null} instead of skipping them.
-	 *
-	 * @return this for fluent API
-	 */
-	public static JsonEncoder withNulls() {
-		return JsonEncoder.encoder()
-				.withNulls();
-	}
+    /**
+     * Encodes to JSON-5 syntax.
+     *
+     * @return this for fluent API
+     */
+    public static JsonEncoder toJson5() {
+        return JsonEncoder.encoder()
+                .toJson5();
+    }
+
+    /**
+     * Encodes values from objects having a value of {@code null} instead of skipping them.
+     *
+     * @return this for fluent API
+     */
+    public static JsonEncoder withNulls() {
+        return JsonEncoder.encoder()
+                .withNulls();
+    }
 }
