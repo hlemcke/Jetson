@@ -9,10 +9,7 @@ import com.djarjo.jetson.converter.JsonConverter;
 import com.djarjo.text.*;
 import com.google.common.flogger.FluentLogger;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.text.ParseException;
 import java.util.*;
 import java.util.logging.Level;
@@ -32,6 +29,7 @@ public class JsonDecoder {
     public final static String METHOD_FROM_JSON = "fromJson";
     private final static FluentLogger logger = FluentLogger.forEnclosingClass();
 
+    private Class<?> _genericType = null;
     private Set<String> _keysToSkip = null;
     private Level _logLevel4MissingAttribute = Level.OFF;
     private boolean _mergeCollections = false;
@@ -100,8 +98,8 @@ public class JsonDecoder {
      * @throws IllegalAccessException if a decoded value cannot be set
      * @throws ParseException         in case of an error in the JSON string
      */
-    public Object decodeIntoObject(String json,
-                                   Object target) throws ParseException, IllegalAccessException {
+    public Object decodeIntoObject(String json, Object target)
+            throws ParseException, IllegalAccessException {
         if (json == null || json.isBlank()) {
             return null;
         }
@@ -116,6 +114,15 @@ public class JsonDecoder {
             if (result != null) return result;
         }
         return _decodeJsonValue(target, null);
+    }
+
+    /**
+     * Entry point for decoding with a specific generic type for T.
+     */
+    public Object decodeIntoObject(String json, Object target, Class<?> genericType)
+            throws ParseException, IllegalAccessException {
+        this._genericType = genericType;
+        return decodeIntoObject(json, target);
     }
 
     /**
@@ -256,8 +263,13 @@ public class JsonDecoder {
 
         // --- New target if none given
         if (target == null) {
-            target = (targetType == null) ? new HashMap<>() : ReflectionHelper.createInstance(
-                    targetType);
+            if ((targetType instanceof TypeVariable) && (_genericType != null)) {
+                target = ReflectionHelper.createInstance(_genericType);
+            } else if (targetType == null) {
+                target = new HashMap<>();
+            } else {
+                target = ReflectionHelper.createInstance(targetType);
+            }
         }
 
         // --- Loop through JSON object until "}"
@@ -308,6 +320,12 @@ public class JsonDecoder {
      */
     private Object _decodeJsonValue(Object target, Type targetType)
             throws IllegalAccessException, ParseException {
+
+        //--- Resolve the type if it's a generic placeholder
+        if ((targetType instanceof TypeVariable) && (_genericType != null)) {
+            targetType = _genericType;
+        }
+
         Token token = _tokenizer.getToken();
 
         //--- 1. Check Class-level @Json annotation (including records)

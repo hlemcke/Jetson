@@ -1,3 +1,7 @@
+## 2.3.4
+
+* added decodeIntoObject with generic
+
 ## 2.3.3
 
 * fixed decoding JSON string into a record using static method `toJson()`
