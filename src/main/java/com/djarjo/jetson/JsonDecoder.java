@@ -119,7 +119,7 @@ public class JsonDecoder {
     /**
      * Entry point for decoding with a specific generic type for T.
      */
-    public Object decodeIntoObject(String json, Object target, Class<?> genericType)
+    public Object decodeIntoObjectWithGeneric(String json, Object target, Class<?> genericType)
             throws ParseException, IllegalAccessException {
         this._genericType = genericType;
         return decodeIntoObject(json, target);

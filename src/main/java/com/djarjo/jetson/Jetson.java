@@ -86,9 +86,9 @@ public class Jetson {
      *                                object
      * @throws ParseException         in case of an error in the JSON string
      */
-    public static Object decodeIntoObject(String json, Object target, Class<?> genericType)
+    public static Object decodeIntoObjectWithGeneric(String json, Object target, Class<?> genericType)
             throws ParseException, IllegalAccessException {
-        return new JsonDecoder().decodeIntoObject(json, target, genericType);
+        return new JsonDecoder().decodeIntoObjectWithGeneric(json, target, genericType);
     }
 
     /**

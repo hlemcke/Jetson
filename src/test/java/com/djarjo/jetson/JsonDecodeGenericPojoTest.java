@@ -43,7 +43,7 @@ public class JsonDecodeGenericPojoTest {
         ValueDTO<Pojo> target = new ValueDTO<>();
         @SuppressWarnings("unchecked")
         ValueDTO<Pojo> dto = (ValueDTO<Pojo>)
-                new JsonDecoder().decodeIntoObject(json, target, Pojo.class);
+                new JsonDecoder().decodeIntoObjectWithGeneric(json, target, Pojo.class);
 
         //--- then
         assertNotNull(dto);
@@ -90,7 +90,7 @@ public class JsonDecodeGenericPojoTest {
         ValueListDTO<Pojo> target = new ValueListDTO<>();
         @SuppressWarnings("unchecked")
         ValueListDTO<Pojo> dto = (ValueListDTO<Pojo>)
-                new JsonDecoder().decodeIntoObject(json, target, Pojo.class);
+                new JsonDecoder().decodeIntoObjectWithGeneric(json, target, Pojo.class);
 
         //--- then
         assertNotNull(dto);
