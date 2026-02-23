@@ -1,3 +1,7 @@
+## 2.3.4+2
+
+* Added toInstant() to list of base converters
+
 ## 2.3.4+1
 
 * Fixed problem parsing times now correctly sets nanos
