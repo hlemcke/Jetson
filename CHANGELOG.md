@@ -1,3 +1,7 @@
+## 2.3.4+1
+
+* Fixed problem parsing times now correctly sets nanos
+
 ## 2.3.4
 
 * added decodeIntoObject with generic

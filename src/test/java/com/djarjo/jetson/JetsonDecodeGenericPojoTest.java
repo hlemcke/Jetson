@@ -8,7 +8,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class JsonDecodeGenericPojoTest {
+public class JetsonDecodeGenericPojoTest {
 
     @Test
     @DisplayName("Decode json into ValueDTO<String>")

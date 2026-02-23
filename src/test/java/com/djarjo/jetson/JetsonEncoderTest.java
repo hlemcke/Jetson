@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author Hajo Lemcke
  */
-class JsonEncoderTest {
+class JetsonEncoderTest {
 
     /**
      * Test method for {@link com.djarjo.jetson.JsonEncoder#isEmpty(java.lang.Object)}.
