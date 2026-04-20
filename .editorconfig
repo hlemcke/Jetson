@@ -1,12 +1,12 @@
 [*]
 charset = utf-8
 end_of_line = crlf
-indent_size = 4
+indent_size = 2
 indent_style = space
 insert_final_newline = false
-max_line_length = 120
-tab_width = 4
-ij_continuation_indent_size = 8
+max_line_length = 100
+tab_width = 2
+ij_continuation_indent_size = 4
 ij_formatter_off_tag = @formatter:off
 ij_formatter_on_tag = @formatter:on
 ij_formatter_tags_enabled = true
@@ -22,7 +22,7 @@ ij_declarative_keep_indents_on_empty_lines = false
 
 [*.java]
 indent_size = 2
-indent_style = tab
+indent_style = space
 max_line_length = 90
 tab_width = 2
 ij_continuation_indent_size = 4
@@ -71,6 +71,7 @@ ij_java_blank_lines_around_initializer = 1
 ij_java_blank_lines_around_method = 1
 ij_java_blank_lines_around_method_in_interface = 1
 ij_java_blank_lines_before_class_end = 0
+ij_java_blank_lines_before_declaration_with_annotation = 1
 ij_java_blank_lines_before_imports = 1
 ij_java_blank_lines_before_method_body = 0
 ij_java_blank_lines_before_package = 0
@@ -242,7 +243,7 @@ ij_java_spaces_around_additive_operators = true
 ij_java_spaces_around_annotation_eq = true
 ij_java_spaces_around_assignment_operators = true
 ij_java_spaces_around_bitwise_operators = true
-ij_java_spaces_around_equality_operators = false
+ij_java_spaces_around_equality_operators = true
 ij_java_spaces_around_lambda_arrow = true
 ij_java_spaces_around_logical_operators = true
 ij_java_spaces_around_method_ref_dbl_colon = false
