@@ -25,8 +25,9 @@ For encoding to JSON additional features can be applied:
 
 * .bytesToList() → encodes `byte[]` to a JSON list instead of a string in Base64 format
 * .prettyPrint() → encodes to a pretty printed JSON string with indented entries
-* .toJson5() → encodes to better human-readable JSON5 format
-* .withNulls() → also encode null values instead of skipping them
+* .toJson5() → encodes to better human-readable JSON5 format. Decoding automatically detects the
+  JSON format and handles it.
+* .withNulls() → also encode `null` values instead of skipping them
 
 ## Example
 
@@ -55,7 +56,7 @@ Using `String json = Jetson.encode( new Pojo())` produces the following JSON tex
 {"code":4711,"key":"abc"}
 ```
 
-The text does not contain field `id`, because it is transient. 
+The text does not contain field `id`, because it is transient.
 
 And the best thing is ... a JSON text can be decoded directly back into an object.
 `Jetson.decodeIntoObject( "{'key':'def'}", new Pojo());` delivers:
@@ -71,13 +72,13 @@ Pojo
 
 The annotation `@Json` accepts these attributes:
 
-* `converter` → expects a class implementing `JsonConverter`. Encoding and decoding will use the converter.
+* `converter` → expects a class implementing `JsonConverter`. Encoding and decoding will use the
+  converter.
 * `decode` → specifies decoding to `NEVER`, `ONLY_IF_EMPTY` or the default `ALWAYS`
 * `encode` → specifies encoding to `ALWAYS`, `NEVER` or the default `ONLY_IF_NOT_EMPTY`
 * `enumAccessor` → uses value from accessor (see below)
 * `name` → replaces field name
 * `mergeCollection` → `true` (default is `false`) will append decoding list entries to existing ones
-
 
 ## JSON Annotation - on Class
 

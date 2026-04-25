@@ -1,3 +1,7 @@
+## 2.3.4+3
+
+* Added toURI() to list of base converters
+
 ## 2.3.4+2
 
 * Added toInstant() to list of base converters
@@ -32,7 +36,8 @@
 
 ## 2.2.0
 
-* removed attributes from `@Json`: _decodable_ and _encodable_. Use __decode__ and __encode__ instead
+* removed attributes from `@Json`: _decodable_ and _encodable_. Use __decode__ and __encode__
+  instead
 * Added internal `JsonAccessor` for any annotation on class, method or field
 * Added internal `JsonCache` to cache classes already scanned for JSON annotations
 
@@ -52,7 +57,8 @@
 ## 2.1.1
 
 * Fixed bug to automatically decode a Base64 string into `byte[]`
-* Re-inserted Base64 which automatically decodes a string either being in URL-safe or standard format
+* Re-inserted Base64 which automatically decodes a string either being in URL-safe or standard
+  format
 
 ## 2.1.0
 
@@ -68,10 +74,13 @@
 
 ## 2.0.0
 
-* Classes can now be annotated with @Json to encode all members. Class level annotation uses accessType to distinguish
+* Classes can now be annotated with @Json to encode all members. Class level annotation uses
+  accessType to distinguish
   between fields and properties
-* New annotation @JsonTransient to be used on fields and properties to suppress decoding and encoding
-* Added method `decodeToList( String, Class)` to support decoding lists outside of pojos (which have no generic)
+* New annotation @JsonTransient to be used on fields and properties to suppress decoding and
+  encoding
+* Added method `decodeToList( String, Class)` to support decoding lists outside of pojos (which have
+  no generic)
 
 ## 1.1.0
 
