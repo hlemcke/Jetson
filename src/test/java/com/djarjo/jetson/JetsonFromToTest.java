@@ -321,6 +321,8 @@ public class JetsonFromToTest {
 
   @Json(accessType = Json.AccessType.FIELD)
   public class Pojo2 {
+    public static String notEncoded = "invisible";
+    
     public SIValue weight;
   }
 

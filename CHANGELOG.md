@@ -1,3 +1,7 @@
+## 2.3.4+4
+
+* Fixed JSON encoder to skip static fields if class is annotated
+
 ## 2.3.4+3
 
 * Added toURI() to list of base converters
