@@ -1,3 +1,13 @@
+## 2.4.0
+
+* Enumerations can now be directly annotated on class level
+* JSON encoder now encodes `null` and empty values by default. This can be changed by calling
+
+```dart
+
+String json = JsonEncoder.encoder().skipEmpty().skipNull().encode(object);
+``` 
+
 ## 2.3.4+4
 
 * Fixed JSON encoder to skip static fields if class is annotated

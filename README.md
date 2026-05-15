@@ -5,7 +5,7 @@ JSON codec designed similar to JPA.
 Jetson encodes and decodes all basic values, lists, sets, maps and all your classes.
 
 The decoder automatically decodes both JSON and JSON5.
-To encode JSON5 use `Jetson.encoder().toJson5().encode( myObject )`.
+To encode to JSON5 use `Jetson.toJson5().encode( myObject )`.
 
 This package also includes:
 
@@ -23,11 +23,12 @@ which can be applied on class, fields or getters.
 
 For encoding to JSON additional features can be applied:
 
-* .bytesToList() → encodes `byte[]` to a JSON list instead of a string in Base64 format
+* .bytesToList() → encodes `byte[]` to a JSON list of ints instead of a string in Base64 format
 * .prettyPrint() → encodes to a pretty printed JSON string with indented entries
+* .skipEmpty() → skips empty values instead of encoding them
+* .skipNull() → skips `null` values instead of encoding them
 * .toJson5() → encodes to better human-readable JSON5 format. Decoding automatically detects the
   JSON format and handles it.
-* .withNulls() → also encode `null` values instead of skipping them
 
 ## Example
 
@@ -72,10 +73,10 @@ Pojo
 
 The annotation `@Json` accepts these attributes:
 
-* `converter` → expects a class implementing `JsonConverter`. Encoding and decoding will use the
-  converter.
-* `decode` → specifies decoding to `NEVER`, `ONLY_IF_EMPTY` or the default `ALWAYS`
-* `encode` → specifies encoding to `ALWAYS`, `NEVER` or the default `ONLY_IF_NOT_EMPTY`
+* `converter` → expects a class implementing `JsonConverter` used for encoding and decoding.
+* `decode` → specifies decoding to `NEVER`, `ONLY_IF_EMPTY`, `ONLY_IF_NULL` or the default `ALWAYS`
+* `encode` → specifies encoding to `NEVER`, `ONLY_IF_NOT_EMPTY`, `ONLY_IF_NOT_NULL` or the default
+  `ALWAYS`
 * `enumAccessor` → uses value from accessor (see below)
 * `name` → replaces field name
 * `mergeCollection` → `true` (default is `false`) will append decoding list entries to existing ones
@@ -83,14 +84,9 @@ The annotation `@Json` accepts these attributes:
 ## JSON Annotation - on Class
 
 Annotation `@Json` can also be applied on class level.
-The class level annotation specifies these attributes:
+The class level annotation add or modifies these attributes based on standard ones:
 
 * `accessType` → specify `FIELD` to use fields or the default `PROPERTY`
-* `converter` → encodes to a string and must create an object of this class from JSON string
-* `decode` → will apply its value to all fields or properties.
-  The value can be modified on each field or property by an individual `@Json` annotation
-* `encode` → will apply its value to all fields or properties
-  The value can be modified on each field or property by an individual `@Json` annotation
 * `enumAccessor` → unused
 * `name` → unused
 * `mergeCollection` → unused

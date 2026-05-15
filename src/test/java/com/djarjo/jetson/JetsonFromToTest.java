@@ -19,7 +19,7 @@ public class JetsonFromToTest {
     Pojo pojo = new Pojo();
 
     //--- when
-    String json = Jetson.encode( pojo );
+    String json = Jetson.skipNull().encode( pojo );
 
     //--- then
     assertNotNull( json );
@@ -35,7 +35,7 @@ public class JetsonFromToTest {
     pojo.furies.add( new Furi() );
 
     //--- when
-    String json = Jetson.encode( pojo );
+    String json = Jetson.skipNull().encode( pojo );
 
     //--- then
     assertNotNull( json );
@@ -56,7 +56,7 @@ public class JetsonFromToTest {
     pojo.furies.add( furi2 );
 
     //--- when
-    String json = Jetson.encode( pojo );
+    String json = Jetson.skipNull().encode( pojo );
 
     //--- then
     assertNotNull( json );
@@ -74,7 +74,7 @@ public class JetsonFromToTest {
     pojo.duriSet.add( new Duri( scheme, system ) );
 
     //--- when
-    String json = Jetson.encode( pojo );
+    String json = Jetson.skipNull().encode( pojo );
 
     //--- then
     assertNotNull( json );
@@ -223,6 +223,23 @@ public class JetsonFromToTest {
   }
 
   @Test
+  void testFromPojoWithEmpties() throws ParseException, IllegalAccessException {
+    //--- given
+    String expected = """
+        {"fruit":null,"furies":[],"duriSet":[]}""";
+    Pojo pojo = new Pojo();
+    pojo.fruit = null;
+    pojo.furies = List.of();
+    pojo.duriSet = Set.of();
+
+    //--- when
+    String json = Jetson.encode( pojo );
+
+    //--- then
+    assertEquals( expected, json );
+  }
+
+  @Test
   void testFromJsonToPojoWithRecords() throws ParseException, IllegalAccessException {
     //--- given
     String json = "{\"duri\":\"scm0:sys0\",\"duriSet\":[\"scm1:sys1\",\"scm2:sys2\"]}";
@@ -233,6 +250,24 @@ public class JetsonFromToTest {
 
     //--- then
     assertEquals( new Duri( "scm0", "sys0" ), pojo.duri );
+  }
+
+  @Test
+  void testToPojoWithEmpties() throws ParseException, IllegalAccessException {
+    //--- given
+    String json = """
+        {"fruit":null,"furies":[],"duriSet":{}}""";
+
+    //--- when
+    Pojo pojo = new Pojo();
+    Jetson.decodeIntoObject( json, pojo );
+
+    //--- then
+    assertNull( pojo.fruit );
+    assertNotNull( pojo.furies );
+    assertEquals( 0, pojo.furies.size() );
+    assertNotNull( pojo.duriSet );
+    assertEquals( 0, pojo.duriSet.size() );
   }
 
   public enum SIUnit {
@@ -322,7 +357,7 @@ public class JetsonFromToTest {
   @Json(accessType = Json.AccessType.FIELD)
   public class Pojo2 {
     public static String notEncoded = "invisible";
-    
+
     public SIValue weight;
   }
 

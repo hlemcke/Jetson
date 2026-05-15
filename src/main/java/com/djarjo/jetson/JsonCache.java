@@ -12,7 +12,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Caches classes with their JSON accessors
+ * Caches classes with their JSON accessors.
+ *
+ * <p>
+ * If a class has no accessors, then it will still be put into the cache with an empty
+ * list of accessors. This keeps the system from reparsing the class multiple times.
+ * </p>
  */
 class JsonCache {
   private final static Map<Class<?>, List<JsonAccessor>> _cache = new HashMap<>();
@@ -67,24 +72,52 @@ class JsonCache {
   public static List<JsonAccessor> getAccessors( Class<?> clazz ) {
     List<JsonAccessor> accessors = _cache.get( clazz );
     if ( accessors == null ) {
-      accessors = obtainAllJsonAccessors( clazz );
+      accessors = _obtainAllJsonAccessors( clazz );
       _cache.put( clazz, accessors );
     }
-    return _cache.get( clazz );
+    return accessors;
   }
 
   public static void put( Class<?> clazz, List<JsonAccessor> accessors ) {
     _cache.put( clazz, accessors );
   }
 
-  public static List<JsonAccessor> obtainAllJsonAccessors( Class<?> clazz ) {
+  private static JsonAccessor _createAccessor( Class<?> clazz, Json jsonAnnoAtClass,
+      Field field, boolean allMembers, boolean accessFields ) {
+    JsonConfig config;
+    Json annoJson = field.getAnnotation( Json.class );
+    if ( annoJson != null ) {
+      config = JsonConfig.fromAnnotation( annoJson );
+    } else if ( field.isAnnotationPresent( JsonTransient.class ) ) {
+      return null;
+    } else if ( allMembers && accessFields ) {
+      config = (jsonAnnoAtClass == null) ? JsonConfig.DEFAULT :
+          JsonConfig.fromAnnotation( jsonAnnoAtClass );
+    } else return null;
+    return new JsonAccessor( clazz, config, field, null, null );
+  }
+
+  private static JsonAccessor _createAccessor( Class<?> clazz, Json jsonAnnoAtClass,
+      Method method, boolean allMembers, boolean accessFields ) {
+    JsonConfig config;
+    Json annoJson = method.getAnnotation( Json.class );
+    if ( annoJson != null ) {
+      config = JsonConfig.fromAnnotation( annoJson );
+    } else if ( method.isAnnotationPresent( JsonTransient.class ) ) {
+      return null;
+    } else if ( allMembers && !accessFields && ReflectionHelper.isGetter( method ) &&
+        !clazz.equals( Object.class ) ) {
+      config = (jsonAnnoAtClass == null) ? JsonConfig.DEFAULT :
+          JsonConfig.fromAnnotation( jsonAnnoAtClass );
+    } else return null;
+    Method setter = ReflectionHelper.obtainSetterFromMethod( clazz, method );
+    return new JsonAccessor( clazz, config, null, method, setter );
+  }
+
+  private static List<JsonAccessor> _obtainAllJsonAccessors( Class<?> clazz ) {
     boolean accessFields = false;
     boolean allMembers = false;
-    List<JsonAccessor> accessors = _cache.get( clazz );
-    if ( accessors != null ) return accessors;
-
-    //--- Not yet in cache => obtain all accessors
-    accessors = new ArrayList<>();
+    List<JsonAccessor> accessors = new ArrayList<>();
     Json jsonAnnoAtClass = clazz.getAnnotation( Json.class );
 
     //--- Class level annotation
@@ -128,40 +161,6 @@ class JsonCache {
         accessors.add( accessor );
       }
     }
-
-    _cache.put( clazz, accessors );
     return accessors;
-  }
-
-  private static JsonAccessor _createAccessor( Class<?> clazz, Json jsonAnnoAtClass,
-      Field field, boolean allMembers, boolean accessFields ) {
-    JsonConfig config;
-    Json annoJson = field.getAnnotation( Json.class );
-    if ( annoJson != null ) {
-      config = JsonConfig.fromAnnotation( annoJson );
-    } else if ( field.isAnnotationPresent( JsonTransient.class ) ) {
-      return null;
-    } else if ( allMembers && accessFields ) {
-      config = (jsonAnnoAtClass == null) ? JsonConfig.DEFAULT :
-          JsonConfig.fromAnnotation( jsonAnnoAtClass );
-    } else return null;
-    return new JsonAccessor( clazz, config, field, null, null );
-  }
-
-  private static JsonAccessor _createAccessor( Class<?> clazz, Json jsonAnnoAtClass,
-      Method method, boolean allMembers, boolean accessFields ) {
-    JsonConfig config;
-    Json annoJson = method.getAnnotation( Json.class );
-    if ( annoJson != null ) {
-      config = JsonConfig.fromAnnotation( annoJson );
-    } else if ( method.isAnnotationPresent( JsonTransient.class ) ) {
-      return null;
-    } else if ( allMembers && !accessFields && ReflectionHelper.isGetter( method ) &&
-        !clazz.equals( Object.class ) ) {
-      config = (jsonAnnoAtClass == null) ? JsonConfig.DEFAULT :
-          JsonConfig.fromAnnotation( jsonAnnoAtClass );
-    } else return null;
-    Method setter = ReflectionHelper.obtainSetterFromMethod( clazz, method );
-    return new JsonAccessor( clazz, config, null, method, setter );
   }
 }

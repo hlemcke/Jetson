@@ -2,7 +2,6 @@ package com.djarjo.jetson;
 
 import com.djarjo.jetson.converter.JsonConverter;
 import com.djarjo.text.TextHelper;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +10,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Disabled
 @DisplayName("Enum is annotated and used in Pojo")
 public class JetsonEnumAnnotatedTest {
 
