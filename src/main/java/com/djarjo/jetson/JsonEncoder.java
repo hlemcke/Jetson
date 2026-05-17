@@ -364,10 +364,46 @@ public class JsonEncoder {
    * @return string enclosed in quotes
    */
   private String _encodeString( String str ) {
-    if ( _toJson5 ) return "'" + str + "'";
-    str = str.replace( "\\", "\\\\" );
-    str = str.replace( "\"", "\\\"" );
-    return "\"" + str + "\"";
+    StringBuilder builder = new StringBuilder();
+    for ( int i = 0; i < str.length(); i++ ) {
+      char c = str.charAt( i );
+      switch ( c ) {
+        case '"':
+          builder.append( _toJson5 ? "\"" : "\\\"" );
+          break;
+        case '\\':
+          builder.append( "\\\\" );
+          break;
+        case '\b':
+          builder.append( "\\b" );
+          break;
+        case '\f':
+          builder.append( "\\f" );
+          break;
+        case '\n':
+          builder.append( "\\n" );
+          break;
+        case '\r':
+          builder.append( "\\r" );
+          break;
+        case '\t':
+          builder.append( "\\t" );
+          break;
+        default:
+          if ( c < 0x20 ) {
+            builder.append( "\\u00" );
+            String hex = Integer.toHexString( c );
+            if ( hex.length() == 1 ) {
+              builder.append( '0' );
+            }
+            builder.append( hex );
+          } else {
+            builder.append( c );
+          }
+      }
+    }
+    String s = builder.toString();
+    return _toJson5 ? "'" + s + "'" : "\"" + s + "\"";
   }
 
   private String _encodeValueIndented( Object value ) {
@@ -411,17 +447,16 @@ public class JsonEncoder {
     // --- Encode value objects
     if ( (value instanceof BigDecimal) || (value instanceof Character)
         || (value instanceof Currency) || (value instanceof Duration)
-        || (value instanceof Instant)
-        || (value instanceof LocalDate) || (value instanceof LocalTime)
-        || (value instanceof LocalDateTime) || (value instanceof Locale)
-        || (value instanceof OffsetDateTime) || (value instanceof Period)
-        || (value instanceof String) || (value instanceof UUID)
-        || (value instanceof URI) || (value instanceof URL)
-        || (value instanceof ZonedDateTime) ) {
+        || (value instanceof Instant) || (value instanceof LocalDate)
+        || (value instanceof LocalTime) || (value instanceof LocalDateTime)
+        || (value instanceof Locale) || (value instanceof OffsetDateTime)
+        || (value instanceof Period) || (value instanceof String)
+        || (value instanceof UUID) || (value instanceof URI)
+        || (value instanceof URL) || (value instanceof ZonedDateTime) ) {
       return _encodeString( value.toString() );
     }
 
-    //--- Encode enum
+    //--- Special handling for enums
     if ( value instanceof Enum e ) {
       return _encodeEnum( e );
     }

@@ -1,3 +1,7 @@
+## 2.4.0+1
+
+* Fixed bug in character escaping. Now fully conform to RFC 8259
+
 ## 2.4.0
 
 * Enumerations can now be directly annotated on class level

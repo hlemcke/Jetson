@@ -383,9 +383,9 @@ public class JsonDecoder {
 
   private Object _decodeJsonWord( Token token ) throws ParseException {
     String name = token.value;
-    if ( name.equalsIgnoreCase( "false" ) ) return Boolean.FALSE;
-    if ( name.equalsIgnoreCase( "null" ) ) return null;
-    if ( name.equalsIgnoreCase( "true" ) ) return Boolean.TRUE;
+    if ( "false".equals( name.toLowerCase() ) ) return Boolean.FALSE;
+    if ( "null".equals( name.toLowerCase() ) ) return null;
+    if ( "true".equals( name.toLowerCase() ) ) return Boolean.TRUE;
     String s = _makeErrorInfo( "Unknown value: '" + name + "'" );
     throw new ParseException( s, _tokenizer.getPosition() );
   }

@@ -51,7 +51,7 @@ class Jetson5Test {
         unquoted: 'and you can quote me on that',
         singleQuotes: 'I can use "double quotes" here',
         lineBreaks: "Look, Mom! \
-      No \\n's!",
+      No \\\\n's!",
         hexadecimal: 0xdecaf,
         leadingDecimalPoint: 0.8675309, andTrailing: 8675309.,
         positiveSign: +1,
@@ -106,7 +106,7 @@ class Jetson5Test {
     assertEquals( 10, map.size() );
     assertEquals( "and you can quote me on that", map.get( "unquoted" ) );
     assertEquals( "I can use \"double quotes\" here", map.get( "singleQuotes" ) );
-    assertEquals( "Look, Mom! No n's!", map.get( "lineBreaks" ) );
+    assertEquals( "Look, Mom! No \\n's!", map.get( "lineBreaks" ) );
     // TODO correct assertEquals
     // assertEquals( 0xdecaf, map.get( "hexadecimal" ) );
     assertEquals( 0.8675309, map.get( "leadingDecimalPoint" ) );
