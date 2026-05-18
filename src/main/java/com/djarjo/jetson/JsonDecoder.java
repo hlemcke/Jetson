@@ -479,28 +479,13 @@ public class JsonDecoder {
   }
 
   /**
-   * Advance tokenizer to end of JSON collection: "]"
-   */
-  private void _skipCollection() {
-    _tokenizer.clipUntilSymbol( Symbol.RIGHT_BRACKET );
-  }
-
-  /**
-   * Advance tokenizer to end of json map: "}"
-   */
-  private void _skipMap() {
-    _tokenizer.clipUntilSymbol( Symbol.RIGHT_BRACE );
-  }
-
-  /**
    * Skips the current JSON value without using it
    */
   private void _skipValue() {
     Token token = _tokenizer.getToken();
-    if ( token.symbol == Symbol.LEFT_BRACKET ) {
-      _skipCollection();
-    } else if ( token.symbol == Symbol.LEFT_BRACE ) {
-      _skipMap();
+    if ( (token.symbol == Symbol.LEFT_BRACKET) ||
+        (token.symbol == Symbol.LEFT_BRACE) ) {
+      _tokenizer.clipUntilMatching();
     }
   }
 }

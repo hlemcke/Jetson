@@ -41,14 +41,12 @@ public class JetsonEnumAnnotatedTest {
     }
 
     public static SomeEnum find( String text ) {
-      System.out.println( "find( " + text + ")" );
       return TextHelper.findEnum( text, SomeEnum.class, SomeEnum.UNKNOWN, "code" );
     }
 
     public static class Converter4json implements JsonConverter<SomeEnum> {
       @Override
       public String encodeToJson( SomeEnum attribute ) {
-        System.out.println( "encodeToJson( " + attribute + ")" );
         return (attribute == null) ? null : "" + attribute.code;
       }
 
