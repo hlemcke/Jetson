@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class DecodeMissingFields {
+public class DecodeMissingFieldsTest {
   @Test
   void decodeFieldsNotInPojo() throws ParseException, IllegalAccessException {
     //--- given

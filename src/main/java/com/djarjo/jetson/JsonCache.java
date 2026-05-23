@@ -6,10 +6,7 @@ import com.djarjo.jetson.converter.JsonConverter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Caches classes with their JSON accessors.
@@ -161,6 +158,7 @@ class JsonCache {
         accessors.add( accessor );
       }
     }
+    accessors.sort( Comparator.comparing( a -> a.getJsonName() ) );
     return accessors;
   }
 }

@@ -1,3 +1,9 @@
+## 2.4.1
+
+* Keys from maps and pojos are now sorted before encoding to ease testing and debugging
+* added method `toJson5Compact()` to encode to JSON-5 but in compact form: no line-breaks, no
+  spaces, one single line
+
 ## 2.4.0+2
 
 * Fixed a bug during decoding a JSON string into an object if there is no field for the key

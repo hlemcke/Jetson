@@ -157,19 +157,6 @@ public class JsonEncoder {
   }
 
   /**
-   * Encode to <a href="https://json5.org">JSON 5</a>
-   *
-   * @return this for fluent API
-   */
-  public JsonEncoder toJson5() {
-    _toJson5 = true;
-    if ( _indent == null ) {
-      prettyPrint( "  " );
-    }
-    return this;
-  }
-
-  /**
    * Skip members of an object which are empty instead of including them.
    *
    * @return encoder for streaming API
@@ -186,6 +173,31 @@ public class JsonEncoder {
    */
   public JsonEncoder skipNull() {
     _skipNull = true;
+    return this;
+  }
+
+  /**
+   * Encode to <a href="https://json5.org">JSON 5</a>
+   *
+   * @return this for fluent API
+   */
+  public JsonEncoder toJson5() {
+    _toJson5 = true;
+    if ( _indent == null ) {
+      prettyPrint( "  " );
+    }
+    return this;
+  }
+
+  /**
+   * Encodes to <a href="https://json5.org">JSON 5</a> but into a single line without spaces
+   *
+   * @return this for fluent API
+   */
+  public JsonEncoder toJson5Compact() {
+    _indent = null;
+    _prettyPrint = false;
+    _toJson5 = true;
     return this;
   }
 
@@ -293,7 +305,7 @@ public class JsonEncoder {
       builder.append( "\n" );
       builder.append( _indentation[_stack.size()] );
     }
-    builder.append( _toJson5 ? key + ": " : "\"" + key + "\":" );
+    builder.append( _toJson5 ? key + (_prettyPrint ? ": " : ":") : "\"" + key + "\":" );
     builder.append( value );
   }
 
@@ -302,14 +314,14 @@ public class JsonEncoder {
    */
   private String _encodeMap( Map<Object, Object> map ) {
     StringBuilder jsonStringBuilder = new StringBuilder();
-    Iterator<Map.Entry<Object, Object>> iter = map.entrySet()
-        .iterator();
-    Map.Entry<Object, Object> entry;
-    while ( iter.hasNext() ) {
-      entry = iter.next();
-      _encodeKeyValue( jsonStringBuilder, entry.getKey()
-          .toString(), _encodeValue( entry.getValue() ) );
-    }
+    map.entrySet().stream()
+        .sorted( Map.Entry.comparingByKey(
+            Comparator.comparing( Object::toString ) ) )
+        .forEach( e -> _encodeKeyValue(
+            jsonStringBuilder,
+            e.getKey().toString(),
+            _encodeValue( e.getValue() )
+        ) );
     return "{" + _stripLeadingComma( jsonStringBuilder ) + "}";
   }
 

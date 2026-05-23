@@ -123,10 +123,12 @@ class Jetson5Test {
   @Order(10)
   @Test
   void testJson5Encode() {
-    String expected =
-        "{\n  unquoted: 'and you can quote me on that',\n  singleQuotes: " + "'I can " +
-            "use" + " " + "\"double quotes\" here',\n  trailingComma: 'in " + "objects" +
-            "'\n}";
+    String expected = """
+        {
+          singleQuotes: 'I can use "double quotes" here',
+          trailingComma: 'in objects',
+          unquoted: 'and you can quote me on that'
+        }""";
     String encoded = Jetson.toJson5().skipNull()
         .encode( new Json5Entity() );
     assertEquals( expected, encoded );

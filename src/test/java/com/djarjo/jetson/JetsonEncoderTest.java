@@ -62,7 +62,7 @@ class JetsonEncoderTest {
     String json = JsonEncoder.encoder().encode( map );
 
     //--- then
-    assertEquals( "{\"key\":\"value\",\"empty\":null}", json );
+    assertEquals( "{\"empty\":null,\"key\":\"value\"}", json );
   }
 
   @Test

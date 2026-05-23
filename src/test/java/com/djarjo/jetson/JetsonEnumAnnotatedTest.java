@@ -20,7 +20,7 @@ public class JetsonEnumAnnotatedTest {
     pojo.enumList.add( SomeEnum.ENTRY7 );
     pojo.enumList.add( SomeEnum.ENTRY23 );
     String expected = """
-        {"someEnum":-1,"enumList":[7,23]}""";
+        {"enumList":[7,23],"someEnum":-1}""";
 
     //--- when
     String json = Jetson.encode( pojo );

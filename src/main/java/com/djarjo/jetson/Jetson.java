@@ -195,7 +195,7 @@ public class Jetson {
     try {
       return (annotatedConverter == JsonConverter.class) ? null :
           annotatedConverter.getDeclaredConstructor()
-          .newInstance();
+              .newInstance();
     } catch ( IllegalAccessException | InstantiationException |
               InvocationTargetException | NoSuchMethodException e ) {
       throw new JsonParseException(
@@ -226,6 +226,15 @@ public class Jetson {
    */
   public static JsonEncoder toJson5() {
     return JsonEncoder.encoder().toJson5();
+  }
+
+  /**
+   * Encodes to <a href="https://json5.org">JSON 5</a> but into a single line without spaces
+   *
+   * @return JsonEncoder
+   */
+  public static JsonEncoder toJson5Compact() {
+    return JsonEncoder.encoder().toJson5Compact();
   }
 
   /**

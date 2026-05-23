@@ -32,6 +32,9 @@ public class BeanHelper {
   private static final Comparator<Method> methodNameComparator =
       Comparator.comparing( Method::getName );
 
+  /// Local cache of members per class
+  private static final Map<Class<?>, List<MemberAccessor>> _classMembers = new HashMap<>();
+
   /**
    * Useless public constructor implemented for Javadoc only
    */
@@ -417,23 +420,24 @@ public class BeanHelper {
    * The property must have the same name as the key of an entry from the map.
    * </p>
    *
-   * @param bean will be populated from the map
-   * @param accessors Use {@code null} to obtain them here
    * @param map keys must have property names
+   * @param bean will be populated from the map
    * @throws IllegalAccessException if access to field or setter is prohibited
    * @throws IllegalArgumentException if value has incorrect type
    */
-  public static void populate( Object bean, List<MemberAccessor> accessors,
-      Map<String, Object> map )
+  public static void populate( Object bean, Map<String, Object> map )
       throws IllegalAccessException, IllegalArgumentException {
     logger.atFiner().log( bean + ", " + map );
-    if ( accessors == null || accessors.isEmpty() ) {
+    List<MemberAccessor> accessors = _classMembers.get( bean.getClass() );
+    if ( accessors == null ) {
       accessors = getAccessors( bean.getClass() );
     }
+    if ( accessors.isEmpty() ) return;
 
     // --- Loop through accessors
     for ( MemberAccessor accessor : accessors ) {
       if ( map.containsKey( accessor.getName() ) ) {
+        //--- Check type of target
         accessor.setValue( bean, map.get( accessor.getName() ) );
       }
     }

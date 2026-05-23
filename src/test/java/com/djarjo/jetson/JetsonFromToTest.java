@@ -78,7 +78,7 @@ public class JetsonFromToTest {
 
     //--- then
     assertNotNull( json );
-    assertEquals( String.format( "{\"fruit\":\"Apple\",\"duriSet\":[\"%s:%s\"]}", scheme
+    assertEquals( String.format( "{\"duriSet\":[\"%s:%s\"],\"fruit\":\"Apple\"}", scheme
         , system ), json );
   }
 
@@ -226,7 +226,7 @@ public class JetsonFromToTest {
   void testFromPojoWithEmpties() throws ParseException, IllegalAccessException {
     //--- given
     String expected = """
-        {"fruit":null,"furies":[],"duriSet":[]}""";
+        {"duriSet":[],"fruit":null,"furies":[]}""";
     Pojo pojo = new Pojo();
     pojo.fruit = null;
     pojo.furies = List.of();
