@@ -134,6 +134,22 @@ class Jetson5Test {
     assertEquals( expected, encoded );
   }
 
+  @Test
+  void testJson5encodeStrings() {
+    //--- given
+    Map<String, Object> map = new HashMap<>();
+    map.put( "stringVal", "It's me in double quotes" );
+    map.put( "boolVal", true );
+
+    //--- when
+    String encoded = Jetson.toJson5Compact().encode( map );
+
+    //---
+    String expected = """
+        {boolVal:true,stringVal:"It's me in double quotes"}""";
+    assertEquals( expected, encoded );
+  }
+
   private static class Json5Entity {
     @Json
     public String unquoted = "and you can quote me on that";

@@ -1,3 +1,7 @@
+## 2.4.1+1
+
+* Fixed bug: string encode to JSON-5 containing a single quote is now enclosed in double quotes
+
 ## 2.4.1
 
 * Keys from maps and pojos are now sorted before encoding to ease testing and debugging

@@ -415,7 +415,9 @@ public class JsonEncoder {
       }
     }
     String s = builder.toString();
-    return _toJson5 ? "'" + s + "'" : "\"" + s + "\"";
+    //--- if s contains single quote then even JSON-5 must put the string in double quotes
+    return (s.contains( "'" ) || !_toJson5) ? "\"" + s + "\"" :
+        "'" + s + "'";
   }
 
   private String _encodeValueIndented( Object value ) {
