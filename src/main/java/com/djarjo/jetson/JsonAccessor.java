@@ -235,7 +235,7 @@ public record JsonAccessor(Class<?> clazz, JsonConfig config, Field field, Metho
       value = TextHelper.findEnum( value, (Class<? extends Enum>) getType(), null,
           getEnumAccessor() );
     } else {
-      value = BaseConverter.convertToType( value, getType() );
+      value = _convertValue( value );
     }
     try {
       if ( isField() ) {
@@ -247,6 +247,16 @@ public record JsonAccessor(Class<?> clazz, JsonConfig config, Field field, Metho
               InvocationTargetException e ) {
       throw new RuntimeException( e );
     }
+  }
+
+  private Object _convertValue( Object value ) {
+    if ( value == null ) return null;
+    Type targetType = getType();
+    Class<?> rawType = ReflectionHelper.getRawClass( targetType );
+
+    //--- If value already is of the right type (or a subclass), don't convert
+    return ((rawType != null) && rawType.isInstance( value )) ? value
+        : BaseConverter.convertToType( value, targetType );
   }
 
   private Object _useEnumAccessor( Enum<?> value ) {

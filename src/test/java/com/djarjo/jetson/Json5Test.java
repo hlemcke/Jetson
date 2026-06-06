@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class Jetson5Test {
+class Json5Test {
   static String commentJson = """
       // Start comment
       { name: 'comment test',
@@ -62,7 +62,7 @@ class Jetson5Test {
   TestData.PojoBasics entity = null;
 
   public static void main( String[] args ) throws IOException {
-    Jetson5Test cmd = new Jetson5Test();
+    Json5Test cmd = new Json5Test();
     // cmd.testJson5Comment();
     // cmd.testDecodeSingleEntity();
     // cmd.testJson5Decode();

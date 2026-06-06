@@ -1,3 +1,7 @@
+## 2.4.1+2
+
+* Enhanced decoding into sets. Now a collection type gets instantiated according with its generic
+
 ## 2.4.1+1
 
 * Fixed bug: string encode to JSON-5 containing a single quote is now enclosed in double quotes

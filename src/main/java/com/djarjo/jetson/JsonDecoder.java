@@ -207,9 +207,8 @@ public class JsonDecoder {
 
   /**
    * Decodes a JSON string starting with "[". Returns the given {@code target} or creates
-   * a new ArrayList filled with values from the JSON string until "]". Values in the
-   * JSON
-   * array must be basic types or {@code valueType} must be given.
+   * a new ArrayList filled with values from the JSON string until "]". Values in JSON
+   * list must be basic types or {@code valueType} must be given.
    *
    * @param target The target object for the values in the collection
    * @param valueType type of the values (required if not a basic type)
@@ -227,7 +226,7 @@ public class JsonDecoder {
     while ( true ) {
       Token token = _tokenizer.nextToken();
 
-      // --- Safely skip comma even if in front of bracket
+      // --- Safely skip comma even if in front of closing bracket
       if ( token.symbol == Symbol.COMMA ) token = _tokenizer.nextToken();
       if ( token.symbol == Symbol.RIGHT_BRACKET ) break;
       if ( token.symbol == Symbol.EOF ) {
@@ -256,7 +255,8 @@ public class JsonDecoder {
     // CASE B: Target/Type is a Collection
     Collection<Object> collectionTarget = (target instanceof Collection)
         ? (Collection<Object>) target
-        : new ArrayList<>();
+        : (valueType == null) ? new ArrayList<>()
+          : (Collection<Object>) ReflectionHelper.createInstance( valueType );
 
     if ( !_mergeCollections ) collectionTarget.clear();
     collectionTarget.addAll( tempValues );
