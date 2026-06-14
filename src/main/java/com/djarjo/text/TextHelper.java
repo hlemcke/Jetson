@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.*;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 /**
@@ -164,7 +165,7 @@ public class TextHelper {
    * @return Returns a new list with the new word
    */
   public static String addToCommaSeparatedList( String word, String list ) {
-    if ( list==null || list.length() < 3 ) {
+    if ( list == null || list.length() < 3 ) {
       return "," + word + ",";
     }
     int res = 0;
@@ -172,7 +173,7 @@ public class TextHelper {
     String[] entries = list.split( "," );
     for ( int i = 1; i < entries.length; i++ ) {
       res = word.compareTo( entries[i] );
-      if ( res==0 ) {
+      if ( res == 0 ) {
         return list;
       }
 
@@ -205,7 +206,7 @@ public class TextHelper {
    * {@code appendix} are <em>null</em>
    */
   public static String append( String source, String appendix ) {
-    if ( source==null ) {
+    if ( source == null ) {
       return appendix;
     }
     return source + appendix;
@@ -220,7 +221,7 @@ public class TextHelper {
    * null}
    */
   public static String cleanupString( String str ) {
-    if ( str==null ) {
+    if ( str == null ) {
       return null;
     }
     if ( str.isEmpty() ) {
@@ -239,7 +240,7 @@ public class TextHelper {
    * null}
    */
   public static String cleanupString( StringBuilder buf ) {
-    if ( buf==null ) {
+    if ( buf == null ) {
       return null;
     }
     int i;
@@ -294,7 +295,7 @@ public class TextHelper {
         distance[i][j] =
             minimum( distance[i - 1][j] + 1, distance[i][j - 1] + 1,
                 distance[i - 1][j - 1]
-                    + ((word1.charAt( i - 1 )==word2
+                    + ((word1.charAt( i - 1 ) == word2
                     .charAt( j - 1 )) ? 0 : 1) );
       }
     }
@@ -394,7 +395,7 @@ public class TextHelper {
     // --- 2. Remove all doubles except 'CC'
     c = metaphone.charAt( 0 );
     for ( i = 1; i < word.length(); i++ ) {
-      if ( c==metaphone.charAt( i ) ) {
+      if ( c == metaphone.charAt( i ) ) {
         metaphone.deleteCharAt( i );
         i--;
       } else {
@@ -410,8 +411,8 @@ public class TextHelper {
     }
 
     // --- 4. Remove B at the end if it is behind letter M
-    if ( (metaphone.charAt( metaphone.length() - 1 )=='B')
-        && (metaphone.charAt( metaphone.length() - 2 )=='M') ) {
+    if ( (metaphone.charAt( metaphone.length() - 1 ) == 'B')
+        && (metaphone.charAt( metaphone.length() - 2 ) == 'M') ) {
       metaphone.deleteCharAt( metaphone.length() - 1 );
     }
 
@@ -463,11 +464,11 @@ public class TextHelper {
         soundex.append( '2' );
       } else if ( "DT".indexOf( c ) >= 0 ) {
         soundex.append( '3' );
-      } else if ( c=='L' ) {
+      } else if ( c == 'L' ) {
         soundex.append( '4' );
       } else if ( "MN".indexOf( c ) >= 0 ) {
         soundex.append( '5' );
-      } else if ( c=='R' ) {
+      } else if ( c == 'R' ) {
         soundex.append( '6' );
       }
       if ( soundex.length() >= 4 ) {
@@ -601,7 +602,7 @@ public class TextHelper {
 
     // --- Remove lines starting with "# " or "-- "
     if ( (options & TextHelper.REMOVE_COMMENT_LINES) > 0 ) {
-      while ( buf.charAt( 0 )=='#'
+      while ( buf.charAt( 0 ) == '#'
           || buf.substring( 0, 3 )
           .equals( "-- " ) ) {
         j = buf.indexOf( "\n" );
@@ -672,7 +673,7 @@ public class TextHelper {
 
     // --- Remove empty lines
     if ( (options & TextHelper.REMOVE_EMPTYLINES) > 0 ) {
-      while ( buf.charAt( 0 )=='\n' ) {
+      while ( buf.charAt( 0 ) == '\n' ) {
         buf.deleteCharAt( 0 );
       }
       while ( (i = buf.indexOf( "\r\n\r\n" )) >= 0 ) {
@@ -730,7 +731,7 @@ public class TextHelper {
    */
   public static <E extends Enum<E>> E findEnum( Object input, Class<E> enumClass,
       E defaultEnum, String accessor ) {
-    if ( input==null ) {
+    if ( input == null ) {
       return defaultEnum;
     }
     if ( input instanceof Enum ) {
@@ -746,7 +747,7 @@ public class TextHelper {
     //--- determine accessor
     Field field = null;
     Method method = null;
-    if ( accessor!=null ) {
+    if ( accessor != null ) {
       try {
         field = enumClass.getDeclaredField( accessor );
         field.setAccessible( true );
@@ -772,12 +773,12 @@ public class TextHelper {
         if ( enumName.equals( search ) || enumName.equals( input ) ) {
           return enumValue;
         }
-        if ( field!=null ) {
+        if ( field != null ) {
           Object fieldValue = field.get( enumValue );
           if ( fieldValue.equals( input ) || fieldValue.equals( search ) ) {
             return enumValue;
           }
-        } else if ( method!=null ) {
+        } else if ( method != null ) {
           Object methodValue = method.invoke( enumValue, (Object[]) null );
           if ( methodValue.equals( input ) || methodValue.equals( search ) ) {
             return enumValue;
@@ -814,13 +815,13 @@ public class TextHelper {
 
     // --- Determine matching char
     c = text.charAt( start );
-    if ( c=='(' ) {
+    if ( c == '(' ) {
       match = ')';
-    } else if ( c=='[' ) {
+    } else if ( c == '[' ) {
       match = ']';
-    } else if ( c=='{' ) {
+    } else if ( c == '{' ) {
       match = '}';
-    } else if ( c=='<' ) {
+    } else if ( c == '<' ) {
       match = '>';
     } else {
       match = c;
@@ -829,14 +830,14 @@ public class TextHelper {
 
     // --- Scan string
     for ( i = start + 1; i < len; i++ ) {
-      if ( text.charAt( i )==match ) {
+      if ( text.charAt( i ) == match ) {
         depth--;
         if ( depth <= 0 ) {
           return i;
         }
-      } else if ( text.charAt( i )==c ) {
+      } else if ( text.charAt( i ) == c ) {
         // --- Its just the same char
-        if ( depth==0 ) {
+        if ( depth == 0 ) {
           return i;
         }
         // --- One more opening
@@ -868,10 +869,10 @@ public class TextHelper {
     if ( type < 0 || type > 4 ) {
       type = 1;
     }
-    String selectables = (type==0) ? Chars4Code.substring( 0, 26 )
-        : (type==1) ? Chars4Code.substring( 0, 36 )
-        : (type==2) ? Chars4Code.substring( 0, 62 )
-        : (type==3) ? Chars4Code : Chars4Password;
+    String selectables = (type == 0) ? Chars4Code.substring( 0, 26 )
+        : (type == 1) ? Chars4Code.substring( 0, 36 )
+          : (type == 2) ? Chars4Code.substring( 0, 62 )
+            : (type == 3) ? Chars4Code : Chars4Password;
     return generateRandomString( selectables, length );
   }
 
@@ -939,10 +940,10 @@ public class TextHelper {
       if ( Character.isLetterOrDigit( c ) ) {
         continue;
       }
-      if ( c=='_' ) {
+      if ( c == '_' ) {
         continue;
       }
-      if ( (includes!=null) && (includes.indexOf( c ) >= 0) ) {
+      if ( (includes != null) && (includes.indexOf( c ) >= 0) ) {
         continue;
       }
       break;
@@ -970,7 +971,7 @@ public class TextHelper {
         while ( i < str.length() ) {
           c = str.charAt( i++ );
           if ( Character.isLetter( c ) || Character.isDigit( c )
-              || (c=='_') || (c=='.') ) {
+              || (c == '_') || (c == '.') ) {
             name += c;
           } else {
             break;
@@ -992,14 +993,14 @@ public class TextHelper {
    * @return last word or text itself
    */
   public static String getLastWord( String text ) {
-    if ( text==null || text.isBlank() ) {
+    if ( text == null || text.isBlank() ) {
       return text;
     }
     // --- determine separation character
     String separationChar = text.contains( "." ) ? "."
         : text.contains( "/" ) ? "/"
-        : text.contains( "-" ) ? "-"
-        : text.contains( " " ) ? " " : "";
+          : text.contains( "-" ) ? "-"
+            : text.contains( " " ) ? " " : "";
     String[] parts = text.split( separationChar );
     return parts[parts.length - 1];
   }
@@ -1017,7 +1018,7 @@ public class TextHelper {
     int line = 1, lineStart = 0;
     int len = text.length();
     for ( int i = 0; i < offset && i < len; i++ ) {
-      if ( text.charAt( i )=='\n' ) {
+      if ( text.charAt( i ) == '\n' ) {
         line++;
         lineStart = i;
       }
@@ -1053,8 +1054,8 @@ public class TextHelper {
       ch = text.charAt( i );
       if ( Character.isDigit( ch ) ) {
         normalizedNbr.append( ch );
-      } else if ( Character.isWhitespace( ch ) || ch=='-'
-          || ch=='/' ) {
+      } else if ( Character.isWhitespace( ch ) || ch == '-'
+          || ch == '/' ) {
       } else {
         break;
       }
@@ -1091,7 +1092,7 @@ public class TextHelper {
    * @return {@code true} if contains only digits
    */
   public static boolean isDigitsOnly( String digits ) {
-    if ( (digits==null) || digits.isEmpty() ) {
+    if ( (digits == null) || digits.isEmpty() ) {
       return false;
     }
     for ( int i = 0; i < digits.length(); i++ ) {
@@ -1109,7 +1110,7 @@ public class TextHelper {
    * @return {@code false} if text contains any characters
    */
   public static boolean isEmpty( String text ) {
-    return (text==null) || text.isEmpty();
+    return (text == null) || text.isEmpty();
   }
 
   /**
@@ -1122,7 +1123,7 @@ public class TextHelper {
    * @return Returns <em>true</em> if the string means "false"
    */
   public static boolean isFalse( String booleanString ) {
-    return (booleanString!=null)
+    return (booleanString != null)
         && (booleanString.equalsIgnoreCase( "false" )
         || booleanString.equalsIgnoreCase( "no" )
         || booleanString.equals( "0" ));
@@ -1156,7 +1157,7 @@ public class TextHelper {
    * @return Returns true if the string means true
    */
   public static boolean isTrue( String booleanString ) {
-    return (booleanString!=null)
+    return (booleanString != null)
         && (booleanString.equalsIgnoreCase( "true" )
         || booleanString.equalsIgnoreCase( "yes" )
         || booleanString.equals( "1" ));
@@ -1203,11 +1204,11 @@ public class TextHelper {
    * @return a new BigDecmial or <em>null</em> if the text is not a number at all
    */
   public static BigDecimal parseBigDecimal( String text ) {
-    if ( text==null || text.isBlank() ) {
+    if ( text == null || text.isBlank() ) {
       return null;
     }
     text = parseNumber( text );
-    if ( text==null ) {
+    if ( text == null ) {
       return null;
     }
     return new BigDecimal( text );
@@ -1237,7 +1238,7 @@ public class TextHelper {
    */
   public static Byte parseByte( final String text ) {
     Long lval = parseLong( text );
-    if ( lval==null ) {
+    if ( lval == null ) {
       return null;
     }
     return lval.byteValue();
@@ -1315,6 +1316,31 @@ public class TextHelper {
     return d;
   }
 
+  public static Duration parseDuration( final String text ) {
+    if ( isEmpty( text ) ) return null;
+    String input = text.trim().toLowerCase();
+    if ( input.startsWith( "p" ) || input.startsWith( "+" ) || input.startsWith( "-" ) ) {
+      try {
+        return Duration.parse( input );
+      } catch ( DateTimeParseException e ) {
+        //--- continue below
+      }
+    }
+    //--- parse numbers like "30 min", "1 hour", "1h 20m"
+    int hours = 0;
+    var h = java.util.regex.Pattern.compile( "(\\d+)\\s*h" ).matcher( input );
+    if ( h.find() ) hours = Integer.parseInt( h.group( 1 ) ) * 60;
+
+    int minutes = 0;
+    var m = java.util.regex.Pattern.compile( "(\\d+)\\s*m" ).matcher( input );
+    if ( m.find() ) minutes = Integer.parseInt( m.group( 1 ) );
+
+    int seconds = 0;
+    var s = java.util.regex.Pattern.compile( "(\\d+)\\s*s" ).matcher( input );
+    if ( s.find() ) seconds = (Integer.parseInt( s.group( 1 ) ) > 0 ? 1 : 0);
+    return Duration.ofSeconds( hours * 3_600 + minutes * 60 + seconds );
+  }
+
   /**
    * Parses the given text for a float value.
    *
@@ -1322,16 +1348,13 @@ public class TextHelper {
    * @return Returns the float or <em>null</em> if the text is null or no float
    */
   public static Float parseFloat( final String text ) {
-    if ( isEmpty( text ) ) {
-      return null;
-    }
-    Float f = null;
+    if ( isEmpty( text ) ) return null;
     try {
-      f = Float.valueOf( text );
+      return Float.valueOf( text );
     } catch ( NumberFormatException e ) {
       // --- Just return null
     }
-    return f;
+    return null;
   }
 
   /**
@@ -1346,7 +1369,7 @@ public class TextHelper {
    */
   public static Long parseHex( final String text ) {
     final String hexChars = "0123456789abcdef";
-    if ( text==null ) {
+    if ( text == null ) {
       return null;
     }
     String byteString = text.stripLeading().toLowerCase();
@@ -1374,7 +1397,7 @@ public class TextHelper {
    */
   public static int parseInt( final String text ) {
     Integer i = parseInteger( text );
-    return (i==null) ? 0 : i;
+    return (i == null) ? 0 : i;
   }
 
   /**
@@ -1387,7 +1410,7 @@ public class TextHelper {
    */
   public static Integer parseInteger( final String text ) {
     Long lval = parseLong( text );
-    return (lval==null) ? null : lval.intValue();
+    return (lval == null) ? null : lval.intValue();
   }
 
   /**
@@ -1399,29 +1422,24 @@ public class TextHelper {
    * @return Return the value or <em>null</em> if the text does not have digits
    */
   public static Long parseLong( final String text ) {
-    if ( isEmpty( text ) ) {
-      return null;
-    }
+    if ( isEmpty( text ) ) return null;
     int sign = 1;
     long result = 0L;
     int i = skipSpace( text, 0 );
-    if ( i >= text.length() ) {
-      return null;
-    }
     char c = text.charAt( i );
-    if ( c=='-' ) {
+    if ( c == '-' ) {
       sign = -1;
       i++;
-      if ( i >= text.length() ) {
-        return null;
-      }
-      c = text.charAt( i );
+    } else if ( c == '+' ) {
+      i++;
     }
+    if ( i >= text.length() ) return null;
+    c = text.charAt( i );
     if ( !Character.isDigit( c ) ) {
       return null;
     }
     while ( true ) {
-      if ( c!='_' ) {
+      if ( c != '_' ) {
         if ( !Character.isDigit( c ) ) {
           break;
         }
@@ -1443,7 +1461,7 @@ public class TextHelper {
    * @return number as "[-]integer[.fraction]" or {@code null}
    */
   public static String parseNumber( final String text ) {
-    if ( text==null || text.isEmpty() ) {
+    if ( text == null || text.isEmpty() ) {
       return null;
     }
     int i = skipSpace( text, 0 );
@@ -1452,7 +1470,7 @@ public class TextHelper {
     }
 
     // --- Skip leading '+'
-    if ( text.charAt( i )=='+' ) {
+    if ( text.charAt( i ) == '+' ) {
       i++;
     }
     StringBuilder buf = new StringBuilder( text.substring( i ) );
@@ -1475,7 +1493,7 @@ public class TextHelper {
       }
 
       // --- Its a comma
-      else if ( c==',' ) {
+      else if ( c == ',' ) {
         lastSepPos = i;
         separators |= COMMA;
         commaCount++;
@@ -1483,7 +1501,7 @@ public class TextHelper {
       }
 
       // --- Its a dot
-      else if ( c=='.' ) {
+      else if ( c == '.' ) {
         lastSepPos = i;
         separators |= DOT;
         dotCount++;
@@ -1491,8 +1509,8 @@ public class TextHelper {
       }
 
       // --- Leading minus
-      else if ( c=='-' ) {
-        if ( i==0 ) {
+      else if ( c == '-' ) {
+        if ( i == 0 ) {
           continue;
         }
       }
@@ -1501,13 +1519,13 @@ public class TextHelper {
       buf.delete( i, buf.length() );
     }
 
-    if ( digitCount==0 ) {
+    if ( digitCount == 0 ) {
       return null;
     }
 
     // --- No separators at all => done
-    if ( separators==NONE ) {
-    } else if ( separators==BOTH ) {
+    if ( separators == NONE ) {
+    } else if ( separators == BOTH ) {
       parseNumberCleanup( buf, lastSepPos );
     }
 
@@ -1525,7 +1543,7 @@ public class TextHelper {
         int fractionDigits = buf.length() - lastSepPos;
 
         // --- If 3 fraction digits => interpret as thousands separator
-        if ( fractionDigits==4 ) {
+        if ( fractionDigits == 4 ) {
           parseNumberCleanup( buf, -1 );
         } else {
           parseNumberCleanup( buf, lastSepPos );
@@ -1569,7 +1587,7 @@ public class TextHelper {
    */
   public static Short parseShort( final String text ) {
     Long value = parseLong( text );
-    return (value==null) ? null : value.shortValue();
+    return (value == null) ? null : value.shortValue();
   }
 
   /**
@@ -1605,7 +1623,7 @@ public class TextHelper {
 
     //--- if its just an integer in minutes then it must be a multiple of 60 or 90
     Integer minutes = parseInteger( text );
-    if ( (minutes!=null) && ((minutes % 60==0) || (minutes % 90==0)) ) {
+    if ( (minutes != null) && ((minutes % 60 == 0) || (minutes % 90 == 0)) ) {
       return BaseConverter.toZoneIdFromMinutes( minutes );
     }
 
@@ -1629,10 +1647,10 @@ public class TextHelper {
    * @return uuid or {@code null}
    */
   public static UUID parseUuid( final String text ) {
-    if ( text==null || text.isBlank() ) return null;
+    if ( text == null || text.isBlank() ) return null;
 
     // --- UUID in string format
-    if ( text.length()==36 ) return UUID.fromString( text );
+    if ( text.length() == 36 ) return UUID.fromString( text );
 
     //--- UUID must be Base64 encoded
     byte[] bytes = Base64.getDecoder().decode( text );
@@ -1651,7 +1669,7 @@ public class TextHelper {
    */
   public static String removeFromCommaSeparatedList( String word,
       String list ) {
-    if ( (list==null) || (list.length() < 2) ) {
+    if ( (list == null) || (list.length() < 2) ) {
       return null;
     }
     int res = 0;
@@ -1659,7 +1677,7 @@ public class TextHelper {
     String[] words = list.split( "," );
     for ( int i = 1; i < words.length; i++ ) {
       res = word.compareTo( words[i] );
-      if ( res!=0 ) {
+      if ( res != 0 ) {
         newList.append( "," )
             .append( words[i] );
       }
@@ -1715,16 +1733,16 @@ public class TextHelper {
     StringBuilder line = new StringBuilder();
     List<String> lines = new ArrayList<>();
     for ( int i = 0; i < size; i++ ) {
-      if ( text.charAt( i )=='\\' ) {
+      if ( text.charAt( i ) == '\\' ) {
         backslashIndex = i;
-      } else if ( text.charAt( i )=='\r' ) {
+      } else if ( text.charAt( i ) == '\r' ) {
         microsoftDesignErrorIndex = i;
-      } else if ( text.charAt( i )=='\n' ) {
+      } else if ( text.charAt( i ) == '\n' ) {
         to = i;
-        if ( microsoftDesignErrorIndex==to - 1 ) {
+        if ( microsoftDesignErrorIndex == to - 1 ) {
           to--;
         }
-        if ( backslashIndex==to - 1 ) {
+        if ( backslashIndex == to - 1 ) {
           line.append( text, from, backslashIndex );
         } else {
           line.append( text, from, to );
@@ -1765,7 +1783,7 @@ public class TextHelper {
       }
       varname = buf.substring( i + 2, j );
       varvalue = props.getProperty( varname );
-      if ( varvalue==null ) {
+      if ( varvalue == null ) {
         throw new SyntaxException( "Variable '" + varname
             + "' does not exist in " + getLocation( text, i ) );
       }
@@ -1782,7 +1800,7 @@ public class TextHelper {
         }
         varname = buf.substring( i + 2, j );
         varvalue = props.getProperty( varname );
-        if ( varvalue==null ) {
+        if ( varvalue == null ) {
           throw new SyntaxException( "Variable '" + varname
               + "' does not exist in " + getLocation( text, i ) );
         }
@@ -1801,7 +1819,7 @@ public class TextHelper {
    * @return new string without leading and trailing blanks
    */
   public static String trim( String str ) {
-    if ( str==null ) {
+    if ( str == null ) {
       return null;
     }
     if ( str.isBlank() ) {
@@ -1811,17 +1829,17 @@ public class TextHelper {
 
     // ----- Find start of string
     for ( i = 0; i < len; i++ ) {
-      if ( str.charAt( i )!=' ' && str.charAt( i )!='\t' ) {
+      if ( str.charAt( i ) != ' ' && str.charAt( i ) != '\t' ) {
         break;
       }
     }
 
     // ----- Find end of string
     for ( j = len; j > i; j-- ) {
-      if ( str.charAt( j - 1 )!=0 && str.charAt( j - 1 )!=' '
-          && str.charAt( j - 1 )!='\n'
-          && str.charAt( j - 1 )!='\r'
-          && str.charAt( j - 1 )!='\t' ) {
+      if ( str.charAt( j - 1 ) != 0 && str.charAt( j - 1 ) != ' '
+          && str.charAt( j - 1 ) != '\n'
+          && str.charAt( j - 1 ) != '\r'
+          && str.charAt( j - 1 ) != '\t' ) {
         break;
       }
     }
