@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.time.*;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Static methods for text analysis, modification and parsing.
@@ -24,7 +25,7 @@ import java.util.*;
  * variables within text by values from properties</li>
  * </ul>
  *
- * @see com.djarjo.text.Tokenizer
+ * @see Tokenizer
  */
 public class TextHelper {
   /**
@@ -737,32 +738,51 @@ public class TextHelper {
     if ( input instanceof Enum ) {
       return (E) input;
     }
-    String search = null;
-    if ( input instanceof String s ) {
-      int idx = s.lastIndexOf( '.' );
-      search = (idx > 0) ? s.substring( 0, idx ) : s;
-      search = search.toUpperCase().trim().replaceAll( "-", "_" );
+
+    //--- accessor has highest priority if it exists
+    if ( TextHelper.isNotEmpty( accessor ) ) {
+      E result = findEnumByAccessor( input, enumClass, defaultEnum, accessor );
+      if ( result != null ) return result;
     }
 
+    //--- not found with accessor or no accessor
+    String search = input.toString();
+    int idx = search.lastIndexOf( '.' );
+    search = (idx > 0) ? search.substring( idx + 1 ) : search;
+    search = search.toUpperCase().trim().replaceAll( "-", "_" );
+
+    // --- find
+    for ( E enumValue : enumClass.getEnumConstants() ) {
+      String enumName = enumValue.name();
+      if ( enumName.equals( search ) || enumName.equals( input ) ) {
+        return enumValue;
+      }
+    }
+    return defaultEnum;
+  }
+
+  ///
+  /// Finds enum by given accessor
+  ///
+  public static <E extends Enum<E>> E findEnumByAccessor( Object input,
+      Class<E> enumClass, E defaultEnum, String accessor ) {
     //--- determine accessor
     Field field = null;
     Method method = null;
-    if ( accessor != null ) {
+    Object search = null;
+    try {
+      field = enumClass.getDeclaredField( accessor );
+      field.setAccessible( true );
+      search = BaseConverter.convertToType( input, field.getType() );
+    } catch ( NoSuchFieldException ignored ) {
+      //--- No field => lookup getter method
       try {
-        field = enumClass.getDeclaredField( accessor );
-        field.setAccessible( true );
-        input = BaseConverter.convertToType( input, field.getType() );
-      } catch ( NoSuchFieldException ignored ) {
-        //--- No field => lookup getter method
-        try {
-          method = enumClass.getMethod( accessor, (Class<?>[]) null );
-          method.setAccessible( true );
-          input = BaseConverter.convertToType( input, method.getReturnType() );
-        } catch ( NoSuchMethodException e ) {
-          logger.atFine().log( "Enum %s has no accessor: ", enumClass,
-              accessor );
-          return defaultEnum;
-        }
+        method = enumClass.getMethod( accessor, (Class<?>[]) null );
+        method.setAccessible( true );
+        search = BaseConverter.convertToType( input, method.getReturnType() );
+      } catch ( NoSuchMethodException e ) {
+        logger.atWarning().log( "Enum %s has no accessor: %s", enumClass, accessor );
+        return defaultEnum;
       }
     }
 
@@ -770,9 +790,6 @@ public class TextHelper {
     try {
       for ( E enumValue : enumClass.getEnumConstants() ) {
         String enumName = enumValue.name();
-        if ( enumName.equals( search ) || enumName.equals( input ) ) {
-          return enumValue;
-        }
         if ( field != null ) {
           Object fieldValue = field.get( enumValue );
           if ( fieldValue.equals( input ) || fieldValue.equals( search ) ) {
@@ -787,9 +804,9 @@ public class TextHelper {
       }
     } catch ( IllegalAccessException | IllegalArgumentException
               | InvocationTargetException | SecurityException e ) {
-      logger.atWarning().log( "Enum %s access error on %s", enumClass, accessor );
+      logger.atWarning().withCause( e ).log( "Enum %s access error on %s", enumClass, accessor );
     }
-    return defaultEnum;
+    return null;
   }
 
   /**
@@ -1104,13 +1121,23 @@ public class TextHelper {
   }
 
   /**
-   * Checks if text is either null or empty (length = 0).
+   * Checks if text is either {@code null} or empty (length = 0).
    *
-   * @param text text
+   * @param text string to check
    * @return {@code false} if text contains any characters
    */
   public static boolean isEmpty( String text ) {
     return (text == null) || text.isEmpty();
+  }
+
+  /**
+   * Checks if text is not {@code null} and not empty (length > 0).
+   *
+   * @param text string to check
+   * @return {@code true} if text contains any characters
+   */
+  public static boolean isNotEmpty( String text ) {
+    return !isEmpty( text );
   }
 
   /**
@@ -1328,15 +1355,15 @@ public class TextHelper {
     }
     //--- parse numbers like "30 min", "1 hour", "1h 20m"
     int hours = 0;
-    var h = java.util.regex.Pattern.compile( "(\\d+)\\s*h" ).matcher( input );
+    var h = Pattern.compile( "(\\d+)\\s*h" ).matcher( input );
     if ( h.find() ) hours = Integer.parseInt( h.group( 1 ) ) * 60;
 
     int minutes = 0;
-    var m = java.util.regex.Pattern.compile( "(\\d+)\\s*m" ).matcher( input );
+    var m = Pattern.compile( "(\\d+)\\s*m" ).matcher( input );
     if ( m.find() ) minutes = Integer.parseInt( m.group( 1 ) );
 
     int seconds = 0;
-    var s = java.util.regex.Pattern.compile( "(\\d+)\\s*s" ).matcher( input );
+    var s = Pattern.compile( "(\\d+)\\s*s" ).matcher( input );
     if ( s.find() ) seconds = (Integer.parseInt( s.group( 1 ) ) > 0 ? 1 : 0);
     return Duration.ofSeconds( hours * 3_600 + minutes * 60 + seconds );
   }

@@ -1,3 +1,7 @@
+## 2.4.1+3
+
+* Texthelper.findEnum now uses enumAccessor if set before any name comparisons
+
 ## 2.4.1+2
 
 * Enhanced decoding into sets. Now a collection type gets instantiated according with its generic
