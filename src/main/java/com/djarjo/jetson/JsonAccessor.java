@@ -240,6 +240,8 @@ public record JsonAccessor(Class<?> clazz, JsonConfig config, Field field, Metho
     try {
       if ( isField() ) {
         field.set( bean, value );
+      } else if ( setter == null ) {
+        logger.atWarning().log( "No setter for getter %s", getter.getName() );
       } else {
         setter.invoke( bean, value );
       }

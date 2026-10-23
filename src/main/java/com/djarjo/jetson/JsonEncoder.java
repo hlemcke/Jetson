@@ -272,17 +272,54 @@ public class JsonEncoder {
   /**
    * Encodes enumeration value.
    * <p>
-   * If the enumeration class is annotated with {@literal @Json} then this will be used.
-   * Otherwise, the enum value will be converted to its String representation.
+   * If the enumeration class is annotated with {@literal @Json} then this will be used
+   * in this order:
    * </p>
+   * <ol>
+   * <li>{@code converter} → its result is already JSON encoded</li>
+   * <li>method {@code toJson()} → result is encoded as JSON string</li>
+   * <li>{@code enumAccessor} → result of field or getter is encoded as JSON value</li>
+   * </ol>
+   * Otherwise, the enum value will be converted to its String representation.
    *
    * @param value enum item
    * @return encoded value
    */
+  @SuppressWarnings("unchecked")
   private String _encodeEnum( Enum<?> value ) {
-    List<JsonAccessor> accessors = JsonCache.getAccessors( value.getClass() );
-    return (accessors == null || accessors.isEmpty()) ? _encodeString( value.toString() )
-        : accessors.get( 0 ).getValue( value ).toString();
+    Class<?> enumClass = value.getDeclaringClass();
+    Json classAnno = enumClass.getAnnotation( Json.class );
+    if ( classAnno == null ) {
+      return _encodeString( value.toString() );
+    }
+
+    //--- converter
+    JsonConverter converter = Jetson.getConverter( classAnno );
+    if ( converter != null ) {
+      return converter.encodeToJson( value );
+    }
+
+    //--- method "toJson()"
+    Method toJson = ReflectionHelper.findMethod( enumClass, METHOD_TO_JSON );
+    if ( toJson != null ) {
+      try {
+        return _encodeString( (String) ReflectionHelper.getValueFromMember( value, toJson ) );
+      } catch ( IllegalAccessException | InvocationTargetException e ) {
+        logger.atWarning().withCause( e )
+            .log( "Cannot get value from 'toJson()' in %s", enumClass.getName() );
+        return _encodeString( value.toString() );
+      }
+    }
+
+    //--- enum accessor
+    JsonAccessor accessor = new JsonAccessor( enumClass,
+        JsonConfig.fromAnnotation( classAnno ), null, null, null );
+    if ( accessor.hasEnumAccessor() ) {
+      Object accessed = accessor.getValue( value );
+      return (accessed instanceof Enum<?>) ? _encodeString( accessed.toString() )
+          : _encodeValue( accessed );
+    }
+    return _encodeString( value.toString() );
   }
 
   /**

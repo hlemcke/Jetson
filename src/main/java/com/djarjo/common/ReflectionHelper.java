@@ -181,6 +181,17 @@ public class ReflectionHelper {
     return null;
   }
 
+  public static String getStaticStringField( Class<?> clazz, String fieldName ) {
+    Field f = findField( clazz, fieldName );
+    try {
+      f.setAccessible( true );
+      return (f == null) ? null : (String) f.get( null );
+    } catch ( IllegalAccessException e ) {
+      logger.atWarning().log( "Cannot access field %s#%s", clazz.getName(), fieldName );
+      throw new RuntimeException( e );
+    }
+  }
+
   /**
    * Gets value
    *

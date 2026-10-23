@@ -2,6 +2,7 @@ package com.djarjo.jetson;
 
 import com.djarjo.common.ReflectionHelper;
 import com.djarjo.jetson.converter.JsonConverter;
+import com.google.common.flogger.FluentLogger;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -15,8 +16,12 @@ import java.util.*;
  * If a class has no accessors, then it will still be put into the cache with an empty
  * list of accessors. This keeps the system from reparsing the class multiple times.
  * </p>
+ * <p>
+ * Each JSON name has exactly one accessor (see {@link #_removeDuplicates}).
+ * </p>
  */
 class JsonCache {
+  private final static FluentLogger logger = FluentLogger.forEnclosingClass();
   private final static Map<Class<?>, List<JsonAccessor>> _cache = new HashMap<>();
 
   /**
@@ -158,7 +163,59 @@ class JsonCache {
         accessors.add( accessor );
       }
     }
+    accessors = _removeDuplicates( clazz, accessors );
     accessors.sort( Comparator.comparing( a -> a.getJsonName() ) );
     return accessors;
+  }
+
+  /**
+   * Checks if member of {@code accessor} itself is annotated with {@literal @Json}.
+   * Members collected only because of the class level annotation are not explicit.
+   *
+   * @param accessor the accessor
+   * @return {@code true} if field or getter carries {@literal @Json}
+   */
+  private static boolean _isExplicit( JsonAccessor accessor ) {
+    return accessor.isField() ? accessor.field().isAnnotationPresent( Json.class )
+        : accessor.isMethod() && accessor.getter().isAnnotationPresent( Json.class );
+  }
+
+  /**
+   * Keeps one accessor per JSON name. Otherwise a name would be encoded multiple times,
+   * e.g. with {@code accessType = FIELD} an inherited field {@code id} plus its getter
+   * {@code @Json getId()}.
+   * <p>
+   * Rules:
+   * <ul><li>a member annotated with {@literal @Json} wins over a member collected only
+   *   because of the class level annotation</li>
+   *   <li>otherwise the first one found wins: fields before getters, fields of a
+   *   subclass before fields of its superclasses</li>
+   * </ul>
+   * </p>
+   *
+   * @param clazz class being scanned (for logging)
+   * @param accessors all accessors found
+   * @return accessors with unique JSON names
+   */
+  private static List<JsonAccessor> _removeDuplicates( Class<?> clazz,
+      List<JsonAccessor> accessors ) {
+    Map<String, JsonAccessor> byName = new LinkedHashMap<>();
+    for ( JsonAccessor accessor : accessors ) {
+      String name = accessor.getJsonName();
+      JsonAccessor existing = byName.get( name );
+      if ( existing == null ) {
+        byName.put( name, accessor );
+        continue;
+      }
+      boolean replace = !_isExplicit( existing ) && _isExplicit( accessor );
+      JsonAccessor kept = replace ? accessor : existing;
+      JsonAccessor dropped = replace ? existing : accessor;
+      logger.atFine().log( "Duplicate JSON name '%s' in %s: using %s, ignoring %s", name,
+          clazz.getSimpleName(), kept.getName(), dropped.getName() );
+      if ( replace ) {
+        byName.put( name, accessor );
+      }
+    }
+    return new ArrayList<>( byName.values() );
   }
 }

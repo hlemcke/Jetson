@@ -1,8 +1,12 @@
 # Jetson
 
-JSON codec designed similar to JPA.
+JSON high-performance codec designed similar to JPA.
 
-Jetson encodes and decodes all basic values, lists, sets, maps and all your classes.
+Jetson encodes and decodes all basic values, lists, sets, maps and all annotated classes.
+
+Jetson is a streaming encoder and decoder.
+It directly encodes class values into the resulting string and decodes the resulting
+string into a class hierarchy without any intermediate maps.
 
 The decoder automatically decodes both JSON and JSON5.
 To encode to JSON5 use `Jetson.toJson5().encode( myObject )`.
@@ -23,11 +27,11 @@ which can be applied on class, fields or getters.
 
 For encoding to JSON additional features can be applied:
 
-* .bytesToList() → encodes `byte[]` to a JSON list of ints instead of a string in Base64 format
-* .prettyPrint() → encodes to a pretty printed JSON string with indented entries
-* .skipEmpty() → skips empty values instead of encoding them
-* .skipNull() → skips `null` values instead of encoding them
-* .toJson5() → encodes to better human-readable JSON5 format. Decoding automatically detects the
+* .bytesToList () → encodes `byte[]` to a JSON list of ints instead of a string in Base64 format
+* .prettyPrint () → encodes to a pretty printed JSON string with indented entries
+* .skipEmpty () → skips empty values instead of encoding them
+* .skipNull () → skips `null` values instead of encoding them
+* .toJson5 () → encodes to better human-readable JSON5 format. Decoding automatically detects the
   JSON format and handles it.
 
 ## Example
@@ -57,7 +61,7 @@ Using `String json = Jetson.encode( new Pojo())` produces the following JSON tex
 {"code":4711,"key":"abc"}
 ```
 
-The text does not contain field `id`, because it is transient.
+The text does not contain field `id`, because it is annotated with `@JsonTransient`.
 
 And the best thing is ... a JSON text can be decoded directly back into an object.
 `Jetson.decodeIntoObject( "{'key':'def'}", new Pojo());` delivers:

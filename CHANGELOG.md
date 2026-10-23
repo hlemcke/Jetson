@@ -1,3 +1,9 @@
+## 2.4.1+4
+
+* Order of encoding implemented to remove doublettes if both field and getter are annotated.
+  Order is: direct annotation on field or getter has higher precedence than class annotation and
+  the first direct annotation wins
+
 ## 2.4.1+3
 
 * Texthelper.findEnum now uses enumAccessor if set before any name comparisons
@@ -40,11 +46,11 @@ String json = JsonEncoder.encoder().skipEmpty().skipNull().encode(object);
 
 ## 2.3.4+3
 
-* Added toURI() to list of base converters
+* Added toURI () to list of base converters
 
 ## 2.3.4+2
 
-* Added toInstant() to list of base converters
+* Added toInstant () to list of base converters
 
 ## 2.3.4+1
 

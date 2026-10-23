@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.text.ParseException;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -159,6 +160,21 @@ class JetsonDecoderTest {
   }
 
   @Test
+  void testDecodeMultipleValues() throws ParseException, IllegalAccessException {
+    //--- given
+    String when = "2026-10-20T10:43:21.905Z";
+    List<String> inputs = List.of( """
+        {"when": "2026-10-20T10:43:21.905Z" }""" );
+
+    //--- when / then
+    PojoWithMultipleTypes pojo = new PojoWithMultipleTypes();
+    Jetson.decodeIntoObject( inputs.get( 0 ), pojo );
+
+    //--- then
+    assertEquals( Instant.parse( when ), pojo.when );
+  }
+
+  @Test
   void test_getInstanceFromGeneric() throws IllegalAccessException,
       InstantiationException, IllegalArgumentException, InvocationTargetException,
       NoSuchMethodException, SecurityException {
@@ -262,5 +278,10 @@ class JetsonDecoderTest {
 
     //--- value must be kept across encoding and decoding
     public OffsetDateTime whenInserted;
+  }
+
+  private static class PojoWithMultipleTypes {
+    @Json
+    Instant when = null;
   }
 }
