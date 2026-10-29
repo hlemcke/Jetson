@@ -1,6 +1,7 @@
 package com.djarjo.text;
 
 import com.djarjo.common.BaseConverter;
+import com.djarjo.jetson.Json;
 import com.google.common.flogger.FluentLogger;
 
 import java.lang.reflect.Field;
@@ -739,7 +740,10 @@ public class TextHelper {
       return (E) input;
     }
 
-    //--- accessor has highest priority if it exists
+    //--- accessor has highest priority if it exists. Else from enum class
+    if ( TextHelper.isEmpty( accessor ) ) {
+      accessor = findEnumAccessor( enumClass );
+    }
     if ( TextHelper.isNotEmpty( accessor ) ) {
       E result = findEnumByAccessor( input, enumClass, defaultEnum, accessor );
       if ( result != null ) return result;
@@ -759,6 +763,18 @@ public class TextHelper {
       }
     }
     return defaultEnum;
+  }
+
+  ///
+  /// Returns `enumAccessor` of a [Json] annotation at `enumClass` or `null`
+  ///
+  public static String findEnumAccessor( Class<?> enumClass ) {
+    if ( enumClass == null ) return null;
+    Json anno = enumClass.getAnnotation( Json.class );
+    if ( (anno == null) || anno.enumAccessor().equals( Json.defaultName ) ) {
+      return null;
+    }
+    return anno.enumAccessor();
   }
 
   ///

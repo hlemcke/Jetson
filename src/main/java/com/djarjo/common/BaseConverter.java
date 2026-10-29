@@ -155,7 +155,13 @@ public class BaseConverter {
     }
 
     if ( ReflectionHelper.isEnum( type ) ) {
-      return convertToEnum( (Class<? extends Enum>) type, (String) value );
+      Class<? extends Enum> enumClass = (Class<? extends Enum>) type;
+      //--- Enum class with enumAccessor (e.g. int values) or non-string value
+      if ( (TextHelper.findEnumAccessor( enumClass ) != null)
+          || !(value instanceof String) ) {
+        return TextHelper.findEnum( value, (Class) enumClass, null, null );
+      }
+      return convertToEnum( enumClass, (String) value );
     }
 
     if ( ReflectionHelper.isList( type ) ) {

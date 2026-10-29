@@ -353,7 +353,8 @@ public class JsonDecoder {
     if ( (rawClass != null) && rawClass.isAnnotationPresent( Json.class ) ) {
       Object result = _handleClassAnnotation( rawClass, target );
       if ( result != NO_CONVERTER ) return result;
-      if ( target == null ) {
+      //--- Enums cannot be instantiated. Value is mapped by JsonAccessor.setValue
+      if ( (target == null) && !rawClass.isEnum() ) {
         if ( rawClass.isRecord() ) {
           throw new ParseException(
               "Record " + rawClass.getSimpleName() + " requires a 'static fromJson(String)' method " +
@@ -436,7 +437,8 @@ public class JsonDecoder {
             .log( "Cannot invoke %s.fromJson( %s )", clazz.getName(), token.value );
       }
     }
-    return null;
+    //--- No converter: value is decoded by caller (e.g. enum with enumAccessor)
+    return NO_CONVERTER;
   }
 
   /**

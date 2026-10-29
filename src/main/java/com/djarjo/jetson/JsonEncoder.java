@@ -537,7 +537,8 @@ public class JsonEncoder {
       builder.append( "\n" )
           .append( _indentation[_stack.size() - 1] );
     }
-    return ((builder.length() > 2) && (builder.charAt( 0 ) == ',')) ?
+    //--- Also a single element with one char like ",1" must be stripped
+    return ((builder.length() > 0) && (builder.charAt( 0 ) == ',')) ?
         builder.substring( 1 ) : builder.toString();
   }
 }

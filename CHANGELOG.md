@@ -1,3 +1,13 @@
+## 2.4.2
+
+* Fixed decoding into enums whose class is annotated with `@Json(enumAccessor = ...)`:
+  * enum class is no longer instantiated (`NoSuchMethodException ... <init>()`)
+  * `int` accessor values (e.g. `Priority` 0, 1, 2, 4, 8) are mapped, also in lists
+  * string accessor values no longer decode to `null`
+* `TextHelper.findEnum` uses `enumAccessor` of the enum class if no accessor is given
+* Fixed encoding of collections and arrays with exactly one single-char element
+  (was `[,1]`)
+
 ## 2.4.1+4
 
 * Order of encoding implemented to remove doublettes if both field and getter are annotated.
