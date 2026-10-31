@@ -1,3 +1,9 @@
+## 2.4.3
+
+* New `ReflectionHelper.findContainerElementAnnotation( AnnotatedType, Class )` and
+  `MemberAccessor.getAnnotatedType()` / `findContainerElementAnnotation( Class )` to read
+  annotations on type arguments like `List<@Valid X>` (Hibernate Validator HV000271)
+
 ## 2.4.2
 
 * Fixed decoding into enums whose class is annotated with `@Json(enumAccessor = ...)`:

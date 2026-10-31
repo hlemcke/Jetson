@@ -35,6 +35,32 @@ public record MemberAccessor(Field field, Method getter, Method setter) {
     return hasField() ? field.getAnnotations() : getter.getAnnotations();
   }
 
+  /**
+   * Gets annotated type of field, getter return type or setter parameter. Use this to obtain
+   * annotations on type arguments like {@code List<@Valid X>}.
+   *
+   * @return annotated type
+   */
+  public AnnotatedType getAnnotatedType() {
+    return hasField() ? field.getAnnotatedType()
+        : (getter != null) ? getter.getAnnotatedReturnType()
+          : setter.getAnnotatedParameterTypes()[0];
+  }
+
+  /**
+   * Finds annotation on a type argument or array component of this member, e.g.
+   * {@code List<@Valid X>}.
+   *
+   * @param annotationClass annotation to search for
+   * @param <A> type of annotation
+   * @return annotation or {@code null}
+   */
+  public <A extends Annotation> A findContainerElementAnnotation(
+      Class<A> annotationClass ) {
+    return ReflectionHelper.findContainerElementAnnotation( getAnnotatedType(),
+        annotationClass );
+  }
+
   public Member getMember() {
     return hasField() ? field : getter;
   }

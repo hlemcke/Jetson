@@ -2,6 +2,7 @@ package com.djarjo.common;
 
 import com.google.common.flogger.FluentLogger;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -152,6 +153,28 @@ public class ReflectionHelper {
     Method exact = findMethod( beanClass, propertyName );
     if ( exact != null && exact.getParameterCount() == 1 ) return exact;
     return findMethodWithPrefixes( methods, propertyName, SETTER_PREFIXES );
+  }
+
+  /**
+   * Finds an annotation on a type argument or on an array component type. Examples:
+   * {@code List<@Valid X>}, {@code Map<String, @Valid X>}, {@code @Valid X[]}.
+   *
+   * @param type annotated type of a field, getter or setter parameter
+   * @param annotationClass annotation to search for
+   * @param <A> type of annotation
+   * @return annotation of first type argument having it or {@code null}
+   */
+  public static <A extends Annotation> A findContainerElementAnnotation(
+      AnnotatedType type, Class<A> annotationClass ) {
+    if ( type instanceof AnnotatedParameterizedType apt ) {
+      for ( AnnotatedType arg : apt.getAnnotatedActualTypeArguments() ) {
+        A anno = arg.getAnnotation( annotationClass );
+        if ( anno != null ) return anno;
+      }
+    } else if ( type instanceof AnnotatedArrayType aat ) {
+      return aat.getAnnotatedGenericComponentType().getAnnotation( annotationClass );
+    }
+    return null;
   }
 
   public static Type getGenericInnerType( Type type ) {
